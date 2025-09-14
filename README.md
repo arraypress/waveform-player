@@ -1,4 +1,4 @@
-# WaveformPlayer
+# Waveform Player
 
 A lightweight, customizable audio player with waveform visualization. Under 6KB gzipped.
 
@@ -8,7 +8,7 @@ A lightweight, customizable audio player with waveform visualization. Under 6KB 
 
 ## Features
 
-- 🎨 **5 Visual Styles** - Bars, mirror, line, blocks, dots
+- 🎨 **6 Visual Styles** - Bars, mirror, line, blocks, dots
 - 🎯 **Tiny Footprint** - Under 6KB gzipped
 - ⚡ **Zero Dependencies** - Pure JavaScript
 - 🎭 **Fully Customizable** - Colors, sizes, styles
@@ -184,4 +184,4 @@ MIT © David Sherlock / ArrayPress
 
 ## Credits
 
-Created by [David Sherlock](https://github.com/arraypress) at [ArrayPress](https://arraypress.com)
+Created by [David Sherlock](https://github.com/arraypress)

@@ -151,7 +151,7 @@ function updateBuilder() {
     const buttonColorRgba = hexToRgba(buttonColor, buttonOpacity / 100);
 
     // Use custom URL if provided, otherwise use default
-    const audioUrl = customUrl || 'audio/Pluck_Small_Moments.mp3';
+    const audioUrl = customUrl || 'assets/audio/pluck-small-moments.mp3';
 
     // Check if we need to recreate (only if URL changed) or just update
     const needsRecreate = builderPlayer && builderPlayer.options.url !== audioUrl;
