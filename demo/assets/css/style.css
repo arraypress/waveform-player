@@ -1,12 +1,6 @@
 /* ========================================
-   RESET & ROOT VARIABLES
+   ROOT VARIABLES & RESET
    ======================================== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 :root {
     --bg: #0a0a0a;
     --bg-secondary: #111111;
@@ -20,12 +14,41 @@
     --max-width: 1200px;
 }
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
     overflow-x: hidden;
+}
+
+/* ========================================
+   TYPOGRAPHY
+   ======================================== */
+.gradient-text {
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ========================================
+   LAYOUT UTILITIES
+   ======================================== */
+.container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+section {
+    padding: 6rem 0;
 }
 
 /* ========================================
@@ -61,13 +84,17 @@ body {
 .logo-icon {
     width: 36px;
     height: 36px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-light));
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.2rem;
     color: white;
+}
+
+.logo-icon svg {
+    width: 100%;
+    height: 100%;
 }
 
 .nav-links {
@@ -140,12 +167,6 @@ body {
     right: 10%;
 }
 
-.container {
-    max-width: var(--max-width);
-    margin: 0 auto;
-    padding: 0 2rem;
-}
-
 .hero-badge {
     display: inline-block;
     padding: 0.25rem 1rem;
@@ -164,13 +185,6 @@ body {
     font-weight: 800;
     line-height: 1.1;
     margin-bottom: 1.5rem;
-}
-
-.gradient-text {
-    background: linear-gradient(135deg, var(--accent), var(--accent-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .hero-subtitle {
@@ -210,12 +224,8 @@ body {
 }
 
 /* ========================================
-   SECTION HEADERS
+   SECTION COMPONENTS
    ======================================== */
-section {
-    padding: 6rem 0;
-}
-
 .section-header {
     text-align: center;
     margin-bottom: 4rem;
@@ -247,25 +257,48 @@ section {
 }
 
 /* ========================================
-   QUICK START SECTION
+   CARDS & GRIDS
    ======================================== */
-.quick-start {
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.feature-card {
+    padding: 2rem;
     background: var(--bg-secondary);
-}
-
-.code-block {
-    background: #000;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
-    overflow-x: auto;
+    border-radius: 1rem;
+    transition: all 0.3s;
 }
 
-.code-block pre {
-    color: var(--success);
-    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-    font-size: 14px;
+.feature-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.feature-card h3 {
+    margin-bottom: 0.75rem;
+    font-size: 1.25rem;
+}
+
+.feature-card p {
+    color: var(--text-muted);
     line-height: 1.6;
 }
 
@@ -317,7 +350,6 @@ section {
    ======================================== */
 .playground {
     background: var(--bg);
-    padding: 6rem 0;
 }
 
 .playground-grid {
@@ -367,6 +399,7 @@ section {
     color: var(--accent);
 }
 
+/* Event Log */
 .event-log {
     margin-top: 1rem;
     padding: 1rem;
@@ -415,26 +448,10 @@ section {
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.code-snippet {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: var(--bg);
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    overflow: hidden;
-}
-
-.code-snippet pre {
-    margin: 0;
-    color: var(--success);
-    font-size: 0.875rem;
-}
-
 /* ========================================
    BUILDER SECTION
    ======================================== */
 .builder {
-    padding: 6rem 0;
     background: var(--bg-secondary);
 }
 
@@ -471,27 +488,76 @@ section {
     margin-bottom: 1rem;
 }
 
+/* ========================================
+   FORMS & INPUTS
+   ======================================== */
 .control-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 20px;
 }
 
 .control-group label {
     display: block;
-    margin-bottom: 0.5rem;
-    color: var(--text-muted);
-    font-size: 0.875rem;
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.5px;
 }
 
-.control-group select,
-.control-group input[type="range"] {
+input[type="text"],
+input[type="url"],
+input[type="range"],
+select {
     width: 100%;
-    background: var(--bg-secondary);
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+input[type="text"]:focus,
+input[type="url"]:focus,
+select:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+}
+
+input[type="text"]::placeholder,
+input[type="url"]::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+}
+
+select:hover {
+    background-color: rgba(255, 255, 255, 0.07);
+}
+
+input[type="color"] {
+    width: 50px;
+    height: 35px;
     border: 1px solid var(--border);
     border-radius: 6px;
-    padding: 0.5rem;
-    color: var(--text);
+    cursor: pointer;
+}
+
+small {
+    display: block;
+    margin-top: 4px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 11px;
 }
 
 .color-inputs {
@@ -500,83 +566,46 @@ section {
     align-items: center;
 }
 
-.color-inputs input[type="color"] {
-    width: 50px;
-    height: 35px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    cursor: pointer;
-}
-
 .color-inputs input[type="range"] {
     flex: 1;
 }
 
 /* ========================================
-   BPM SECTION
+   CODE BLOCKS
    ======================================== */
-.bpm-section {
-    background: var(--bg);
-    padding: 6rem 0;
-}
-
-.bpm-demo {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-/* ========================================
-   FEATURES SECTION
-   ======================================== */
-.features {
-    background: var(--bg);
-}
-
-.feature-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 2rem;
-    margin-top: 3rem;
-}
-
-.feature-card {
-    padding: 2rem;
-    background: var(--bg-secondary);
+.code-block {
+    background: #000;
     border: 1px solid var(--border);
-    border-radius: 1rem;
-    transition: all 0.3s;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    overflow-x: auto;
 }
 
-.feature-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-5px);
-}
-
-.feature-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-light));
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: white;
-}
-
-.feature-card h3 {
-    margin-bottom: 0.75rem;
-    font-size: 1.25rem;
-}
-
-.feature-card p {
-    color: var(--text-muted);
+.code-block pre,
+.code-snippet pre {
+    color: var(--success);
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
     line-height: 1.6;
+    margin: 0;
+}
+
+.code-snippet {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--bg);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.code-snippet pre {
+    font-size: 0.875rem;
 }
 
 /* ========================================
-   CONFIGURATION TABLE
+   TABLES
    ======================================== */
 .config-table {
     width: 100%;
@@ -613,7 +642,6 @@ section {
    FAQ SECTION
    ======================================== */
 .faq {
-    padding: 6rem 0;
     background: var(--bg);
 }
 
@@ -669,39 +697,8 @@ section {
 }
 
 /* ========================================
-   CTA SECTION
+   BUTTONS
    ======================================== */
-.cta {
-    padding: 6rem 0;
-    background: linear-gradient(135deg, var(--bg-secondary), rgba(168, 85, 247, 0.05));
-    text-align: center;
-}
-
-.cta-box {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 3rem;
-    border: 2px solid var(--accent);
-    border-radius: 1.5rem;
-}
-
-.cta-box h2 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-}
-
-.cta-box p {
-    font-size: 1.125rem;
-    color: var(--text-muted);
-    margin-bottom: 2rem;
-}
-
-.buttons {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-}
-
 .btn {
     padding: 0.875rem 2rem;
     border-radius: 50px;
@@ -736,6 +733,56 @@ section {
     color: var(--accent);
 }
 
+.buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* ========================================
+   SPECIFIC SECTIONS
+   ======================================== */
+.quick-start {
+    background: var(--bg-secondary);
+}
+
+.features {
+    background: var(--bg);
+}
+
+.bpm-demo {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ========================================
+   CTA SECTION
+   ======================================== */
+.cta {
+    padding: 6rem 0;
+    background: linear-gradient(135deg, var(--bg-secondary), rgba(168, 85, 247, 0.05));
+    text-align: center;
+}
+
+.cta-box {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 3rem;
+    border: 2px solid var(--accent);
+    border-radius: 1.5rem;
+}
+
+.cta-box h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.cta-box p {
+    font-size: 1.125rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
 /* ========================================
    FOOTER
    ======================================== */
@@ -749,83 +796,6 @@ section {
 .footer a {
     color: var(--accent);
     text-decoration: none;
-}
-
-/* Text inputs and URL input styling */
-input[type="text"],
-input[type="url"] {
-    width: 100%;
-    padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    color: #ffffff;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    outline: none;
-}
-
-input[type="text"]:focus,
-input[type="url"]:focus {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: #8b5cf6;
-    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
-}
-
-input[type="text"]::placeholder,
-input[type="url"]::placeholder {
-    color: rgba(255, 255, 255, 0.3);
-}
-
-/* Select dropdown styling */
-select {
-    width: 100%;
-    padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    color: #ffffff;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    outline: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 32px;
-}
-
-select:focus {
-    background-color: rgba(255, 255, 255, 0.08);
-    border-color: #8b5cf6;
-    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
-}
-
-select:hover {
-    background-color: rgba(255, 255, 255, 0.07);
-}
-
-/* Small text under inputs */
-small {
-    display: block;
-    margin-top: 4px;
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 11px;
-}
-
-/* Control group spacing */
-.control-group {
-    margin-bottom: 20px;
-}
-
-.control-group label {
-    display: block;
-    margin-bottom: 8px;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 /* ========================================
@@ -850,6 +820,10 @@ small {
 
     .playground-grid,
     .builder-container {
+        grid-template-columns: 1fr;
+    }
+
+    .faq-grid {
         grid-template-columns: 1fr;
     }
 }
