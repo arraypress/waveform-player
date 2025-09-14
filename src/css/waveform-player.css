@@ -84,7 +84,6 @@
     position: relative;
     min-height: 60px;
     cursor: pointer;
-    overflow: hidden;
     min-width: 0;
     width: 100%;
 }
@@ -95,6 +94,8 @@
     height: 100%;
     max-width: 100%;
     transition: opacity 0.3s ease;
+    position: relative;
+    z-index: 1;
 }
 
 /* Info section */
@@ -134,12 +135,22 @@
     flex-shrink: 0;
 }
 
-/* Loading state - simplified */
+/* BPM display */
+.waveform-bpm {
+    font-size: 11px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Loading state */
 .waveform-loading {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.1);
-    z-index: 1;
+    z-index: 10;
 }
 
 /* Error state */
@@ -150,7 +161,7 @@
     align-items: center;
     justify-content: center;
     background: rgba(0, 0, 0, 0.2);
-    z-index: 1;
+    z-index: 10;
 }
 
 .waveform-error-text {
@@ -160,7 +171,158 @@
     padding: 0 20px;
 }
 
-/* Minimal responsive */
+/* Markers container */
+.waveform-markers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Individual marker */
+.waveform-marker {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.5);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    pointer-events: all;
+    transition: all 0.2s;
+}
+
+.waveform-marker:hover {
+    width: 4px;
+    z-index: 20;
+}
+
+/* Marker tooltip */
+.waveform-marker-tooltip {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 1000;
+}
+
+.waveform-marker:hover .waveform-marker-tooltip {
+    opacity: 1;
+}
+
+/* Focus styles for accessibility */
+.waveform-btn:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.waveform-marker:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
+    width: 4px;
+}
+
+/* Playback speed control */
+.waveform-speed {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.speed-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 40px;
+}
+
+.speed-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.speed-value {
+    font-weight: 600;
+}
+
+.speed-menu {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: 4px;
+    background: rgba(0, 0, 0, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    padding: 4px;
+    z-index: 100;
+    min-width: 60px;
+}
+
+.speed-option {
+    display: block;
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    border-radius: 4px;
+}
+
+.speed-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.speed-option.active {
+    background: rgba(168, 85, 247, 0.2);
+    color: #a855f7;
+    font-weight: 600;
+}
+
+.waveform-player.waveform-focused {
+    outline: 2px solid rgba(168, 85, 247, 0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Remove focus outline when clicking, but keep for keyboard navigation */
+.waveform-player:focus {
+    outline: none;
+}
+
+/* Only show focus indicator when keyboard navigating (not clicking) */
+.waveform-player:focus-visible {
+    outline: 1px solid rgba(168, 85, 247, 0.3);
+    outline-offset: 1px;
+}
+
+/* Remove the class-based focus indicator since we're using :focus-visible */
+.waveform-player.waveform-focused {
+    outline: none;
+}
+
+/* Responsive adjustments */
 @media (max-width: 480px) {
     .waveform-btn {
         width: 32px;
@@ -171,10 +333,14 @@
     .waveform-container {
         min-height: 50px;
     }
-}
 
-/* Accessibility */
-.waveform-btn:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: 2px;
+    .waveform-info {
+        font-size: 12px;
+    }
+
+    .waveform-subtitle,
+    .waveform-time,
+    .waveform-bpm {
+        font-size: 10px;
+    }
 }

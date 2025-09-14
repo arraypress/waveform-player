@@ -3,7 +3,7 @@
  * @description Audio processing for WaveformPlayer
  */
 
-import { detectBPM } from './bpm.js';
+import {detectBPM} from './bpm.js';
 
 /**
  * Extract peaks from audio buffer for waveform visualization
@@ -50,31 +50,31 @@ export function extractPeaks(buffer, samples = 200) {
  * Generate waveform data from audio URL
  * @param {string} url - Audio URL
  * @param {number} samples - Number of samples
- * @param {boolean} [includeBPM=false] - Whether to detect BPM
+ * @param {boolean} [shouldDetectBPM=false] - Whether to detect BPM
  * @returns {Promise<{peaks: number[], bpm?: number}>} Waveform data
  */
-export async function generateWaveform(url, samples = 200, includeBPM = false) {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    const audioContext = new AudioContextClass();
-
+export async function generateWaveform(url, samples = 200, shouldDetectBPM = false) {  // Renamed parameter
     try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        const peaks = extractPeaks(audioBuffer, samples);
 
-        const result = { peaks };
-        if (includeBPM) {
-            result.bpm = detectBPM(audioBuffer);
+        let peaks = extractPeaks(audioBuffer, samples);
+
+        // Normalize peaks for consistent visualization
+        peaks = normalizePeaks(peaks);
+
+        let bpm = null;
+        if (shouldDetectBPM) {  // Use renamed parameter
+            bpm = await detectBPM(audioBuffer);  // Now this correctly calls the imported function
         }
 
-        return result;
-    } finally {
-        await audioContext.close();
+        audioContext.close();
+        return {peaks, bpm};
+    } catch (error) {
+        console.error('Failed to generate waveform:', error);
+        throw error;
     }
 }
 
@@ -91,4 +91,22 @@ export function generatePlaceholderWaveform(samples = 200) {
         data.push(Math.max(0.1, Math.min(1, base + variation)));
     }
     return data;
+}
+
+/**
+ * Normalize waveform peaks to ensure consistent visualization
+ * @param {number[]} peaks - Array of peak values (0-1 range)
+ * @param {number} [targetMax=0.95] - Target maximum peak value
+ * @returns {number[]} Normalized peak array
+ * @private
+ */
+function normalizePeaks(peaks, targetMax = 0.95) {
+    const maxPeak = Math.max(...peaks);
+
+    // Don't normalize if already loud enough or silent
+    if (maxPeak === 0 || maxPeak > targetMax) return peaks;
+
+    // Scale all peaks proportionally
+    const scaleFactor = targetMax / maxPeak;
+    return peaks.map(peak => peak * scaleFactor);
 }

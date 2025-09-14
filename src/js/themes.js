@@ -37,6 +37,14 @@ export const DEFAULT_OPTIONS = {
     url: '',
     height: 60,
     samples: 200,
+    preload: 'metadata',
+
+    // Playback
+    playbackRate: 1,
+    showPlaybackSpeed: false,
+    playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2], // Available speeds
+
+
 
     // Default waveform style
     waveformStyle: 'mirror',
@@ -63,10 +71,17 @@ export const DEFAULT_OPTIONS = {
     showBPM: false,
     singlePlay: true,
     playOnSeek: true,
+    enableMediaSession: true,
+
+    // Markers
+    markers: [],
+    showMarkers: true,
 
     // Content
     title: null,
     subtitle: null,
+    artwork: null,
+    album: '',
 
     // Icons (SVG)
     playIcon: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>',

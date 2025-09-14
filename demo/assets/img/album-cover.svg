@@ -1,0 +1,34 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Bright gradient background -->
+    <defs>
+        <linearGradient id="brightGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#e0e7ff;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#c7d2fe;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+
+    <!-- Light background -->
+    <rect width="200" height="200" fill="url(#brightGradient)"/>
+
+    <!-- Bold geometric design -->
+    <g transform="translate(100, 100)">
+        <!-- Solid circle background -->
+        <circle r="50" fill="url(#purpleGradient)" opacity="0.1"/>
+
+        <!-- Bold waveform bars -->
+        <rect x="-30" y="-15" width="6" height="30" fill="#8b5cf6" rx="3"/>
+        <rect x="-18" y="-25" width="6" height="50" fill="#a855f7" rx="3"/>
+        <rect x="-6" y="-35" width="6" height="70" fill="#8b5cf6" rx="3"/>
+        <rect x="6" y="-30" width="6" height="60" fill="#a855f7" rx="3"/>
+        <rect x="18" y="-20" width="6" height="40" fill="#8b5cf6" rx="3"/>
+        <rect x="30" y="-10" width="6" height="20" fill="#a855f7" rx="3"/>
+    </g>
+
+    <!-- Corner dots for visual interest -->
+    <circle cx="30" cy="30" r="4" fill="#8b5cf6" opacity="0.3"/>
+    <circle cx="170" cy="170" r="4" fill="#ec4899" opacity="0.3"/>
+</svg>

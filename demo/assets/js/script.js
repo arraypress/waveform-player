@@ -35,6 +35,91 @@ function controlledVolume(vol) {
     }
 }
 
+async function switchTrack(url, title, subtitle, button) {
+    const player = WaveformPlayer.getInstance('switcher-player');
+    if (!player) return;
+
+    // Update active button
+    document.querySelectorAll('.track-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    button.classList.add('active');
+
+    // Get markers from button data attribute
+    let markers = [];
+    if (button.dataset.markers) {
+        try {
+            markers = JSON.parse(button.dataset.markers);
+        } catch (e) {
+            console.warn('Invalid markers data');
+        }
+    }
+
+    try {
+        // Load with aggressive preloading for demo
+        await player.loadTrack(url, title, subtitle, {
+            markers,
+            preload: 'auto' // Only for demo - instant switching
+        });
+    } catch (error) {
+        console.error('Failed to load track:', error);
+        button.classList.remove('active');
+        document.querySelector('.track-btn').classList.add('active');
+    }
+}
+
+// Timestamp navigation
+function seekToTime(seconds, label, event) {
+    event.preventDefault();
+
+    const player = WaveformPlayer.getInstance('timestamp-player');
+    if (!player) return;
+
+    // Seek to the time
+    player.seekTo(seconds);
+
+    // Start playing if not already
+    if (!player.isPlaying) {
+        player.play();
+    }
+
+    // Update active timestamp if we have a label
+    if (label) {
+        document.querySelectorAll('.timestamp-link').forEach(link => {
+            link.classList.remove('active');
+            if (link.textContent.includes(label)) {
+                link.classList.add('active');
+            }
+        });
+    }
+}
+
+// You could also auto-update active timestamp based on playback position
+function initTimestampTracking() {
+    const player = WaveformPlayer.getInstance('timestamp-player');
+    if (!player) return;
+
+    // Update active timestamp during playback
+    player.options.onTimeUpdate = (current, total) => {
+        const timestamps = [0, 3, 6, 9];
+        let activeIndex = 0;
+
+        for (let i = timestamps.length - 1; i >= 0; i--) {
+            if (current >= timestamps[i]) {
+                activeIndex = i;
+                break;
+            }
+        }
+
+        document.querySelectorAll('.timestamp-link').forEach((link, index) => {
+            link.classList.toggle('active', index === activeIndex);
+        });
+    };
+}
+
+// Call this after page loads
+// initTimestampTracking();
+
 // Event Tracking
 let playCount = 0;
 let totalPlayTime = 0;
@@ -288,10 +373,33 @@ function copyWaveformData(event) {
     });
 }
 
+// Playback speed control
+function setPlayerSpeed(playerId, speed) {
+    // Find the player by checking the container
+    const container = document.querySelector('[data-title="Podcast: Tech Talk Episode 42"]').closest('.waveform-player');
+    const player = WaveformPlayer.getAllInstances().find(p => p.container === container);
+
+    if (player) {
+        player.setPlaybackRate(speed);
+
+        // Update button states
+        document.querySelectorAll('.speed-presets .control-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.textContent.includes(speed + 'x') ||
+                (speed === 1 && btn.textContent.includes('Normal'))) {
+                btn.classList.add('active');
+            }
+        });
+    }
+}
+
 // Initialize everything on page load
 document.addEventListener('DOMContentLoaded', function() {
     // Setup event tracking for the event player
     setupEventTracking();
+
+    // Initialize timestamp tracking for the timestamp player
+    initTimestampTracking();
 
     // Initialize builder after a short delay to ensure all players are loaded
     setTimeout(updateBuilder, 1000);

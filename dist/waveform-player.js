@@ -5,6 +5,9 @@
     if (element.dataset.url) options.url = element.dataset.url;
     if (element.dataset.height) options.height = parseInt(element.dataset.height);
     if (element.dataset.samples) options.samples = parseInt(element.dataset.samples);
+    if (element.dataset.preload) {
+      options.preload = element.dataset.preload;
+    }
     if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
     if (element.dataset.barWidth) options.barWidth = parseInt(element.dataset.barWidth);
     if (element.dataset.barSpacing) options.barSpacing = parseInt(element.dataset.barSpacing);
@@ -27,7 +30,32 @@
     if (element.dataset.playOnSeek) options.playOnSeek = element.dataset.playOnSeek === "true";
     if (element.dataset.title) options.title = element.dataset.title;
     if (element.dataset.subtitle) options.subtitle = element.dataset.subtitle;
+    if (element.dataset.album) options.album = element.dataset.album;
+    if (element.dataset.artwork) options.artwork = element.dataset.artwork;
     if (element.dataset.waveform) options.waveform = element.dataset.waveform;
+    if (element.dataset.markers) {
+      try {
+        options.markers = JSON.parse(element.dataset.markers);
+      } catch (e) {
+        console.warn("Invalid markers JSON:", e);
+      }
+    }
+    if (element.dataset.playbackRate) {
+      options.playbackRate = parseFloat(element.dataset.playbackRate);
+    }
+    if (element.dataset.showPlaybackSpeed !== void 0) {
+      options.showPlaybackSpeed = element.dataset.showPlaybackSpeed === "true";
+    }
+    if (element.dataset.playbackRates) {
+      try {
+        options.playbackRates = JSON.parse(element.dataset.playbackRates);
+      } catch (e) {
+        console.warn("Invalid playbackRates JSON:", e);
+      }
+    }
+    if (element.dataset.enableMediaSession !== void 0) {
+      options.enableMediaSession = element.dataset.enableMediaSession === "true";
+    }
     return options;
   }
   function formatTime(seconds) {
@@ -439,24 +467,23 @@
     const maxPeak = Math.max(...peaks);
     return maxPeak > 0 ? peaks.map((peak) => peak / maxPeak) : peaks;
   }
-  async function generateWaveform(url, samples = 200, includeBPM = false) {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const arrayBuffer = await response.arrayBuffer();
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    const audioContext = new AudioContextClass();
+  async function generateWaveform(url, samples = 200, shouldDetectBPM = false) {
     try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const response = await fetch(url);
+      const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      const peaks = extractPeaks(audioBuffer, samples);
-      const result = { peaks };
-      if (includeBPM) {
-        result.bpm = detectBPM(audioBuffer);
+      let peaks = extractPeaks(audioBuffer, samples);
+      peaks = normalizePeaks(peaks);
+      let bpm = null;
+      if (shouldDetectBPM) {
+        bpm = await detectBPM(audioBuffer);
       }
-      return result;
-    } finally {
-      await audioContext.close();
+      audioContext.close();
+      return { peaks, bpm };
+    } catch (error) {
+      console.error("Failed to generate waveform:", error);
+      throw error;
     }
   }
   function generatePlaceholderWaveform(samples = 200) {
@@ -468,6 +495,12 @@
     }
     return data;
   }
+  function normalizePeaks(peaks, targetMax = 0.95) {
+    const maxPeak = Math.max(...peaks);
+    if (maxPeak === 0 || maxPeak > targetMax) return peaks;
+    const scaleFactor = targetMax / maxPeak;
+    return peaks.map((peak) => peak * scaleFactor);
+  }
 
   // src/js/themes.js
   var DEFAULT_OPTIONS = {
@@ -475,6 +508,12 @@
     url: "",
     height: 60,
     samples: 200,
+    preload: "metadata",
+    // Playback
+    playbackRate: 1,
+    showPlaybackSpeed: false,
+    playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+    // Available speeds
     // Default waveform style
     waveformStyle: "mirror",
     barWidth: 2,
@@ -497,9 +536,15 @@
     showBPM: false,
     singlePlay: true,
     playOnSeek: true,
+    enableMediaSession: true,
+    // Markers
+    markers: [],
+    showMarkers: true,
     // Content
     title: null,
     subtitle: null,
+    artwork: null,
+    album: "",
     // Icons (SVG)
     playIcon: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>',
     pauseIcon: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>',
@@ -566,6 +611,9 @@
       _WaveformPlayer.instances.set(this.id, this);
       this.init();
     }
+    // ============================================
+    // Initialization
+    // ============================================
     /**
      * Initialize the player
      * @private
@@ -573,6 +621,8 @@
     init() {
       this.createDOM();
       this.createAudio();
+      this.initPlaybackSpeed();
+      this.initKeyboardControls();
       this.bindEvents();
       this.setupResizeObserver();
       requestAnimationFrame(() => {
@@ -596,58 +646,84 @@
       this.container.innerHTML = "";
       this.container.className = "waveform-player";
       this.container.innerHTML = `
-      <div class="waveform-player-inner">
-        <div class="waveform-body">
-          <div class="waveform-track">
-            <button class="waveform-btn" aria-label="Play/Pause" style="
-                border-color: ${this.options.buttonColor};
-                color: ${this.options.buttonColor};
-            ">
-              <span class="waveform-icon-play">${this.options.playIcon}</span>
-              <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
-            </button>
-            
-            <div class="waveform-container">
-              <canvas></canvas>
-              <div class="waveform-loading" style="display:none;"></div>
-              <div class="waveform-error" style="display:none;">
-                <span class="waveform-error-text">Unable to load audio</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="waveform-info">
-            <div class="waveform-text">
-              <span class="waveform-title" style="color: ${this.options.textColor};"></span>
-              ${this.options.subtitle ? `<span class="waveform-subtitle" style="color: ${this.options.textSecondaryColor};">${this.options.subtitle}</span>` : ""}
-            </div>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-              ${this.options.showBPM ? `
-                <span class="waveform-bpm" style="color: ${this.options.textSecondaryColor}; display: none;">
-                  <span class="bpm-value">--</span> BPM
-                </span>
-              ` : ""}
-              ${this.options.showTime ? `
-                <span class="waveform-time" style="color: ${this.options.textSecondaryColor};">
-                  <span class="time-current">0:00</span> / <span class="time-total">0:00</span>
-                </span>
-              ` : ""}
-            </div>
+  <div class="waveform-player-inner">
+    <div class="waveform-body">
+      <div class="waveform-track">
+        <button class="waveform-btn" aria-label="Play/Pause" style="
+            border-color: ${this.options.buttonColor};
+            color: ${this.options.buttonColor};
+        ">
+          <span class="waveform-icon-play">${this.options.playIcon}</span>
+          <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
+        </button>
+        
+        <div class="waveform-container">
+          <canvas></canvas>
+          <div class="waveform-markers"></div>
+          <div class="waveform-loading" style="display:none;"></div>
+          <div class="waveform-error" style="display:none;">
+            <span class="waveform-error-text">Unable to load audio</span>
           </div>
         </div>
       </div>
-    `;
+      
+      <div class="waveform-info">
+        ${this.options.artwork ? `
+          <img class="waveform-artwork" src="${this.options.artwork}" alt="Album artwork" style="
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            object-fit: cover;
+            flex-shrink: 0;
+          ">
+        ` : ""}
+        <div class="waveform-text">
+          <span class="waveform-title" style="color: ${this.options.textColor};"></span>
+          ${this.options.subtitle ? `<span class="waveform-subtitle" style="color: ${this.options.textSecondaryColor};">${this.options.subtitle}</span>` : ""}
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          ${this.options.showBPM ? `
+            <span class="waveform-bpm" style="color: ${this.options.textSecondaryColor}; display: none;">
+              <span class="bpm-value">--</span> BPM
+            </span>
+          ` : ""}
+          ${this.options.showPlaybackSpeed ? `
+            <div class="waveform-speed">
+              <button class="speed-btn" aria-label="Playback speed">
+                <span class="speed-value">1x</span>
+              </button>
+              <div class="speed-menu" style="display: none;">
+                ${this.options.playbackRates.map(
+        (rate) => `<button class="speed-option" data-rate="${rate}">${rate}x</button>`
+      ).join("")}
+              </div>
+            </div>
+          ` : ""}
+          ${this.options.showTime ? `
+            <span class="waveform-time" style="color: ${this.options.textSecondaryColor};">
+              <span class="time-current">0:00</span> / <span class="time-total">0:00</span>
+            </span>
+          ` : ""}
+        </div>
+      </div>
+    </div>
+  </div>
+`;
       this.playBtn = this.container.querySelector(".waveform-btn");
       this.canvas = this.container.querySelector("canvas");
       this.ctx = this.canvas.getContext("2d");
       this.titleEl = this.container.querySelector(".waveform-title");
       this.subtitleEl = this.container.querySelector(".waveform-subtitle");
+      this.artworkEl = this.container.querySelector(".waveform-artwork");
       this.currentTimeEl = this.container.querySelector(".time-current");
       this.totalTimeEl = this.container.querySelector(".time-total");
       this.bpmEl = this.container.querySelector(".waveform-bpm");
       this.bpmValueEl = this.container.querySelector(".bpm-value");
       this.loadingEl = this.container.querySelector(".waveform-loading");
       this.errorEl = this.container.querySelector(".waveform-error");
+      this.markersContainer = this.container.querySelector(".waveform-markers");
+      this.speedBtn = this.container.querySelector(".speed-btn");
+      this.speedMenu = this.container.querySelector(".speed-menu");
       this.resizeCanvas();
     }
     /**
@@ -656,9 +732,119 @@
      */
     createAudio() {
       this.audio = new Audio();
-      this.audio.preload = "metadata";
+      this.audio.preload = this.options.preload || "metadata";
       this.audio.crossOrigin = "anonymous";
     }
+    // ============================================
+    // Feature Initialization
+    // ============================================
+    /**
+     * Initialize playback speed controls
+     * @private
+     */
+    initPlaybackSpeed() {
+      if (this.options.playbackRate && this.options.playbackRate !== 1) {
+        this.audio.playbackRate = this.options.playbackRate;
+      }
+      if (this.options.showPlaybackSpeed) {
+        this.initSpeedControls();
+      }
+    }
+    /**
+     * Initialize speed control UI
+     * @private
+     */
+    initSpeedControls() {
+      const speedBtn = this.container.querySelector(".speed-btn");
+      const speedMenu = this.container.querySelector(".speed-menu");
+      if (!speedBtn || !speedMenu) return;
+      speedBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        speedMenu.style.display = speedMenu.style.display === "none" ? "block" : "none";
+      });
+      document.addEventListener("click", () => {
+        speedMenu.style.display = "none";
+      });
+      speedMenu.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (e.target.classList.contains("speed-option")) {
+          const rate = parseFloat(e.target.dataset.rate);
+          this.setPlaybackRate(rate);
+          speedMenu.style.display = "none";
+        }
+      });
+      this.updateSpeedUI();
+    }
+    /**
+     * Initialize keyboard controls
+     * @private
+     */
+    initKeyboardControls() {
+      this.container.setAttribute("tabindex", "-1");
+      this.container.addEventListener("click", () => {
+        _WaveformPlayer.getAllInstances().forEach((player) => {
+          if (player !== this) {
+            player.container.setAttribute("tabindex", "-1");
+          }
+        });
+        this.container.setAttribute("tabindex", "0");
+        this.container.focus();
+      });
+      this.container.addEventListener("keydown", (e) => {
+        if (document.activeElement !== this.container) return;
+        const key = e.key;
+        const currentTime = this.audio.currentTime;
+        if (key >= "0" && key <= "9") {
+          e.preventDefault();
+          this.seekToPercent(parseInt(key) / 10);
+          return;
+        }
+        const actions = {
+          " ": () => this.togglePlay(),
+          "ArrowLeft": () => this.seekTo(Math.max(0, currentTime - 5)),
+          "ArrowRight": () => this.seekTo(Math.min(this.audio.duration, currentTime + 5)),
+          "ArrowUp": () => this.setVolume(Math.min(1, this.audio.volume + 0.1)),
+          "ArrowDown": () => this.setVolume(Math.max(0, this.audio.volume - 0.1)),
+          "m": () => this.audio.muted = !this.audio.muted,
+          "M": () => this.audio.muted = !this.audio.muted
+        };
+        if (actions[key]) {
+          e.preventDefault();
+          actions[key]();
+        }
+      });
+    }
+    /**
+     * Initialize Media Session API for system media controls
+     * @private
+     */
+    initMediaSession() {
+      if (!("mediaSession" in navigator) || !this.options.enableMediaSession) return;
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: this.options.title || "Unknown Track",
+        artist: this.options.subtitle || "",
+        album: this.options.album || "",
+        artwork: this.options.artwork ? [
+          { src: this.options.artwork, sizes: "512x512", type: "image/jpeg" }
+        ] : []
+      });
+      navigator.mediaSession.setActionHandler("play", () => this.play());
+      navigator.mediaSession.setActionHandler("pause", () => this.pause());
+      navigator.mediaSession.setActionHandler("seekbackward", () => {
+        this.seekTo(Math.max(0, this.audio.currentTime - 10));
+      });
+      navigator.mediaSession.setActionHandler("seekforward", () => {
+        this.seekTo(Math.min(this.audio.duration, this.audio.currentTime + 10));
+      });
+      navigator.mediaSession.setActionHandler("seekto", (details) => {
+        if (details.seekTime !== null) {
+          this.seekTo(details.seekTime);
+        }
+      });
+    }
+    // ============================================
+    // Event Binding
+    // ============================================
     /**
      * Bind event listeners
      * @private
@@ -689,6 +875,9 @@
         }
       }
     }
+    // ============================================
+    // Audio Loading
+    // ============================================
     /**
      * Load audio file
      * @param {string} url - Audio URL
@@ -734,6 +923,8 @@
           }
         }
         this.drawWaveform();
+        this.renderMarkers();
+        this.initMediaSession();
         if (this.options.onLoad) {
           this.options.onLoad(this);
         }
@@ -744,6 +935,61 @@
         this.setLoading(false);
       }
     }
+    /**
+     * Load a new track
+     * @param {string} url - Audio URL
+     * @param {string} [title] - Track title
+     * @param {string} [subtitle] - Track subtitle
+     * @param {Object} [options] - Additional options
+     * @returns {Promise<void>}
+     */
+    async loadTrack(url, title = null, subtitle = null, options = {}) {
+      if (this.isPlaying) {
+        this.pause();
+      }
+      this.audio.src = "";
+      this.audio.load();
+      this.hasError = false;
+      if (this.errorEl) {
+        this.errorEl.style.display = "none";
+      }
+      if (this.canvas) {
+        this.canvas.style.opacity = "1";
+      }
+      if (this.playBtn) {
+        this.playBtn.disabled = false;
+      }
+      this.progress = 0;
+      this.waveformData = [];
+      this.options = mergeOptions(this.options, {
+        url,
+        title: title || this.options.title,
+        subtitle: subtitle || this.options.subtitle,
+        ...options
+      });
+      if (options.preload) {
+        this.audio.preload = options.preload;
+      }
+      if (this.subtitleEl) {
+        if (subtitle) {
+          this.subtitleEl.textContent = subtitle;
+          this.subtitleEl.style.display = "";
+        } else if (subtitle === "") {
+          this.subtitleEl.style.display = "none";
+        }
+      }
+      if (options.artwork && this.artworkEl) {
+        this.artworkEl.src = options.artwork;
+      }
+      if (options.markers) {
+        this.options.markers = options.markers;
+      }
+      await this.load(url);
+      this.play();
+    }
+    // ============================================
+    // Visualization
+    // ============================================
     /**
      * Set waveform data
      * @private
@@ -788,6 +1034,41 @@
       this.drawWaveform();
     }
     /**
+     * Render markers on the waveform
+     * @private
+     */
+    renderMarkers() {
+      if (!this.options.showMarkers || !this.options.markers?.length || !this.markersContainer) return;
+      this.markersContainer.innerHTML = "";
+      if (!this.audio || !this.audio.duration || this.audio.duration === 0) {
+        return;
+      }
+      this.options.markers.forEach((marker, index) => {
+        const position = marker.time / this.audio.duration * 100;
+        const markerEl = document.createElement("button");
+        markerEl.className = "waveform-marker";
+        markerEl.style.left = `${position}%`;
+        markerEl.style.backgroundColor = marker.color || "rgba(255, 255, 255, 0.5)";
+        markerEl.setAttribute("aria-label", marker.label);
+        markerEl.setAttribute("data-time", marker.time);
+        const tooltip = document.createElement("span");
+        tooltip.className = "waveform-marker-tooltip";
+        tooltip.textContent = marker.label;
+        markerEl.appendChild(tooltip);
+        markerEl.addEventListener("click", (e) => {
+          e.stopPropagation();
+          this.seekTo(marker.time);
+          if (this.options.playOnSeek && !this.isPlaying) {
+            this.play();
+          }
+        });
+        this.markersContainer.appendChild(markerEl);
+      });
+    }
+    // ============================================
+    // Event Handlers
+    // ============================================
+    /**
      * Handle canvas click
      * @private
      */
@@ -816,6 +1097,7 @@
       if (this.totalTimeEl) {
         this.totalTimeEl.textContent = formatTime(this.audio.duration);
       }
+      this.renderMarkers();
     }
     /**
      * Handle play event
@@ -886,6 +1168,9 @@
         this.options.onError(error, this);
       }
     }
+    // ============================================
+    // Progress Updates
+    // ============================================
     /**
      * Start smooth update animation
      * @private
@@ -928,6 +1213,9 @@
         this.options.onTimeUpdate(this.audio.currentTime, this.audio.duration, this);
       }
     }
+    // ============================================
+    // UI Updates
+    // ============================================
     /**
      * Update BPM display
      * @private
@@ -937,6 +1225,20 @@
         this.bpmValueEl.textContent = Math.round(this.detectedBPM);
         this.bpmEl.style.display = "inline-flex";
       }
+    }
+    /**
+     * Update speed UI to reflect current rate
+     * @private
+     */
+    updateSpeedUI() {
+      const speedValue = this.container.querySelector(".speed-value");
+      if (speedValue) {
+        const rate = this.audio.playbackRate;
+        speedValue.textContent = rate === 1 ? "1x" : `${rate}x`;
+      }
+      this.container.querySelectorAll(".speed-option").forEach((btn) => {
+        btn.classList.toggle("active", parseFloat(btn.dataset.rate) === this.audio.playbackRate);
+      });
     }
     // ============================================
     // Public API
@@ -971,6 +1273,16 @@
       }
     }
     /**
+     * Seek to time in seconds
+     * @param {number} seconds - Time in seconds
+     */
+    seekTo(seconds) {
+      if (this.audio && this.audio.duration) {
+        this.audio.currentTime = Math.max(0, Math.min(seconds, this.audio.duration));
+        this.updateProgress();
+      }
+    }
+    /**
      * Seek to percentage
      * @param {number} percent - Percentage (0-1)
      */
@@ -990,6 +1302,17 @@
       }
     }
     /**
+     * Set playback rate
+     * @param {number} rate - Playback rate (0.5 to 2)
+     */
+    setPlaybackRate(rate) {
+      if (!this.audio) return;
+      const clampedRate = Math.max(0.5, Math.min(2, rate));
+      this.audio.playbackRate = clampedRate;
+      this.options.playbackRate = clampedRate;
+      this.updateSpeedUI();
+    }
+    /**
      * Destroy player instance
      */
     destroy() {
@@ -1005,7 +1328,7 @@
       this.container.innerHTML = "";
     }
     // ============================================
-    // Static methods
+    // Static Methods
     // ============================================
     /**
      * Get player instance by ID, element, or element ID

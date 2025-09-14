@@ -15,6 +15,9 @@ export function parseDataAttributes(element) {
     if (element.dataset.url) options.url = element.dataset.url;
     if (element.dataset.height) options.height = parseInt(element.dataset.height);
     if (element.dataset.samples) options.samples = parseInt(element.dataset.samples);
+    if (element.dataset.preload) {
+        options.preload = element.dataset.preload;
+    }
 
     // Waveform style attributes
     if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
@@ -46,12 +49,43 @@ export function parseDataAttributes(element) {
     if (element.dataset.singlePlay) options.singlePlay = element.dataset.singlePlay === 'true';
     if (element.dataset.playOnSeek) options.playOnSeek = element.dataset.playOnSeek === 'true';
 
-    // Content
+    // Content and metadata
     if (element.dataset.title) options.title = element.dataset.title;
     if (element.dataset.subtitle) options.subtitle = element.dataset.subtitle;
+    if (element.dataset.album) options.album = element.dataset.album;
+    if (element.dataset.artwork) options.artwork = element.dataset.artwork;
 
     // Waveform data
     if (element.dataset.waveform) options.waveform = element.dataset.waveform;
+
+    // Markers
+    if (element.dataset.markers) {
+        try {
+            options.markers = JSON.parse(element.dataset.markers);
+        } catch (e) {
+            console.warn('Invalid markers JSON:', e);
+        }
+    }
+
+    // Playback controls
+    if (element.dataset.playbackRate) {
+        options.playbackRate = parseFloat(element.dataset.playbackRate);
+    }
+    if (element.dataset.showPlaybackSpeed !== undefined) {
+        options.showPlaybackSpeed = element.dataset.showPlaybackSpeed === 'true';
+    }
+    if (element.dataset.playbackRates) {
+        try {
+            options.playbackRates = JSON.parse(element.dataset.playbackRates);
+        } catch (e) {
+            console.warn('Invalid playbackRates JSON:', e);
+        }
+    }
+
+    // Media Session API
+    if (element.dataset.enableMediaSession !== undefined) {
+        options.enableMediaSession = element.dataset.enableMediaSession === 'true';
+    }
 
     return options;
 }

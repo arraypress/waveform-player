@@ -8,7 +8,7 @@
     <!-- Primary Meta Tags -->
     <meta name="title" content="WaveformPlayer - Beautiful Audio Visualization for the Web">
     <meta name="description"
-          content="Zero-config audio player with stunning waveform visualization. No JavaScript required. Just HTML attributes. 6KB gzipped, zero dependencies.">
+          content="Zero-config audio player with stunning waveform visualization. No JavaScript required. Just HTML attributes. ~8KB gzipped, zero dependencies.">
     <meta name="keywords"
           content="audio player, waveform, visualization, javascript, html5, web audio api, music player, audio visualization, zero config, lightweight">
     <meta name="author" content="ArrayPress">
@@ -20,7 +20,7 @@
     <meta property="og:url" content="https://waveformplayer.com/">
     <meta property="og:title" content="WaveformPlayer - Beautiful Audio Visualization for the Web">
     <meta property="og:description"
-          content="Zero-config audio player with stunning waveform visualization. No JavaScript required. Just HTML attributes. 6KB gzipped, zero dependencies.">
+          content="Zero-config audio player with stunning waveform visualization. No JavaScript required. Just HTML attributes. ~8KB gzipped, zero dependencies.">
     <meta property="og:image" content="https://waveformplayer.com/assets/img/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -33,7 +33,7 @@
     <meta name="twitter:url" content="https://waveformplayer.com/">
     <meta name="twitter:title" content="WaveformPlayer - Beautiful Audio Visualization">
     <meta name="twitter:description"
-          content="Zero-config audio player with stunning waveform visualization. Just HTML attributes needed. 6KB gzipped.">
+          content="Zero-config audio player with stunning waveform visualization. Just HTML attributes needed. ~8KB gzipped.">
     <meta name="twitter:image" content="https://waveformplayer.com/assets/img/og-image.png">
     <meta name="twitter:image:alt" content="WaveformPlayer - Audio visualization library">
     <meta name="twitter:creator" content="@arraypress">
@@ -42,8 +42,8 @@
     <!-- Additional SEO -->
     <link rel="canonical" href="https://waveformplayer.com/">
     <meta name="theme-color" content="#a855f7">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
@@ -68,8 +68,8 @@
                 "url": "https://github.com/arraypress"
             },
             "license": "https://opensource.org/licenses/MIT",
-            "softwareVersion": "1.0.0",
-            "fileSize": "6KB",
+            "softwareVersion": "1.1.0",
+            "fileSize": "8KB",
             "programmingLanguage": "JavaScript",
             "keywords": "audio player, waveform, visualization, web audio"
         }
@@ -137,7 +137,7 @@
             and stunning waveforms out of the box.
         </p>
 
-        <!-- Hero Demo Player -->
+        <!-- Enhanced Hero Demo Player with Artwork -->
         <div class="hero-demo">
             <div data-waveform-player
                  data-url="assets/audio/pluck-wings.mp3"
@@ -147,28 +147,31 @@
                  data-samples="300"
                  data-waveform-color="rgba(168, 85, 247, 0.3)"
                  data-progress-color="rgba(168, 85, 247, 0.9)"
-                 data-title="Just HTML attributes"
-                 data-subtitle="That's all you need">
+                 data-title="Midnight Dreams"
+                 data-subtitle="The Wavelength"
+                 data-album="Frequencies EP"
+                 data-artwork="assets/img/album-cover.svg"
+                 data-enable-media-session="true">
             </div>
         </div>
 
-        <!-- Trust Badges -->
+        <!-- Updated Trust Badges -->
         <div class="trust-badges">
             <div class="trust-item">
                 <i class="ti ti-circle-check trust-icon"></i>
-                <span>6KB Gzipped</span>
+                <span>~8KB Gzipped</span>
             </div>
             <div class="trust-item">
                 <i class="ti ti-circle-check trust-icon"></i>
-                <span>Zero Dependencies</span>
+                <span>Media Session API</span>
             </div>
             <div class="trust-item">
                 <i class="ti ti-circle-check trust-icon"></i>
-                <span>6 Visual Styles</span>
+                <span>Keyboard Controls</span>
             </div>
             <div class="trust-item">
                 <i class="ti ti-circle-check trust-icon"></i>
-                <span>MIT License</span>
+                <span>Speed Control</span>
             </div>
         </div>
     </div>
@@ -193,13 +196,87 @@
 &lt;!-- 2. Add a player --&gt;
 &lt;div data-waveform-player
      data-url="your-audio.mp3"
-     data-title="Song Title"&gt;
+     data-title="Song Title"
+     data-artwork="cover.jpg"&gt;
 &lt;/div&gt;</pre>
         </div>
 
         <p style="text-align: center; color: var(--text-muted); margin-top: 2rem;">
             No initialization. No configuration. It just works.
         </p>
+    </div>
+</section>
+
+<!-- ============================================
+     NEW FEATURES SHOWCASE
+     ============================================ -->
+<section class="complete-features" style="background: var(--bg-secondary);">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">VERSION 1.1</div>
+            <h2>Professional Features</h2>
+            <p>Everything you need for a complete audio experience</p>
+        </div>
+
+        <div class="examples-grid">
+            <!-- Media Session Demo -->
+            <div class="example-card">
+                <div class="example-title">
+                    <i class="ti ti-device-mobile"></i>
+                    System Integration
+                    <span class="style-badge">NEW</span>
+                </div>
+                <div data-waveform-player
+                     data-url="assets/audio/pluck-desire.mp3"
+                     data-title="Full Integration"
+                     data-subtitle="Artist Name"
+                     data-album="Album Name"
+                     data-artwork="assets/img/album-cover.svg"
+                     data-enable-media-session="true"
+                     data-waveform-style="bars">
+                </div>
+                <p style="margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                    Shows on lock screens, media keys work, bluetooth controls supported
+                </p>
+            </div>
+
+            <!-- Keyboard Controls Demo -->
+            <div class="example-card">
+                <div class="example-title">
+                    <i class="ti ti-keyboard"></i>
+                    Full Keyboard Control
+                    <span class="style-badge">NEW</span>
+                </div>
+                <div data-waveform-player
+                     data-url="assets/audio/pluck-lovely.mp3"
+                     data-title="Keyboard Enabled"
+                     data-subtitle="Click and try keyboard shortcuts"
+                     data-waveform-style="mirror">
+                </div>
+                <p style="margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                    <strong>Try it:</strong> Click player then use Space (play), ←→ (seek), ↑↓ (volume), M (mute), 0-9 (position)
+                </p>
+            </div>
+
+            <!-- Speed Control Demo -->
+            <div class="example-card">
+                <div class="example-title">
+                    <i class="ti ti-player-track-next"></i>
+                    Speed Control
+                    <span class="style-badge">NEW</span>
+                </div>
+                <div data-waveform-player
+                     data-url="assets/audio/pluck-pieces-of-you.mp3"
+                     data-show-playback-speed="true"
+                     data-playback-rate="1"
+                     data-title="Podcast Episode"
+                     data-subtitle="Variable speed playback">
+                </div>
+                <p style="margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                    Perfect for podcasts and audiobooks. Click the speed button to adjust.
+                </p>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -235,8 +312,8 @@
                 <div class="feature-icon">
                     <i class="ti ti-device-mobile"></i>
                 </div>
-                <h3>Responsive</h3>
-                <p>Automatically adapts to any container size. Looks great on all devices.</p>
+                <h3>System Integration</h3>
+                <p>Media Session API support for lock screens, hardware keys, and bluetooth controls.</p>
             </div>
 
             <div class="feature-card">
@@ -244,7 +321,7 @@
                     <i class="ti ti-feather"></i>
                 </div>
                 <h3>Lightweight</h3>
-                <p>Just 6KB gzipped. No jQuery, no dependencies, pure vanilla JavaScript.</p>
+                <p>Just ~8KB gzipped. No jQuery, no dependencies, pure vanilla JavaScript.</p>
             </div>
 
             <div class="feature-card">
@@ -278,12 +355,12 @@
         </div>
 
         <div class="examples-grid">
-            <!-- SoundCloud Mirror -->
+            <!-- SoundCloud Mirror with Artwork -->
             <div class="example-card">
                 <div class="example-title">
                     <i class="ti ti-wave-sine"></i>
                     SoundCloud Style
-                    <span class="style-badge">mirror</span>
+                    <span class="style-badge">mirror + artwork</span>
                 </div>
                 <div data-waveform-player
                      data-url="assets/audio/pluck-got-me-thinking.mp3"
@@ -295,7 +372,8 @@
                      data-samples="400"
                      data-height="80"
                      data-title="Dense Mirror Style"
-                     data-subtitle="Great for podcasts">
+                     data-subtitle="Great for podcasts"
+                     data-artwork="assets/img/album-cover.svg">
                 </div>
             </div>
 
@@ -656,6 +734,237 @@ player.setVolume(0.5);</pre>
             </p>
         </div>
 
+        <!-- Markers Demo -->
+        <div class="markers-demo" style="margin-top: 4rem;">
+            <div class="example-card">
+                <div class="example-title">
+                    <i class="ti ti-map-pin"></i>
+                    Chapter Markers
+                    <span class="style-badge">markers</span>
+                </div>
+                <div data-waveform-player
+                     data-url="assets/audio/pluck-pieces-of-you.mp3"
+                     data-waveform-style="mirror"
+                     data-bar-width="2"
+                     data-bar-spacing="1"
+                     data-title="Track with Markers"
+                     data-subtitle="Click markers to jump to sections"
+                     data-markers='[
+                 {"time": 2, "label": "Intro", "color": "#4ade80"},
+                 {"time": 5.6, "label": "Main Theme", "color": "#f59e0b"},
+                 {"time": 8, "label": "Outro", "color": "#ef4444"}
+             ]'>
+                </div>
+            </div>
+
+            <div class="playground-card" style="margin-top: 2rem;">
+                <h3>
+                    <i class="ti ti-code"></i>
+                    Using Markers
+                </h3>
+
+                <div class="code-example">
+            <pre><code>// HTML with data attribute
+&lt;div data-waveform-player
+     data-url="audio.mp3"
+     data-markers='[
+         {"time": 2, "label": "Verse", "color": "#4ade80"},
+         {"time": 5, "label": "Chorus", "color": "#f59e0b"},
+         {"time": 8, "label": "Bridge", "color": "#ef4444"}
+     ]'&gt;
+&lt;/div&gt;
+
+// Or via JavaScript
+new WaveformPlayer('#player', {
+    url: 'audio.mp3',
+    markers: [
+        {time: 2, label: 'Verse', color: '#4ade80'},
+        {time: 5, label: 'Chorus', color: '#f59e0b'},
+        {time: 8, label: 'Bridge', color: '#ef4444'}
+    ]
+});</code></pre>
+                </div>
+
+                <h4 style="margin-top: 2rem;">Perfect for:</h4>
+                <ul class="feature-list">
+                    <li>📚 Podcast chapters and segments</li>
+                    <li>🎵 Song sections (verse, chorus, bridge)</li>
+                    <li>🎓 Educational content with topics</li>
+                    <li>📖 Audiobook chapters</li>
+                    <li>🎙️ Interview highlights</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Dynamic Track Loading -->
+        <div class="track-switcher-demo" style="margin-top: 4rem;">
+            <div class="example-card">
+                <div class="example-title">
+                    <i class="ti ti-playlist"></i>
+                    Dynamic Track Loading
+                    <span class="style-badge">loadTrack()</span>
+                </div>
+
+                <!-- The player that will switch tracks -->
+                <div id="switcher-player"
+                     data-waveform-player
+                     data-url="assets/audio/pluck-wings.mp3"
+                     data-waveform-style="mirror"
+                     data-title="Select a track"
+                     data-subtitle="Use the playlist below"
+                     data-artwork="assets/img/album-cover.svg">
+                </div>
+
+                <!-- Track selection buttons -->
+                <div class="track-list" style="margin-top: 1rem;">
+                    <button class="track-btn active"
+                            onclick="switchTrack('assets/audio/pluck-wings.mp3', 'Pluck Wings', 'Ambient · 0:10', this)"
+                            data-markers='[{"time": 3, "label": "Drop"}, {"time": 7, "label": "Outro"}]'>
+                        <i class="ti ti-music"></i>
+                        <div>
+                            <div class="track-btn-title">Pluck Wings</div>
+                            <div class="track-btn-subtitle">Ambient</div>
+                        </div>
+                        <span class="track-btn-duration">0:10</span>
+                    </button>
+
+                    <button class="track-btn"
+                            onclick="switchTrack('assets/audio/pluck-desire.mp3', 'Pluck Desire', 'Electronic · 0:10', this)"
+                            data-markers='[{"time": 2, "label": "Intro"}, {"time": 5, "label": "Build"}, {"time": 8, "label": "End"}]'>
+                        <i class="ti ti-music"></i>
+                        <div>
+                            <div class="track-btn-title">Pluck Desire</div>
+                            <div class="track-btn-subtitle">Electronic</div>
+                        </div>
+                        <span class="track-btn-duration">0:10</span>
+                    </button>
+
+                    <button class="track-btn"
+                            onclick="switchTrack('assets/audio/pluck-lovely.mp3', 'Pluck Lovely', 'Chill · 0:10', this)"
+                            data-markers='[{"time": 4, "label": "Verse"}, {"time": 6, "label": "Chorus"}]'>
+                        <i class="ti ti-music"></i>
+                        <div>
+                            <div class="track-btn-title">Pluck Lovely</div>
+                            <div class="track-btn-subtitle">Chill</div>
+                        </div>
+                        <span class="track-btn-duration">0:10</span>
+                    </button>
+
+                    <button class="track-btn"
+                            onclick="switchTrack('assets/audio/drum-loop.mp3', 'Drum Loop', 'Rhythmic · 0:10', this)"
+                            data-markers='[{"time": 2, "label": "Hi-hats"}, {"time": 4, "label": "Kick"}, {"time": 8, "label": "Break"}]'>
+                        <i class="ti ti-music"></i>
+                        <div>
+                            <div class="track-btn-title">Drum Loop</div>
+                            <div class="track-btn-subtitle">Rhythmic</div>
+                        </div>
+                        <span class="track-btn-duration">0:10</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="playground-card" style="margin-top: 2rem;">
+                <h3>
+                    <i class="ti ti-code"></i>
+                    Loading New Tracks
+                </h3>
+
+                <div class="code-example">
+            <pre><code>// Get player instance
+const player = WaveformPlayer.getInstance('switcher-player');
+
+// Load a new track with all options
+await player.loadTrack(
+    'new-song.mp3',           // URL
+    'Song Title',             // Title
+    'Artist Name',            // Subtitle
+    {                         // Additional options
+        markers: [
+            {time: 30, label: 'Verse 1'},
+            {time: 60, label: 'Chorus'},
+            {time: 90, label: 'Bridge'}
+        ],
+        waveformStyle: 'mirror',
+        showBPM: true,
+        artwork: 'cover.jpg'
+    }
+);
+
+// Simple track change
+await player.loadTrack('another-song.mp3', 'Another Song');</code></pre>
+                </div>
+
+                <h4 style="margin-top: 2rem;">Use Cases:</h4>
+                <ul class="feature-list">
+                    <li>🎵 Music playlists and albums</li>
+                    <li>📚 Podcast episode switchers</li>
+                    <li>🎓 Course lesson navigation</li>
+                    <li>📖 Audiobook chapter selection</li>
+                    <li>🎙️ Radio show segments</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Timestamp Navigation -->
+        <div class="timestamp-demo" style="margin-top: 4rem;">
+            <div class="example-card">
+                <div class="example-title">
+                    <i class="ti ti-clock"></i>
+                    Timestamp Navigation
+                    <span class="style-badge">seekTo()</span>
+                </div>
+
+                <!-- Player with longer content -->
+                <div id="timestamp-player"
+                     data-waveform-player
+                     data-url="assets/audio/pluck-pieces-of-you.mp3"
+                     data-waveform-style="mirror"
+                     data-title="DJ Set - House Mix"
+                     data-subtitle="Click timestamps below to jump"
+                     data-markers='[
+                 {"time": 0, "label": "Intro", "color": "#4ade80"},
+                 {"time": 3, "label": "Build", "color": "#f59e0b"},
+                 {"time": 6, "label": "Drop", "color": "#ef4444"},
+                 {"time": 9, "label": "Outro", "color": "#3b82f6"}
+             ]'>
+                </div>
+
+                <!-- Timestamp links -->
+                <div class="timestamp-list">
+                    <h4>Jump to:</h4>
+                    <div class="timestamp-links">
+                        <a href="#" onclick="seekToTime(0, 'Intro', event)" class="timestamp-link">
+                            <span class="timestamp-time">0:00</span>
+                            <span class="timestamp-label">Intro - Opening atmosphere</span>
+                        </a>
+                        <a href="#" onclick="seekToTime(3, 'Build', event)" class="timestamp-link">
+                            <span class="timestamp-time">0:03</span>
+                            <span class="timestamp-label">Build - Rising energy</span>
+                        </a>
+                        <a href="#" onclick="seekToTime(6, 'Drop', event)" class="timestamp-link active">
+                            <span class="timestamp-time">0:06</span>
+                            <span class="timestamp-label">Drop - Main section</span>
+                        </a>
+                        <a href="#" onclick="seekToTime(9, 'Outro', event)" class="timestamp-link">
+                            <span class="timestamp-time">0:09</span>
+                            <span class="timestamp-label">Outro - Wind down</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Description with inline timestamps -->
+                <div class="timestamp-description">
+                    <h4>Description:</h4>
+                    <p>
+                        This mix starts with a smooth <a href="#" onclick="seekToTime(0, null, event)" class="inline-timestamp">0:00</a> intro,
+                        building energy at <a href="#" onclick="seekToTime(3, null, event)" class="inline-timestamp">0:03</a>.
+                        The main drop hits at <a href="#" onclick="seekToTime(6, null, event)" class="inline-timestamp">0:06</a>
+                        before winding down at <a href="#" onclick="seekToTime(9, null, event)" class="inline-timestamp">0:09</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <!-- Waveform Generator -->
         <div class="developer-tools" style="margin-top: 4rem;">
             <div class="playground-card">
@@ -810,9 +1119,34 @@ new WaveformPlayer('#player', {
                 <td>Track subtitle/artist</td>
             </tr>
             <tr>
+                <td><code>data-album</code></td>
+                <td>-</td>
+                <td>Album name for Media Session</td>
+            </tr>
+            <tr>
+                <td><code>data-artwork</code></td>
+                <td>-</td>
+                <td>Album artwork URL (shows in player and system controls)</td>
+            </tr>
+            <tr>
+                <td><code>data-enable-media-session</code></td>
+                <td>true</td>
+                <td>Enable system media controls</td>
+            </tr>
+            <tr>
                 <td><code>data-show-bpm</code></td>
                 <td>false</td>
                 <td>Show BPM detection</td>
+            </tr>
+            <tr>
+                <td><code>data-show-playback-speed</code></td>
+                <td>false</td>
+                <td>Show speed control menu</td>
+            </tr>
+            <tr>
+                <td><code>data-playback-rate</code></td>
+                <td>1</td>
+                <td>Initial playback speed (0.5-2)</td>
             </tr>
             <tr>
                 <td><code>data-autoplay</code></td>
@@ -823,6 +1157,11 @@ new WaveformPlayer('#player', {
                 <td><code>data-show-time</code></td>
                 <td>true</td>
                 <td>Show time display</td>
+            </tr>
+            <tr>
+                <td><code>data-markers</code></td>
+                <td>-</td>
+                <td>JSON array of marker objects with time, label, and color</td>
             </tr>
             </tbody>
         </table>
@@ -843,7 +1182,7 @@ new WaveformPlayer('#player', {
             <div class="faq-item">
                 <h3>Why not use WaveSurfer.js?</h3>
                 <p>WaveSurfer is a solid, battle-tested library. But it's 40KB+ minified, requires configuration, and
-                    can be complex for simple use cases. WaveformPlayer is just 6KB, works with zero JavaScript, and is
+                    can be complex for simple use cases. WaveformPlayer is just ~8KB, works with zero JavaScript, and is
                     perfect for WordPress, Shopify, or any CMS where you just want to add audio players without touching
                     code.</p>
             </div>
@@ -978,7 +1317,7 @@ new WaveformPlayer('#player', {
 <footer class="footer">
     <div class="container">
         <p>Made with ♥ by <a href="https://github.com/arraypress">ArrayPress</a></p>
-        <p style="margin-top: 0.5rem;">MIT License · Version 1.0.0</p>
+        <p style="margin-top: 0.5rem;">MIT License · Version 1.1.0</p>
     </div>
 </footer>
 

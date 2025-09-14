@@ -783,6 +783,147 @@ small {
     margin-bottom: 2rem;
 }
 
+/* Track list styles */
+.track-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.track-btn {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+}
+
+.track-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent);
+}
+
+.track-btn.active {
+    background: rgba(168, 85, 247, 0.1);
+    border-color: var(--accent);
+}
+
+.track-btn i {
+    color: var(--accent);
+    font-size: 1.25rem;
+}
+
+.track-btn > div {
+    flex: 1;
+}
+
+.track-btn-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.track-btn-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.track-btn-duration {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Timestamp navigation styles */
+.timestamp-list {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.timestamp-list h4 {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.timestamp-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.timestamp-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: var(--text);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.timestamp-link:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border);
+}
+
+.timestamp-link.active {
+    background: rgba(168, 85, 247, 0.1);
+    border-color: var(--accent);
+}
+
+.timestamp-time {
+    font-family: monospace;
+    font-size: 0.875rem;
+    color: var(--accent);
+    min-width: 3rem;
+}
+
+.timestamp-label {
+    font-size: 0.9rem;
+}
+
+/* Inline timestamps in descriptions */
+.timestamp-description {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.timestamp-description h4 {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.inline-timestamp {
+    color: var(--accent);
+    text-decoration: none;
+    font-family: monospace;
+    font-size: 0.9em;
+    padding: 2px 4px;
+    background: rgba(168, 85, 247, 0.1);
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+.inline-timestamp:hover {
+    background: rgba(168, 85, 247, 0.2);
+}
+
 /* ========================================
    FOOTER
    ======================================== */

@@ -17,7 +17,7 @@
     "build:iife": "esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.js",
     "build:min": "esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.min.js --minify",
     "build:esm": "esbuild src/js/index.js --bundle --format=esm --outfile=dist/waveform-player.esm.js --minify",
-    "build:demo": "mkdir -p demo/dist && cp dist/*.js demo/dist/ && cp dist/*.css demo/dist/",
+    "build:demo": "npm run build:css && mkdir -p demo/dist && cp dist/*.js demo/dist/ 2>/dev/null || true && cp dist/*.css demo/dist/",
     "dev": "npm run build:css && esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.js --watch",
     "dev:css": "esbuild src/css/waveform-player.css --outfile=dist/waveform-player.css --watch",
     "dev:all": "npm run build:css && npm run build:demo && concurrently \"npm run dev\" \"npm run dev:css\"",
