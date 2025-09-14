@@ -1,5 +1,5 @@
 (() => {
-  // src/utils.js
+  // src/js/utils.js
   function parseDataAttributes(element) {
     const options = {};
     if (element.dataset.url) options.url = element.dataset.url;
@@ -112,7 +112,7 @@
     return result;
   }
 
-  // src/drawing.js
+  // src/js/drawing.js
   function drawBars(ctx, canvas, peaks, progress, options) {
     const dpr = window.devicePixelRatio || 1;
     const barWidth = options.barWidth * dpr;
@@ -349,7 +349,7 @@
     drawFunc(ctx, canvas, peaks, progress, options);
   }
 
-  // src/bpm.js
+  // src/js/bpm.js
   function detectBPM(buffer) {
     try {
       const channelData = buffer.getChannelData(0);
@@ -412,7 +412,7 @@
     return onsets;
   }
 
-  // src/audio.js
+  // src/js/audio.js
   function extractPeaks(buffer, samples = 200) {
     const sampleSize = buffer.length / samples;
     const sampleStep = ~~(sampleSize / 10) || 1;
@@ -469,7 +469,7 @@
     return data;
   }
 
-  // src/themes.js
+  // src/js/themes.js
   var DEFAULT_OPTIONS = {
     // Core settings
     url: "",
@@ -520,7 +520,7 @@
     seekbar: { barWidth: 1, barSpacing: 0 }
   };
 
-  // src/core.js
+  // src/js/core.js
   var WaveformPlayer = class _WaveformPlayer {
     /** @type {Map<string, WaveformPlayer>} */
     static instances = /* @__PURE__ */ new Map();
@@ -1058,7 +1058,7 @@
     }
   };
 
-  // src/index.js
+  // src/js/index.js
   function autoInit() {
     if (typeof document === "undefined") return;
     const elements = document.querySelectorAll("[data-waveform-player]");

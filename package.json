@@ -1,5 +1,5 @@
 {
-  "name": "waveform-player",
+  "name": "@arraypress/waveform-player",
   "version": "1.0.0",
   "description": "Lightweight, customizable audio player with waveform visualization",
   "main": "dist/waveform-player.js",
@@ -12,12 +12,16 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "npm run build:iife && npm run build:esm && npm run build:min",
-    "build:iife": "esbuild src/index.js --bundle --format=iife --outfile=dist/waveform-player.js",
-    "build:min": "esbuild src/index.js --bundle --format=iife --outfile=dist/waveform-player.min.js --minify",
-    "build:esm": "esbuild src/index.js --bundle --format=esm --outfile=dist/waveform-player.esm.js --minify",
-    "dev": "esbuild src/index.js --bundle --format=iife --outfile=dist/waveform-player.js --watch",
-    "size": "npm run build:min && gzip -c dist/waveform-player.min.js | wc -c",
+    "build": "npm run build:css && npm run build:iife && npm run build:esm && npm run build:min && npm run build:demo",
+    "build:css": "esbuild src/css/waveform-player.css --minify --outfile=dist/waveform-player.css",
+    "build:iife": "esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.js",
+    "build:min": "esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.min.js --minify",
+    "build:esm": "esbuild src/js/index.js --bundle --format=esm --outfile=dist/waveform-player.esm.js --minify",
+    "build:demo": "mkdir -p demo/dist && cp dist/*.js demo/dist/ && cp dist/*.css demo/dist/",
+    "dev": "npm run build:css && esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.js --watch",
+    "dev:css": "esbuild src/css/waveform-player.css --outfile=dist/waveform-player.css --watch",
+    "dev:all": "npm run build:css && npm run build:demo && concurrently \"npm run dev\" \"npm run dev:css\"",
+    "size": "npm run build:min && npm run build:css && echo 'JS:' && gzip -c dist/waveform-player.min.js | wc -c && echo 'CSS:' && gzip -c dist/waveform-player.css | wc -c",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -41,6 +45,7 @@
   },
   "homepage": "https://github.com/arraypress/waveform-player#readme",
   "devDependencies": {
+    "concurrently": "^7.6.0",
     "esbuild": "^0.25.0"
   }
 }
