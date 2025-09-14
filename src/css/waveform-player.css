@@ -1,0 +1,180 @@
+/* Base structure */
+.waveform-player {
+    font-family: inherit;
+    color: inherit;
+    line-height: 1.4;
+}
+
+.waveform-player * {
+    box-sizing: border-box;
+}
+
+.waveform-player-inner {
+    padding: 12px;
+    border-radius: 4px;
+}
+
+/* Body container */
+.waveform-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Track row */
+.waveform-track {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+}
+
+/* Play button */
+.waveform-btn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    padding: 0;
+    opacity: 0.9;
+    flex-shrink: 0;
+}
+
+.waveform-btn:hover:not(:disabled) {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.waveform-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
+}
+
+/* Icons */
+.waveform-btn > * {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.waveform-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    display: block;
+}
+
+.waveform-icon-play svg {
+    margin-left: 1px;
+}
+
+/* Waveform container */
+.waveform-container {
+    flex: 1;
+    position: relative;
+    min-height: 60px;
+    cursor: pointer;
+    overflow: hidden;
+    min-width: 0;
+    width: 100%;
+}
+
+.waveform-container canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    transition: opacity 0.3s ease;
+}
+
+/* Info section */
+.waveform-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    min-height: 20px;
+}
+
+.waveform-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.waveform-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+.waveform-subtitle {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.waveform-time {
+    font-size: 11px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Loading state - simplified */
+.waveform-loading {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 1;
+}
+
+/* Error state */
+.waveform-error {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.waveform-error-text {
+    font-size: 12px;
+    opacity: 0.7;
+    text-align: center;
+    padding: 0 20px;
+}
+
+/* Minimal responsive */
+@media (max-width: 480px) {
+    .waveform-btn {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+    }
+
+    .waveform-container {
+        min-height: 50px;
+    }
+}
+
+/* Accessibility */
+.waveform-btn:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
