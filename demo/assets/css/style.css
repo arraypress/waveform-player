@@ -183,7 +183,7 @@ body {
 .hero-demo {
     max-width: 600px;
     margin: 0 auto 3rem;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0, 0, 0, 0.5);
     padding: 20px;
     border-radius: 12px;
     border: 1px solid var(--border);
@@ -412,7 +412,7 @@ section {
 .event-item {
     padding: 0.25rem 0;
     color: var(--text-muted);
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .code-snippet {

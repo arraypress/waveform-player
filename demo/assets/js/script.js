@@ -1,5 +1,3 @@
-// WaveformPlayer Demo JavaScript
-
 // Playground Controls
 function controlledPlay() {
     const controlledPlayer = WaveformPlayer.getInstance('controlled-player');
