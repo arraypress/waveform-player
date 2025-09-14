@@ -130,11 +130,24 @@ export class WaveformPlayer {
         this.container.innerHTML = '';
         this.container.className = 'waveform-player';
 
+        // Determine button alignment
+        // Determine button alignment
+        let buttonAlign = this.options.buttonAlign;
+        if (buttonAlign === 'auto') {
+            // Auto-align based on waveform style
+            const style = this.options.waveformStyle;
+            if (style === 'bars') {
+                buttonAlign = 'bottom';
+            } else {
+                buttonAlign = 'center';  // blocks, mirror, line, dots, seekbar all center
+            }
+        }
+
         // Create HTML structure
         this.container.innerHTML = `
   <div class="waveform-player-inner">
     <div class="waveform-body">
-      <div class="waveform-track">
+      <div class="waveform-track waveform-align-${buttonAlign}">
         <button class="waveform-btn" aria-label="Play/Pause" style="
             border-color: ${this.options.buttonColor};
             color: ${this.options.buttonColor};

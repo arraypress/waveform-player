@@ -322,6 +322,27 @@
     outline: none;
 }
 
+/* Button alignment variants */
+.waveform-track.waveform-align-top {
+    align-items: flex-start;
+}
+
+.waveform-track.waveform-align-top .waveform-btn {
+    margin-top: 5px;
+}
+
+.waveform-track.waveform-align-center {
+    align-items: center; /* Default */
+}
+
+.waveform-track.waveform-align-bottom {
+    align-items: flex-end;
+}
+
+.waveform-track.waveform-align-bottom .waveform-btn {
+    margin-bottom: 5px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 480px) {
     .waveform-btn {

@@ -236,22 +236,21 @@ function updateBuilder() {
     // Use custom URL if provided, otherwise use default
     const audioUrl = customUrl || 'assets/audio/pluck-small-moments.mp3';
 
-    // Check if we need to recreate (only if URL changed) or just update
-    const needsRecreate = builderPlayer && builderPlayer.options.url !== audioUrl;
+    // Check if we need to recreate (if URL changed OR style changed)
+    const needsRecreate = !builderPlayer ||
+        builderPlayer.options.url !== audioUrl ||
+        builderPlayer.options.waveformStyle !== style;
 
-    if (needsRecreate) {
-        // URL changed, need to destroy and recreate
-        if (builderPlayer) {
-            builderPlayer.pause();
-            builderPlayer.destroy();
-            builderPlayer = null;
-        }
+    if (builderPlayer && needsRecreate) {
+        // Need to destroy and recreate
+        builderPlayer.pause();
+        builderPlayer.destroy();
+        builderPlayer = null;
     }
 
-    // If player exists and URL hasn't changed, just update the style
+    // If player exists and doesn't need recreation, just update colors
     if (builderPlayer && !needsRecreate) {
         // Update options
-        builderPlayer.options.waveformStyle = style;
         builderPlayer.options.barWidth = parseInt(width);
         builderPlayer.options.barSpacing = parseInt(spacing);
         builderPlayer.options.samples = parseInt(samples);
@@ -278,7 +277,7 @@ function updateBuilder() {
         builderPlayer.resizeCanvas();
         builderPlayer.drawWaveform();
     } else {
-        // Create new player (first time or URL changed)
+        // Create new player (first time, URL changed, or style changed)
         const container = document.getElementById('builder-player');
         container.innerHTML = '';
         container.setAttribute('data-waveform-player', '');
@@ -291,6 +290,7 @@ function updateBuilder() {
         container.setAttribute('data-waveform-color', waveformColor);
         container.setAttribute('data-progress-color', progressColorRgba);
         container.setAttribute('data-button-color', buttonColorRgba);
+        container.setAttribute('data-button-align', 'auto');
         container.setAttribute('data-title', title);
 
         // Only add subtitle if it has a value
@@ -303,7 +303,7 @@ function updateBuilder() {
     }
 
     // Update code output
-    const code = `<div data-waveform-player
+    document.getElementById('builder-output').textContent = `<div data-waveform-player
      data-url="${audioUrl}"
      data-waveform-style="${style}"
      data-bar-width="${width}"
@@ -313,11 +313,10 @@ function updateBuilder() {
      data-waveform-color="${waveformColor}"
      data-progress-color="${progressColorRgba}"
      data-button-color="${buttonColorRgba}"
+     data-button-align="auto"
      data-title="${title}"${subtitle ? `
      data-subtitle="${subtitle}"` : ''}>
 </div>`;
-
-    document.getElementById('builder-output').textContent = code;
 }
 
 function copyCode(event) {

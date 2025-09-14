@@ -23,6 +23,7 @@ export function parseDataAttributes(element) {
     if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
     if (element.dataset.barWidth) options.barWidth = parseInt(element.dataset.barWidth);
     if (element.dataset.barSpacing) options.barSpacing = parseInt(element.dataset.barSpacing);
+    if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
 
     // Color preset
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;

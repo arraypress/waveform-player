@@ -11,6 +11,7 @@
     if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
     if (element.dataset.barWidth) options.barWidth = parseInt(element.dataset.barWidth);
     if (element.dataset.barSpacing) options.barSpacing = parseInt(element.dataset.barSpacing);
+    if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;
     if (element.dataset.waveformColor) options.waveformColor = element.dataset.waveformColor;
     if (element.dataset.progressColor) options.progressColor = element.dataset.progressColor;
@@ -514,6 +515,9 @@
     showPlaybackSpeed: false,
     playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
     // Available speeds
+    // Layout Options
+    buttonAlign: "auto",
+    // 'auto', 'top', 'center', 'bottom'
     // Default waveform style
     waveformStyle: "mirror",
     barWidth: 2,
@@ -645,10 +649,19 @@
     createDOM() {
       this.container.innerHTML = "";
       this.container.className = "waveform-player";
+      let buttonAlign = this.options.buttonAlign;
+      if (buttonAlign === "auto") {
+        const style = this.options.waveformStyle;
+        if (style === "bars") {
+          buttonAlign = "bottom";
+        } else {
+          buttonAlign = "center";
+        }
+      }
       this.container.innerHTML = `
   <div class="waveform-player-inner">
     <div class="waveform-body">
-      <div class="waveform-track">
+      <div class="waveform-track waveform-align-${buttonAlign}">
         <button class="waveform-btn" aria-label="Play/Pause" style="
             border-color: ${this.options.buttonColor};
             color: ${this.options.buttonColor};

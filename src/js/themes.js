@@ -44,7 +44,8 @@ export const DEFAULT_OPTIONS = {
     showPlaybackSpeed: false,
     playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2], // Available speeds
 
-
+    // Layout Options
+    buttonAlign: 'auto', // 'auto', 'top', 'center', 'bottom'
 
     // Default waveform style
     waveformStyle: 'mirror',
