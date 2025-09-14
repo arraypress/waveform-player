@@ -1,0 +1,46 @@
+{
+  "name": "waveform-player",
+  "version": "1.0.0",
+  "description": "Lightweight, customizable audio player with waveform visualization",
+  "main": "dist/waveform-player.js",
+  "module": "dist/waveform-player.esm.js",
+  "unpkg": "dist/waveform-player.min.js",
+  "files": [
+    "dist/",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "npm run build:iife && npm run build:esm && npm run build:min",
+    "build:iife": "esbuild src/index.js --bundle --format=iife --outfile=dist/waveform-player.js",
+    "build:min": "esbuild src/index.js --bundle --format=iife --outfile=dist/waveform-player.min.js --minify",
+    "build:esm": "esbuild src/index.js --bundle --format=esm --outfile=dist/waveform-player.esm.js --minify",
+    "dev": "esbuild src/index.js --bundle --format=iife --outfile=dist/waveform-player.js --watch",
+    "size": "npm run build:min && gzip -c dist/waveform-player.min.js | wc -c",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "audio",
+    "player",
+    "waveform",
+    "visualization",
+    "music",
+    "sound",
+    "html5",
+    "web-audio"
+  ],
+  "author": "ArrayPress",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arraypress/waveform-player.git"
+  },
+  "bugs": {
+    "url": "https://github.com/arraypress/waveform-player/issues"
+  },
+  "homepage": "https://github.com/arraypress/waveform-player#readme",
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

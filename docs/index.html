@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaveformPlayer - Beautiful Audio Visualization for the Web</title>
+
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="WaveformPlayer - Beautiful Audio Visualization for the Web">
+    <meta name="description" content="Zero-config audio player with stunning waveform visualization. No JavaScript required. Just HTML attributes. 6KB gzipped, zero dependencies.">
+    <meta name="keywords" content="audio player, waveform, visualization, javascript, html5, web audio api, music player, audio visualization, zero config, lightweight">
+    <meta name="author" content="ArrayPress">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arraypress.github.io/waveform-player/">
+    <meta property="og:title" content="WaveformPlayer - Beautiful Audio Visualization for the Web">
+    <meta property="og:description" content="Zero-config audio player with stunning waveform visualization. No JavaScript required. Just HTML attributes. 6KB gzipped, zero dependencies.">
+    <meta property="og:image" content="https://arraypress.github.io/waveform-player/assets/img/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="WaveformPlayer - Audio visualization library with animated waveform">
+    <meta property="og:site_name" content="WaveformPlayer">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://arraypress.github.io/waveform-player/">
+    <meta name="twitter:title" content="WaveformPlayer - Beautiful Audio Visualization">
+    <meta name="twitter:description" content="Zero-config audio player with stunning waveform visualization. Just HTML attributes needed. 6KB gzipped.">
+    <meta name="twitter:image" content="https://arraypress.github.io/waveform-player/assets/img/og-image.png">
+    <meta name="twitter:image:alt" content="WaveformPlayer - Audio visualization library">
+    <meta name="twitter:creator" content="@arraypress">
+    <meta name="twitter:site" content="@arraypress">
+
+    <!-- Additional SEO -->
+    <link rel="canonical" href="https://arraypress.github.io/waveform-player/">
+    <meta name="theme-color" content="#a855f7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "WaveformPlayer",
+            "description": "Zero-config audio player with stunning waveform visualization for the web",
+            "applicationCategory": "DeveloperApplication",
+            "operatingSystem": "Any",
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+            },
+            "author": {
+                "@type": "Organization",
+                "name": "ArrayPress",
+                "url": "https://github.com/arraypress"
+            },
+            "license": "https://opensource.org/licenses/MIT",
+            "softwareVersion": "1.0.0",
+            "fileSize": "6KB",
+            "programmingLanguage": "JavaScript",
+            "keywords": "audio player, waveform, visualization, web audio"
+        }
+    </script>
+
+    <!-- External Dependencies -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+
+    <!-- WaveformPlayer -->
+    <link rel="stylesheet" href="../dist/waveform-player.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- ============================================
+     NAVIGATION
+     ============================================ -->
+<nav class="nav">
+    <div class="nav-container">
+        <div class="nav-logo">
+            <div class="logo-icon">
+                <i class="ti ti-wave-square"></i>
+            </div>
+            <span>WaveformPlayer</span>
+        </div>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#examples">Examples</a>
+            <a href="#playground">Playground</a>
+            <a href="#builder">Builder</a>
+            <a href="#docs">Docs</a>
+            <a href="https://github.com/arraypress/waveform-player" class="nav-cta">
+                <i class="ti ti-brand-github"></i> GitHub
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- ============================================
+     HERO SECTION
+     ============================================ -->
+<section class="hero">
+    <div class="hero-background">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+    </div>
+
+    <div class="container">
+        <div class="hero-badge">ZERO-CONFIG AUDIO PLAYER</div>
+        <h1 class="hero-title">
+            Beautiful Audio Visualization<br>
+            <span class="gradient-text">No JavaScript Required</span>
+        </h1>
+        <p class="hero-subtitle">
+            Just add data attributes to any div. Auto-initialization, responsive design,
+            and stunning waveforms out of the box.
+        </p>
+
+        <!-- Hero Demo Player -->
+        <div class="hero-demo">
+            <div data-waveform-player
+                 data-url="audio/Pluck_Wings.mp3"
+                 data-waveform-style="mirror"
+                 data-bar-width="2"
+                 data-bar-spacing="0"
+                 data-samples="300"
+                 data-waveform-color="rgba(168, 85, 247, 0.3)"
+                 data-progress-color="rgba(168, 85, 247, 0.9)"
+                 data-title="Just HTML attributes"
+                 data-subtitle="That's all you need">
+            </div>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="trust-badges">
+            <div class="trust-item">
+                <i class="ti ti-circle-check trust-icon"></i>
+                <span>6KB Gzipped</span>
+            </div>
+            <div class="trust-item">
+                <i class="ti ti-circle-check trust-icon"></i>
+                <span>Zero Dependencies</span>
+            </div>
+            <div class="trust-item">
+                <i class="ti ti-circle-check trust-icon"></i>
+                <span>6 Visual Styles</span>
+            </div>
+            <div class="trust-item">
+                <i class="ti ti-circle-check trust-icon"></i>
+                <span>MIT License</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     QUICK START
+     ============================================ -->
+<section class="quick-start" id="quickstart">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">QUICK START</div>
+            <h2>Get Started in 30 Seconds</h2>
+            <p>Include the files, add data attributes, done.</p>
+        </div>
+
+        <div class="code-block">
+            <pre>&lt;!-- 1. Include the files --&gt;
+&lt;link rel="stylesheet" href="https://unpkg.com/waveform-player@latest/dist/waveform-player.css"&gt;
+&lt;script src="https://unpkg.com/waveform-player@latest/dist/waveform-player.js"&gt;&lt;/script&gt;
+
+&lt;!-- 2. Add a player --&gt;
+&lt;div data-waveform-player
+     data-url="your-audio.mp3"
+     data-title="Song Title"&gt;
+&lt;/div&gt;</pre>
+        </div>
+
+        <p style="text-align: center; color: var(--text-muted); margin-top: 2rem;">
+            No initialization. No configuration. It just works.
+        </p>
+    </div>
+</section>
+
+<!-- ============================================
+     FEATURES OVERVIEW
+     ============================================ -->
+<section class="features" id="features">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">WHY CHOOSE</div>
+            <h2>Built for Modern Web</h2>
+            <p>Everything you need, nothing you don't</p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="ti ti-code-off"></i>
+                </div>
+                <h3>Zero JavaScript</h3>
+                <p>Works with just HTML data attributes. Perfect for WordPress, static sites, or any CMS.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="ti ti-palette"></i>
+                </div>
+                <h3>Fully Customizable</h3>
+                <p>Control every color, dimension, and style through simple data attributes.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="ti ti-device-mobile"></i>
+                </div>
+                <h3>Responsive</h3>
+                <p>Automatically adapts to any container size. Looks great on all devices.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="ti ti-feather"></i>
+                </div>
+                <h3>Lightweight</h3>
+                <p>Just 6KB gzipped. No jQuery, no dependencies, pure vanilla JavaScript.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="ti ti-heart"></i>
+                </div>
+                <h3>6 Visual Styles</h3>
+                <p>Bars, mirror, line, blocks, dots, and seekbar. Each optimized for clarity.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="ti ti-bolt"></i>
+                </div>
+                <h3>Performance First</h3>
+                <p>Canvas rendering, RequestAnimationFrame, and optimized resampling.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     LIVE EXAMPLES
+     ============================================ -->
+<section id="examples">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">LIVE EXAMPLES</div>
+            <h2>See It In Action</h2>
+            <p>Different styles for different vibes</p>
+        </div>
+
+        <div class="examples-grid">
+            <!-- SoundCloud Mirror -->
+            <div class="example-card">
+                <div class="example-title">
+                    <i class="ti ti-wave-sine"></i>
+                    SoundCloud Style
+                    <span class="style-badge">mirror</span>
+                </div>
+                <div data-waveform-player
+                     data-url="audio/Pluck_Got_Me_Thinking.mp3"
+                     data-waveform-style="mirror"
+                     data-waveform-color="rgba(255, 255, 255, 0.5)"
+                     data-progress-color="rgba(255, 85, 0, 1)"
+                     data-bar-width="1"
+                     data-bar-spacing="1"
+                     data-samples="400"
+                     data-height="80"
+                     data-title="Dense Mirror Style"
+                     data-subtitle="Great for podcasts">
+                </div>
+            </div>
+
+            <!-- Classic Bars -->
+            <div class="example-card">
+                <div class="example-title">
+                    <i class="ti ti-chart-bar"></i>
+                    Classic Bars
+                    <span class="style-badge">bars</span>
+                </div>
+                <div data-waveform-player
+                     data-url="audio/Pluck_Desire.mp3"
+                     data-waveform-style="bars"
+                     data-bar-width="4"
+                     data-bar-spacing="1"
+                     data-height="80"
+                     data-title="Traditional Style"
+                     data-subtitle="Perfect for music players">
+                </div>
+            </div>
+
+            <!-- Spotify Style -->
+            <div class="example-card">
+                <div class="example-title">
+                    <i class="ti ti-brand-spotify"></i>
+                    Spotify Green
+                    <span class="style-badge">bars</span>
+                </div>
+                <div data-waveform-player
+                     data-url="audio/Pluck_Icarus.mp3"
+                     data-waveform-style="bars"
+                     data-waveform-color="rgba(29, 185, 84, 0.3)"
+                     data-progress-color="rgba(29, 185, 84, 0.9)"
+                     data-button-color="rgba(29, 185, 84, 0.9)"
+                     data-title="Custom Colors"
+                     data-subtitle="Match your brand">
+                </div>
+            </div>
+
+            <!-- Line Style -->
+            <div class="example-card">
+                <div class="example-title">
+                    <i class="ti ti-activity"></i>
+                    Oscilloscope
+                    <span class="style-badge">line</span>
+                </div>
+                <div data-waveform-player
+                     data-url="audio/Pluck_Lovely.mp3"
+                     data-waveform-style="line"
+                     data-samples="200"
+                     data-title="Technical Display"
+                     data-subtitle="Precise visualization">
+                </div>
+            </div>
+
+            <!-- LED Blocks -->
+            <div class="example-card">
+                <div class="example-title">
+                    <i class="ti ti-layout-grid"></i>
+                    LED Meter
+                    <span class="style-badge">blocks</span>
+                </div>
+                <div data-waveform-player
+                     data-url="audio/Pluck_Luminous.mp3"
+                     data-waveform-style="blocks"
+                     data-bar-width="3"
+                     data-bar-spacing="1"
+                     data-title="Retro Style"
+                     data-subtitle="Classic LED aesthetic">
+                </div>
+            </div>
+
+            <!-- Dots Style -->
+            <div class="example-card">
+                <div class="example-title">
+                    <i class="ti ti-dots"></i>
+                    Circular Dots
+                    <span class="style-badge">dots</span>
+                </div>
+                <div data-waveform-player
+                     data-url="audio/Pluck_Nocturne.mp3"
+                     data-waveform-style="dots"
+                     data-bar-width="2"
+                     data-bar-spacing="2"
+                     data-title="Modern Dots"
+                     data-subtitle="Unique visualization">
+                </div>
+            </div>
+
+            <!-- Seekbar Style -->
+            <div class="example-card">
+                <div class="example-title">
+                    <i class="ti ti-minus"></i>
+                    Simple Seekbar
+                    <span class="style-badge">seekbar</span>
+                </div>
+                <div data-waveform-player
+                     data-url="audio/Pluck_Small_Moments.mp3"
+                     data-waveform-style="seekbar"
+                     data-title="Minimal Style"
+                     data-subtitle="Clean progress bar">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     INTERACTIVE PLAYGROUND
+     ============================================ -->
+<section class="playground" id="playground">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">INTERACTIVE PLAYGROUND</div>
+            <h2>Control & Events</h2>
+            <p>See how to programmatically control players and track events</p>
+        </div>
+
+        <div class="playground-grid">
+            <!-- Player with Controls -->
+            <div class="playground-card">
+                <h3><i class="ti ti-player-play"></i> Programmatic Control</h3>
+                <div id="controlled-player"
+                     data-waveform-player
+                     data-url="audio/Pluck_Pieces_Of_You.mp3"
+                     data-waveform-style="mirror"
+                     data-title="Controlled Player"
+                     data-subtitle="Use the buttons below">
+                </div>
+
+                <div class="control-buttons">
+                    <button onclick="controlledPlay()" class="control-btn">
+                        <i class="ti ti-player-play"></i> Play
+                    </button>
+                    <button onclick="controlledPause()" class="control-btn">
+                        <i class="ti ti-player-pause"></i> Pause
+                    </button>
+                    <button onclick="controlledSeek(50)" class="control-btn">
+                        <i class="ti ti-player-skip-forward"></i> 50%
+                    </button>
+                    <button onclick="controlledVolume(0.5)" class="control-btn">
+                        <i class="ti ti-volume-2"></i> 50% Vol
+                    </button>
+                </div>
+
+                <div class="code-snippet">
+                    <pre>const player = WaveformPlayer.getInstance('player-id');
+player.play();
+player.pause();
+player.seekToPercent(0.5);
+player.setVolume(0.5);</pre>
+                </div>
+            </div>
+
+            <!-- Event Tracking -->
+            <div class="playground-card">
+                <h3><i class="ti ti-chart-line"></i> Event Tracking</h3>
+                <div data-waveform-player
+                     data-url="audio/Pluck_Sine.mp3"
+                     data-waveform-style="bars"
+                     data-title="Event Tracker"
+                     data-subtitle="Watch the console"
+                     id="event-player">
+                </div>
+
+                <div class="event-log">
+                    <div class="event-stats">
+                        <div class="stat">
+                            <span class="stat-label">Play Count</span>
+                            <span class="stat-value" id="play-count">0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Total Time</span>
+                            <span class="stat-value" id="total-time">0s</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Completion</span>
+                            <span class="stat-value" id="completion">0%</span>
+                        </div>
+                    </div>
+                    <div class="event-list" id="event-list">
+                        <div class="event-item">Waiting for events...</div>
+                    </div>
+                </div>
+
+                <div class="code-snippet">
+                    <pre>new WaveformPlayer('#player', {
+    onPlay: (player) => trackEvent('play'),
+    onPause: (player) => trackEvent('pause'),
+    onEnd: (player) => trackEvent('complete'),
+    onTimeUpdate: (current, total) => updateProgress(current)
+});</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     PLAYER BUILDER
+     ============================================ -->
+<section class="builder" id="builder">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">PLAYER BUILDER</div>
+            <h2>Build Your Perfect Player</h2>
+            <p>Customize every aspect and copy the code</p>
+        </div>
+
+        <div class="builder-container">
+            <!-- Preview -->
+            <div class="builder-preview">
+                <h3>Preview</h3>
+                <div id="builder-player"></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="builder-controls">
+                <h3>Customize</h3>
+
+                <div class="control-group">
+                    <label>Style</label>
+                    <select id="builder-style" onchange="updateBuilder()">
+                        <option value="bars">Bars</option>
+                        <option value="mirror">Mirror</option>
+                        <option value="line">Line</option>
+                        <option value="blocks">Blocks</option>
+                        <option value="dots">Dots</option>
+                        <option value="seekbar">Seekbar</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Bar Width <span id="width-value">2</span>px</label>
+                    <input type="range" id="builder-width" min="1" max="5" value="2" onchange="updateBuilder()">
+                </div>
+
+                <div class="control-group">
+                    <label>Bar Spacing <span id="spacing-value">0</span>px</label>
+                    <input type="range" id="builder-spacing" min="0" max="5" value="0" onchange="updateBuilder()">
+                </div>
+
+                <div class="control-group">
+                    <label>Samples <span id="samples-value">200</span></label>
+                    <input type="range" id="builder-samples" min="100" max="400" step="50" value="200"
+                           onchange="updateBuilder()">
+                </div>
+
+                <div class="control-group">
+                    <label>Height <span id="height-value">60</span>px</label>
+                    <input type="range" id="builder-height" min="50" max="100" step="10" value="60"
+                           onchange="updateBuilder()">
+                </div>
+
+                <div class="control-group">
+                    <label>Waveform Color</label>
+                    <div class="color-inputs">
+                        <input type="color" id="builder-color" value="#a855f7" onchange="updateBuilder()">
+                        <input type="range" id="builder-opacity" min="0" max="100" value="30"
+                               onchange="updateBuilder()">
+                        <span id="opacity-value">30%</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Progress Color</label>
+                    <div class="color-inputs">
+                        <input type="color" id="builder-progress" value="#a855f7" onchange="updateBuilder()">
+                        <input type="range" id="builder-progress-opacity" min="0" max="100" value="90"
+                               onchange="updateBuilder()">
+                        <span id="progress-opacity-value">90%</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Button Color</label>
+                    <div class="color-inputs">
+                        <input type="color" id="builder-button" value="#ffffff" onchange="updateBuilder()">
+                        <input type="range" id="builder-button-opacity" min="0" max="100" value="90"
+                               onchange="updateBuilder()">
+                        <span id="button-opacity-value">90%</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Title</label>
+                    <input type="text" id="builder-title" placeholder="Track Title" value="Custom Player"
+                           onchange="updateBuilder()">
+                </div>
+
+                <div class="control-group">
+                    <label>Subtitle</label>
+                    <input type="text" id="builder-subtitle" placeholder="Artist or description"
+                           value="Your Configuration" onchange="updateBuilder()">
+                </div>
+
+                <div class="control-group">
+                    <label>Audio URL (optional)</label>
+                    <input type="url" id="builder-url" placeholder="https://example.com/audio.mp3"
+                           onchange="updateBuilder()">
+                    <small style="color: var(--text-muted); font-size: 11px;">
+                        Note: External URLs may not work due to CORS restrictions
+                    </small>
+                </div>
+            </div>
+
+            <!-- Generated Code -->
+            <div class="builder-code">
+                <h3>Generated Code</h3>
+                <pre id="builder-output">&lt;div data-waveform-player
+     data-url="audio.mp3"
+     data-waveform-style="bars"
+     data-bar-width="2"
+     data-bar-spacing="0"&gt;
+&lt;/div&gt;</pre>
+                <button class="btn btn-primary" onclick="copyCode(event)">
+                    <i class="ti ti-copy"></i> Copy Code
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     ADVANCED FEATURES
+     ============================================ -->
+<section class="advanced" id="advanced">
+    <div class="container">
+        <!-- BPM Detection -->
+        <div class="section-header">
+            <div class="section-badge">ADVANCED FEATURES</div>
+            <h2>Pro Features</h2>
+            <p>Advanced capabilities for power users</p>
+        </div>
+
+        <!-- BPM Demo -->
+        <div class="bpm-demo">
+            <div class="example-card">
+                <div class="example-title">
+                    <i class="ti ti-metronome"></i>
+                    BPM Detection
+                    <span class="style-badge">data-show-bpm="true"</span>
+                </div>
+                <div data-waveform-player
+                     data-url="audio/Drum_Loop.mp3"
+                     data-waveform-style="mirror"
+                     data-bar-width="1"
+                     data-bar-spacing="3"
+                     data-show-bpm="true"
+                     data-title="4/4 House Pattern"
+                     data-subtitle="BPM will be detected and displayed">
+                </div>
+            </div>
+
+            <p style="margin-top: 2rem; color: var(--text-muted); font-size: 0.9rem; text-align: center;">
+                Note: BPM detection works best with rhythmic content like drums or electronic music.
+                Detection accuracy may vary with complex patterns or live recordings.
+            </p>
+        </div>
+
+        <!-- Waveform Generator -->
+        <div class="developer-tools" style="margin-top: 4rem;">
+            <div class="playground-card">
+                <h3>
+                    <i class="ti ti-code"></i>
+                    Waveform Data Generator
+                </h3>
+
+                <div class="generator-controls">
+                    <div class="control-group">
+                        <label>Audio URL</label>
+                        <input type="url" id="generator-url"
+                               placeholder="https://example.com/audio.mp3"
+                               value="audio/Drum_Loop.mp3">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Samples</label>
+                        <input type="range" id="generator-samples"
+                               min="50" max="500" value="200"
+                               oninput="document.getElementById('samples-display').textContent = this.value">
+                        <span id="samples-display">200</span>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="generateWaveformData()">
+                        <i class="ti ti-waveform"></i>
+                        Generate Waveform Data
+                    </button>
+                </div>
+
+                <div class="generator-output" style="margin-top: 2rem;">
+                    <label>Generated Data (JSON Array)</label>
+                    <pre id="waveform-output" style="max-height: 200px; overflow-y: auto;">
+// Waveform data will appear here...
+                    </pre>
+                    <button class="btn btn-secondary" onclick="copyWaveformData()" style="margin-top: 1rem;">
+                        <i class="ti ti-copy"></i>
+                        Copy Data
+                    </button>
+                </div>
+            </div>
+
+            <div class="playground-card">
+                <h3>
+                    <i class="ti ti-database"></i>
+                    Using Pre-generated Data
+                </h3>
+
+                <div class="code-example">
+                    <pre><code>// Generate once
+const waveformData = await WaveformPlayer.generateWaveformData(
+    'audio/song.mp3',
+    200 // samples
+);
+
+// Save to your database/API
+await saveToDatabase(waveformData);
+
+// Later, use the cached data
+new WaveformPlayer('#player', {
+    url: 'audio/song.mp3',
+    waveform: waveformData, // Use pre-generated data
+    title: 'Optimized Player'
+});</code></pre>
+                </div>
+
+                <h4 style="margin-top: 2rem;">Benefits</h4>
+                <ul class="feature-list">
+                    <li>⚡ Instant waveform display (no processing)</li>
+                    <li>💾 Can be cached server-side</li>
+                    <li>🔒 Works with protected/authenticated audio</li>
+                    <li>📱 Reduces client-side processing on mobile</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     DOCUMENTATION
+     ============================================ -->
+<section id="docs" style="background: var(--bg-secondary);">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">DOCUMENTATION</div>
+            <h2>Configuration Reference</h2>
+            <p>All available data attributes</p>
+        </div>
+
+        <table class="config-table">
+            <thead>
+            <tr>
+                <th>Attribute</th>
+                <th>Default</th>
+                <th>Description</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td><code>data-url</code></td>
+                <td>-</td>
+                <td>Audio file URL (required)</td>
+            </tr>
+            <tr>
+                <td><code>data-waveform-style</code></td>
+                <td>bars</td>
+                <td>Visual style: bars, mirror, line, blocks, dots, seekbar</td>
+            </tr>
+            <tr>
+                <td><code>data-bar-width</code></td>
+                <td>2</td>
+                <td>Width of bars in pixels</td>
+            </tr>
+            <tr>
+                <td><code>data-bar-spacing</code></td>
+                <td>0</td>
+                <td>Space between bars</td>
+            </tr>
+            <tr>
+                <td><code>data-samples</code></td>
+                <td>200</td>
+                <td>Waveform detail level (100-400)</td>
+            </tr>
+            <tr>
+                <td><code>data-height</code></td>
+                <td>60</td>
+                <td>Canvas height in pixels</td>
+            </tr>
+            <tr>
+                <td><code>data-waveform-color</code></td>
+                <td>-</td>
+                <td>Inactive waveform color</td>
+            </tr>
+            <tr>
+                <td><code>data-progress-color</code></td>
+                <td>-</td>
+                <td>Active waveform color</td>
+            </tr>
+            <tr>
+                <td><code>data-button-color</code></td>
+                <td>-</td>
+                <td>Play button color</td>
+            </tr>
+            <tr>
+                <td><code>data-title</code></td>
+                <td>Filename</td>
+                <td>Track title</td>
+            </tr>
+            <tr>
+                <td><code>data-subtitle</code></td>
+                <td>-</td>
+                <td>Track subtitle/artist</td>
+            </tr>
+            <tr>
+                <td><code>data-show-bpm</code></td>
+                <td>false</td>
+                <td>Show BPM detection</td>
+            </tr>
+            <tr>
+                <td><code>data-autoplay</code></td>
+                <td>false</td>
+                <td>Auto-start playback</td>
+            </tr>
+            <tr>
+                <td><code>data-show-time</code></td>
+                <td>true</td>
+                <td>Show time display</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ============================================
+     FAQ
+     ============================================ -->
+<section class="faq" id="faq">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">QUESTIONS ANSWERED</div>
+            <h2>Frequently Asked Questions</h2>
+        </div>
+
+        <div class="faq-grid" id="faq-container">
+            <div class="faq-item">
+                <h3>Why not use WaveSurfer.js?</h3>
+                <p>WaveSurfer is a solid, battle-tested library. But it's 40KB+ minified, requires configuration, and
+                    can be complex for simple use cases. WaveformPlayer is just 6KB, works with zero JavaScript, and is
+                    perfect for WordPress, Shopify, or any CMS where you just want to add audio players without touching
+                    code.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>How is this different from Amplitude.js?</h3>
+                <p>Amplitude is great for building full music players with playlists. WaveformPlayer focuses on one
+                    thing: beautiful waveform visualization with minimal overhead. If you need playlists and complex
+                    controls, use Amplitude. If you want drop-in waveforms, this is for you.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Can I use this in WordPress?</h3>
+                <p>Absolutely! Just enqueue the CSS and JS files in your theme, then use data attributes in your
+                    content. Works perfectly with Gutenberg blocks, shortcodes, or any page builder. A dedicated
+                    WordPress plugin is coming soon.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Does it work with Shopify?</h3>
+                <p>Yes! Upload the files to your theme's assets folder, include them in theme.liquid, then add players
+                    anywhere using data attributes. Perfect for music previews, podcast episodes, or audio samples.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>What about React/Vue/Angular?</h3>
+                <p>The vanilla version works perfectly in any framework. Just include the script and use data attributes
+                    in your JSX/templates. For React, you can also use the programmatic API in
+                    useEffect/componentDidMount.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Is the waveform real or fake?</h3>
+                <p>100% real! We decode your audio file using the Web Audio API and generate actual waveform data. Every
+                    peak and valley represents the true amplitude of your audio.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Can I customize the colors?</h3>
+                <p>Every color is customizable via data attributes. Set waveform color, progress color, button color,
+                    text color, and more. Or use the light/dark presets and tweak from there.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>What browsers are supported?</h3>
+                <p>All modern browsers from the last 2-3 years. Chrome 88+, Firefox 85+, Safari 14+, Edge 88+. We use
+                    standard Web Audio API and Canvas, no experimental features.</p>
+            </div>
+
+            <!-- Hidden FAQ items -->
+            <div class="faq-item faq-hidden">
+                <h3>Can I preload waveform data?</h3>
+                <p>Yes! Generate waveform data server-side or cache it, then pass it via data-waveform attribute. This
+                    gives instant visualization without waiting for audio decode.</p>
+            </div>
+
+            <div class="faq-item faq-hidden">
+                <h3>Does it handle large files?</h3>
+                <p>Files up to 100MB work fine. The waveform generates progressively, so users see something
+                    immediately. For huge files (podcasts, audiobooks), consider using streaming or chunked loading.</p>
+            </div>
+
+            <div class="faq-item faq-hidden">
+                <h3>What about accessibility?</h3>
+                <p>Full keyboard navigation (space, arrows, etc), ARIA labels, focus indicators, and screen reader
+                    announcements. The player is WCAG 2.1 AA compliant.</p>
+            </div>
+
+            <div class="faq-item faq-hidden">
+                <h3>Can I use custom fonts?</h3>
+                <p>The player inherits your site's fonts automatically. Just set your font-family in CSS and the player
+                    will use it for titles and time displays.</p>
+            </div>
+
+            <div class="faq-item faq-hidden">
+                <h3>Is there a Pro version?</h3>
+                <p>No! Everything is free and open source. We believe audio players should be accessible to everyone. If
+                    you love it, star us on GitHub or buy us a coffee.</p>
+            </div>
+
+            <div class="faq-item faq-hidden">
+                <h3>How do I track analytics?</h3>
+                <p>Use the JavaScript API to hook into play, pause, and progress events. Send these to Google Analytics,
+                    Mixpanel, or your custom analytics. Check the Playground section for examples.</p>
+            </div>
+
+            <div class="faq-item faq-hidden">
+                <h3>Can I use this commercially?</h3>
+                <p>Yes! MIT license means you can use it for anything - commercial projects, client work, SaaS products.
+                    No attribution required (but appreciated).</p>
+            </div>
+
+            <div class="faq-item faq-hidden">
+                <h3>What if JavaScript is disabled?</h3>
+                <p>The player gracefully falls back to a styled container with title/subtitle visible. You could also
+                    include a standard HTML5 audio element as fallback content.</p>
+            </div>
+        </div>
+
+        <div class="faq-show-more">
+            <button class="btn btn-secondary" id="faq-toggle">
+                <i class="ti ti-chevron-down"></i>
+                Show More Questions
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     CTA
+     ============================================ -->
+<section class="cta">
+    <div class="container">
+        <div class="cta-box">
+            <h2>Ready to Upgrade Your Audio Players?</h2>
+            <p>Free, open-source, and ready to use in your next project</p>
+            <div class="buttons">
+                <a href="https://github.com/arraypress/waveform-player" class="btn btn-primary">
+                    <i class="ti ti-brand-github"></i> View on GitHub
+                </a>
+                <a href="https://npmjs.com/package/waveform-player" class="btn btn-secondary">
+                    <i class="ti ti-package"></i> Install via NPM
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     FOOTER
+     ============================================ -->
+<footer class="footer">
+    <div class="container">
+        <p>Made with ♥ by <a href="https://github.com/arraypress">ArrayPress</a></p>
+        <p style="margin-top: 0.5rem;">MIT License · Version 1.0.0</p>
+    </div>
+</footer>
+
+<!-- Scripts -->
+<script src="../dist/waveform-player.js"></script>
+<script src="assets/js/script.js"></script>
+
+</body>
+</html>

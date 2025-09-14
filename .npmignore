@@ -1,0 +1,10 @@
+# Source files (optional - if you want smaller npm package)
+examples/
+docs/
+.git/
+.gitignore
+
+# Development files
+node_modules/
+*.log
+.DS_Store

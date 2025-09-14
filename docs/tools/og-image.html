@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OG Image - Waveform Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .og-image {
+            width: 1200px;
+            height: 630px;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+        }
+
+        /* Background pattern */
+        .og-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(168, 85, 247, 0.02) 40px, rgba(168, 85, 247, 0.02) 80px),
+            repeating-linear-gradient(-45deg, transparent, transparent 40px, rgba(168, 85, 247, 0.01) 40px, rgba(168, 85, 247, 0.01) 80px);
+            pointer-events: none;
+        }
+
+        /* Glow effects */
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(150px);
+            opacity: 0.3;
+        }
+
+        .glow-orb-1 {
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, #a855f7, #c084fc);
+            top: -300px;
+            left: -200px;
+        }
+
+        .glow-orb-2 {
+            width: 400px;
+            height: 400px;
+            background: #c084fc;
+            bottom: -200px;
+            right: -150px;
+        }
+
+        /* Waveform visualization */
+        .waveform-container {
+            position: relative;
+            width: 800px;
+            height: 120px;
+            margin-bottom: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 0 40px rgba(168, 85, 247, 0.4));
+        }
+
+        .waveform-bars {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            height: 100%;
+        }
+
+        .waveform-bar {
+            width: 3px;
+            background: linear-gradient(to top, rgba(168, 85, 247, 0.3), rgba(168, 85, 247, 0.6));
+            border-radius: 2px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Generate random heights for bars */
+        .waveform-bar:nth-child(odd) {
+            height: 60%;
+            animation-delay: 0.1s;
+        }
+
+        .waveform-bar:nth-child(even) {
+            height: 80%;
+            animation-delay: 0.2s;
+        }
+
+        .waveform-bar:nth-child(3n) {
+            height: 100%;
+            animation-delay: 0.3s;
+        }
+
+        .waveform-bar:nth-child(4n) {
+            height: 70%;
+            animation-delay: 0.4s;
+        }
+
+        .waveform-bar:nth-child(5n) {
+            height: 90%;
+            animation-delay: 0.5s;
+        }
+
+        .waveform-bar:nth-child(6n) {
+            height: 65%;
+            animation-delay: 0.6s;
+        }
+
+        .waveform-bar:nth-child(7n) {
+            height: 85%;
+            animation-delay: 0.7s;
+        }
+
+        /* Progress overlay */
+        .waveform-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 40%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .waveform-progress .waveform-bar {
+            background: linear-gradient(to top, rgba(168, 85, 247, 0.8), rgba(192, 132, 252, 1));
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.6;
+                transform: scaleY(0.95);
+            }
+            50% {
+                opacity: 1;
+                transform: scaleY(1);
+            }
+        }
+
+        /* Play button */
+        .play-button {
+            position: absolute;
+            left: -60px;
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(168, 85, 247, 0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .play-icon {
+            width: 0;
+            height: 0;
+            border-left: 16px solid rgba(168, 85, 247, 0.9);
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            margin-left: 4px;
+        }
+
+        /* Main text */
+        .main-text {
+            text-align: center;
+            z-index: 10;
+            max-width: 900px;
+        }
+
+        .title {
+            font-size: 72px;
+            font-weight: 900;
+            color: #ffffff;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+            text-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
+        }
+
+        .gradient-title {
+            background: linear-gradient(135deg, #a855f7, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 24px;
+            color: #999;
+            margin-bottom: 50px;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+        }
+
+        /* Features row */
+        .features-row {
+            display: flex;
+            gap: 40px;
+            margin-top: 60px;
+            padding: 25px 40px;
+            background: rgba(168, 85, 247, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .feature-icon {
+            color: #a855f7;
+            font-size: 20px;
+        }
+
+        .feature-divider {
+            color: rgba(168, 85, 247, 0.3);
+            font-size: 20px;
+        }
+
+        /* Badge */
+        .badge {
+            position: absolute;
+            top: 50px;
+            right: 50px;
+            background: rgba(168, 85, 247, 0.1);
+            color: #a855f7;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 14px;
+            border-radius: 24px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 1px solid rgba(168, 85, 247, 0.2);
+        }
+
+        /* URL */
+        .url {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #666;
+            font-size: 16px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        /* Corner accents */
+        .corner-accent {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border: 2px solid rgba(168, 85, 247, 0.15);
+        }
+
+        .corner-accent.top-left {
+            top: 30px;
+            left: 30px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .corner-accent.bottom-right {
+            bottom: 30px;
+            right: 30px;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* Tech grid background */
+        .tech-grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background-image: linear-gradient(rgba(168, 85, 247, 0.3) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(168, 85, 247, 0.3) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+    </style>
+</head>
+<body>
+<div class="og-image">
+    <!-- Tech grid background -->
+    <div class="tech-grid"></div>
+
+    <!-- Background glows -->
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+
+    <!-- Corner accents -->
+    <div class="corner-accent top-left"></div>
+    <div class="corner-accent bottom-right"></div>
+
+    <!-- Badge -->
+    <div class="badge">Zero Config</div>
+
+    <!-- Waveform visualization -->
+    <div class="waveform-container">
+        <div class="play-button">
+            <div class="play-icon"></div>
+        </div>
+
+        <!-- Background waveform -->
+        <div class="waveform-bars">
+            <!-- Generate many bars for the waveform -->
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+        </div>
+
+        <!-- Progress overlay -->
+        <div class="waveform-progress">
+            <div class="waveform-bars">
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+                <div class="waveform-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="main-text">
+        <h1 class="title">
+            <span class="gradient-title">Waveform Player</span>
+        </h1>
+        <p class="subtitle">Beautiful Audio Visualization for the Web</p>
+
+        <div class="features-row">
+            <div class="feature-item">
+                <span class="feature-icon">✓</span>
+                <span>6KB Gzipped</span>
+            </div>
+            <div class="feature-divider">•</div>
+            <div class="feature-item">
+                <span class="feature-icon">✓</span>
+                <span>Zero Dependencies</span>
+            </div>
+            <div class="feature-divider">•</div>
+            <div class="feature-item">
+                <span class="feature-icon">✓</span>
+                <span>6 Visual Styles</span>
+            </div>
+            <div class="feature-divider">•</div>
+            <div class="feature-item">
+                <span class="feature-icon">✓</span>
+                <span>MIT License</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- URL -->
+    <div class="url">github.com/arraypress/waveform-player</div>
+</div>
+</body>
+</html>
