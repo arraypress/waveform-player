@@ -780,6 +780,9 @@ export class WaveformPlayer {
      * @private
      */
     onError(error) {
+        // Ignore errors during destruction
+        if (this.isDestroying) return;
+
         console.error('Audio error:', error);
         this.hasError = true;
         this.setLoading(false);
@@ -976,20 +979,43 @@ export class WaveformPlayer {
      * Destroy player instance
      */
     destroy() {
+        // Set a flag to indicate we're destroying
+        this.isDestroying = true;
+
+        // Stop playback and animations
         this.pause();
         this.stopSmoothUpdate();
 
+        // Disconnect observer
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
+            this.resizeObserver = null;
         }
 
+        // Remove from instances map
         WaveformPlayer.instances.delete(this.id);
 
-        if (this.audio) {
-            this.audio.src = '';
+        // Clear current playing reference if it's this instance
+        if (WaveformPlayer.currentlyPlaying === this) {
+            WaveformPlayer.currentlyPlaying = null;
         }
 
+        // Properly clean up audio element
+        if (this.audio) {
+            this.audio.pause();
+            this.audio.src = '';
+            this.audio.load(); // Reset the audio element
+            this.audio = null;
+        }
+
+        // Clear the container
         this.container.innerHTML = '';
+
+        // Clear all references
+        this.canvas = null;
+        this.ctx = null;
+        this.playBtn = null;
+        this.waveformData = [];
     }
 
     // ============================================
@@ -1051,4 +1077,5 @@ export class WaveformPlayer {
             throw error;
         }
     }
+
 }

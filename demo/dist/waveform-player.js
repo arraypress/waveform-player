@@ -1165,6 +1165,7 @@
      * @private
      */
     onError(error) {
+      if (this.isDestroying) return;
       console.error("Audio error:", error);
       this.hasError = true;
       this.setLoading(false);
@@ -1329,16 +1330,28 @@
      * Destroy player instance
      */
     destroy() {
+      this.isDestroying = true;
       this.pause();
       this.stopSmoothUpdate();
       if (this.resizeObserver) {
         this.resizeObserver.disconnect();
+        this.resizeObserver = null;
       }
       _WaveformPlayer.instances.delete(this.id);
+      if (_WaveformPlayer.currentlyPlaying === this) {
+        _WaveformPlayer.currentlyPlaying = null;
+      }
       if (this.audio) {
+        this.audio.pause();
         this.audio.src = "";
+        this.audio.load();
+        this.audio = null;
       }
       this.container.innerHTML = "";
+      this.canvas = null;
+      this.ctx = null;
+      this.playBtn = null;
+      this.waveformData = [];
     }
     // ============================================
     // Static Methods
