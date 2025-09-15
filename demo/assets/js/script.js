@@ -501,3 +501,52 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(el);
     });
 });
+
+
+// Initialize WaveformTracker for the demo
+if (typeof WaveformTracker !== 'undefined') {
+    let playCount = 0;
+    let listenCount = 0;
+    let completeCount = 0;
+    let totalTime = 0;
+
+    WaveformTracker.init({
+        handler: (payload) => {
+            // Update stats
+            if (payload.event === 'play') playCount++;
+            if (payload.event === 'listen') listenCount++;
+            if (payload.event === 'complete') completeCount++;
+
+            totalTime += payload.time;
+
+            // Update UI
+            document.getElementById('total-plays').textContent = playCount;
+            document.getElementById('qualified-listens').textContent = listenCount;
+            document.getElementById('completions').textContent = completeCount;
+            document.getElementById('avg-engagement').textContent =
+                Math.round((totalTime / (playCount * 10 || 1)) * 100) + '%';
+
+            // Add to event log
+            const log = document.getElementById('analytics-events');
+            const time = new Date().toLocaleTimeString();
+            const eventHtml = `
+                <div class="event-item">
+                    [${time}] <strong>${payload.event}</strong> - 
+                    ${payload.title} (${payload.time}s)
+                </div>
+            `;
+
+            if (log.children[0].textContent.includes('Waiting')) {
+                log.innerHTML = eventHtml;
+            } else {
+                log.insertAdjacentHTML('afterbegin', eventHtml);
+            }
+        },
+        events: {
+            play: 3,
+            listen: 5,
+            complete: 90
+        },
+        debug: true
+    });
+}

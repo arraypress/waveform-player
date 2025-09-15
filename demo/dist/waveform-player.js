@@ -614,6 +614,11 @@
       this.id = this.container.id || generateId(this.options.url);
       _WaveformPlayer.instances.set(this.id, this);
       this.init();
+      setTimeout(() => {
+        this.container.dispatchEvent(new CustomEvent("waveformplayer:ready", {
+          detail: { player: this, url: this.options.url }
+        }));
+      }, 100);
     }
     // ============================================
     // Initialization
@@ -1128,6 +1133,9 @@
       if (playIcon) playIcon.style.display = "none";
       if (pauseIcon) pauseIcon.style.display = "flex";
       this.startSmoothUpdate();
+      this.container.dispatchEvent(new CustomEvent("waveformplayer:play", {
+        detail: { player: this, url: this.options.url }
+      }));
       if (this.options.onPlay) {
         this.options.onPlay(this);
       }
@@ -1144,6 +1152,9 @@
       if (playIcon) playIcon.style.display = "flex";
       if (pauseIcon) pauseIcon.style.display = "none";
       this.stopSmoothUpdate();
+      this.container.dispatchEvent(new CustomEvent("waveformplayer:pause", {
+        detail: { player: this, url: this.options.url }
+      }));
       if (this.options.onPause) {
         this.options.onPause(this);
       }
@@ -1159,6 +1170,9 @@
       if (this.currentTimeEl) {
         this.currentTimeEl.textContent = "0:00";
       }
+      this.container.dispatchEvent(new CustomEvent("waveformplayer:ended", {
+        detail: { player: this, url: this.options.url }
+      }));
       this.onPause();
       if (this.options.onEnd) {
         this.options.onEnd(this);
@@ -1227,6 +1241,14 @@
       if (this.currentTimeEl) {
         this.currentTimeEl.textContent = formatTime(this.audio.currentTime);
       }
+      this.container.dispatchEvent(new CustomEvent("waveformplayer:timeupdate", {
+        detail: {
+          player: this,
+          currentTime: this.audio.currentTime,
+          duration: this.audio.duration,
+          url: this.options.url
+        }
+      }));
       if (this.options.onTimeUpdate) {
         this.options.onTimeUpdate(this.audio.currentTime, this.audio.duration, this);
       }

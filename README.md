@@ -1,4 +1,4 @@
-# Waveform Player
+# WaveformPlayer
 
 A lightweight, customizable audio player with waveform visualization. Under 6KB gzipped.
 
@@ -18,6 +18,7 @@ A lightweight, customizable audio player with waveform visualization. Under 6KB 
 - **Real Waveforms** - Actual audio analysis, not fake waves
 - **No Dependencies** - No jQuery, no bloat, pure vanilla JS
 - **Works Everywhere** - WordPress, Shopify, React, Vue, or plain HTML
+- **Ecosystem** - Optional playlist and analytics addons available
 
 ## Quick Start
 
@@ -57,6 +58,42 @@ npm install @arraypress/waveform-player
 - 🎵 **BPM Detection** - Automatic tempo detection (optional)
 - 💾 **Waveform Caching** - Pre-generate waveforms for performance
 - 🌐 **Framework Agnostic** - Works with React, Vue, Angular, or vanilla JS
+- ⌨️ **Keyboard Controls** - Full keyboard navigation support
+- 📱 **Media Session API** - System media controls, lock screen integration
+- ⏩ **Speed Control** - Adjustable playback rate for podcasts/audiobooks
+- 📍 **Chapter Markers** - Add clickable markers for navigation
+- 🔄 **Dynamic Loading** - Load new tracks without page refresh
+
+## Ecosystem
+
+### WaveformPlaylist (Optional Addon)
+Add playlist and chapter support with zero JavaScript:
+
+```html
+<div data-waveform-playlist data-continuous="true">
+  <div data-track data-url="song1.mp3" data-title="Track 1">
+    <div data-chapter data-time="0:00">Intro</div>
+    <div data-chapter data-time="2:30">Verse</div>
+  </div>
+  <div data-track data-url="song2.mp3" data-title="Track 2"></div>
+</div>
+```
+
+[Learn more →](https://github.com/arraypress/waveform-playlist)
+
+### WaveformTracker (Optional Addon)
+Track meaningful audio engagement:
+
+```javascript
+WaveformTracker.init({
+  endpoint: '/api/analytics',
+  events: {
+    listen: 30  // Track after 30 seconds of listening
+  }
+});
+```
+
+[Learn more →](https://github.com/arraypress/waveform-tracker)
 
 ## Comparison
 
@@ -68,6 +105,9 @@ npm install @arraypress/waveform-player
 | Waveform Styles | 6 | 3 | N/A |
 | Setup Time | 30 seconds | 5+ minutes | 5+ minutes |
 | Real Waveforms | ✅ | ✅ | ❌ |
+| Keyboard Controls | ✅ | ✅ | ❌ |
+| Media Session API | ✅ | ❌ | ❌ |
+| Speed Control | ✅ | ✅ | ❌ |
 
 ## Usage
 
@@ -77,7 +117,9 @@ npm install @arraypress/waveform-player
      data-url="audio.mp3"
      data-title="My Song"
      data-subtitle="Artist Name"
-     data-waveform-style="mirror">
+     data-waveform-style="mirror"
+     data-show-playback-speed="true"
+     data-markers='[{"time": 30, "label": "Chorus"}]'>
 </div>
 ```
 
@@ -90,7 +132,11 @@ const player = new WaveformPlayer('#player', {
     waveformStyle: 'mirror',
     height: 80,
     barWidth: 2,
-    barSpacing: 1
+    barSpacing: 1,
+    markers: [
+        {time: 30, label: 'Verse', color: '#4ade80'},
+        {time: 60, label: 'Chorus', color: '#f59e0b'}
+    ]
 });
 ```
 
@@ -120,9 +166,14 @@ Choose from 6 built-in styles:
 | `buttonColor` | string | `'rgba(255,255,255,0.9)'` | Play button color |
 | `showTime` | boolean | `true` | Show time display |
 | `showBPM` | boolean | `false` | Enable BPM detection |
+| `showPlaybackSpeed` | boolean | `false` | Show speed control menu |
+| `playbackRate` | number | `1` | Initial playback speed (0.5-2) |
 | `autoplay` | boolean | `false` | Autoplay on load |
 | `title` | string | `''` | Track title |
 | `subtitle` | string | `''` | Track subtitle |
+| `artwork` | string | `''` | Album artwork URL |
+| `markers` | array | `[]` | Chapter markers array |
+| `enableMediaSession` | boolean | `true` | Enable system media controls |
 
 ## API Methods
 
@@ -138,6 +189,12 @@ player.seekToPercent(0.5);   // Seek to 50%
 
 // Volume
 player.setVolume(0.8);       // 80% volume
+
+// Speed
+player.setPlaybackRate(1.5); // 1.5x speed
+
+// Dynamic loading
+await player.loadTrack('new-song.mp3', 'New Title', 'New Artist');
 
 // Destroy
 player.destroy();
@@ -157,6 +214,16 @@ new WaveformPlayer('#player', {
     }
 });
 ```
+
+## Keyboard Controls
+
+When a player is focused (click on it):
+
+- `Space` - Play/pause
+- `←/→` - Seek backward/forward 5 seconds
+- `↑/↓` - Volume up/down
+- `M` - Mute/unmute
+- `0-9` - Jump to 0%-90% of track
 
 ## Advanced Usage
 
@@ -178,14 +245,14 @@ new WaveformPlayer('#player', {
 ### Multiple Players
 
 ```javascript
-// Pause all players
-WaveformPlayer.pauseAll();
-
 // Get all instances
 const players = WaveformPlayer.getAllInstances();
 
 // Find specific player
 const player = WaveformPlayer.getInstance('my-player');
+
+// Destroy all players
+WaveformPlayer.destroyAll();
 ```
 
 ### Custom Styling
@@ -258,6 +325,11 @@ See the [live demo](https://waveformplayer.com) for:
 - Player builder
 - BPM detection
 - Pre-generated waveforms
+- Keyboard navigation
+- Speed controls
+- Chapter markers
+- Playlist support
+- Analytics tracking
 
 ## Development
 
