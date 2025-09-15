@@ -645,6 +645,12 @@ export class WaveformPlayer {
 
         // Add each marker
         this.options.markers.forEach((marker, index) => {
+            // Skip markers that are beyond the audio duration
+            if (marker.time > this.audio.duration) {
+                console.warn(`Marker "${marker.label}" at ${marker.time}s exceeds audio duration of ${this.audio.duration}s`);
+                return;
+            }
+
             const position = (marker.time / this.audio.duration) * 100;
 
             const markerEl = document.createElement('button');

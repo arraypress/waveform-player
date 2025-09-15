@@ -1,6 +1,6 @@
 {
   "name": "@arraypress/waveform-player",
-  "version": "1.1.1",
+  "version": "1.1.3",
   "description": "Lightweight, customizable audio player with waveform visualization",
   "main": "dist/waveform-player.js",
   "module": "dist/waveform-player.esm.js",
@@ -22,6 +22,7 @@
     "dev:css": "esbuild src/css/waveform-player.css --outfile=dist/waveform-player.css --watch",
     "dev:demo": "npm run build:css && npm run build:demo && concurrently \"npm run dev\" \"npm run dev:css\"",
     "size": "npm run build:min && npm run build:css && echo 'JS:' && gzip -c dist/waveform-player.min.js | wc -c && echo 'CSS:' && gzip -c dist/waveform-player.css | wc -c",
+    "serve": "npx http-server -p 8000",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

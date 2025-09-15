@@ -81,6 +81,11 @@
     <!-- WaveformPlayer -->
     <link rel="stylesheet" href="dist/waveform-player.css">
     <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Include WaveformPlaylist -->
+    <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-playlist@latest/dist/waveform-playlist.css">
+    <script src="https://unpkg.com/@arraypress/waveform-playlist@latest/dist/waveform-playlist.js"></script>
+
 </head>
 <body>
 
@@ -108,6 +113,7 @@
             <a href="#features">Features</a>
             <a href="#examples">Examples</a>
             <a href="#playground">Playground</a>
+            <a href="#playlists">Playlists</a>
             <a href="#builder">Builder</a>
             <a href="#docs">Docs</a>
             <a href="https://github.com/arraypress/waveform-player" class="nav-cta">
@@ -254,7 +260,8 @@
                      data-waveform-style="mirror">
                 </div>
                 <p style="margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">
-                    <strong>Try it:</strong> Click player then use Space (play), ←→ (seek), ↑↓ (volume), M (mute), 0-9 (position)
+                    <strong>Try it:</strong> Click player then use Space (play), ←→ (seek), ↑↓ (volume), M (mute), 0-9
+                    (position)
                 </p>
             </div>
 
@@ -724,7 +731,14 @@ player.setVolume(0.5);</pre>
                      data-bar-spacing="3"
                      data-show-bpm="true"
                      data-title="4/4 House Pattern"
-                     data-subtitle="BPM will be detected and displayed">
+                     data-subtitle="BPM will be detected and displayed"
+                     data-markers='[
+                 {"time": 0, "label": "Start", "color": "#4ade80"},
+                 {"time": 2, "label": "Bar 2", "color": "#f59e0b"},
+                 {"time": 4, "label": "Bar 3", "color": "#ef4444"},
+                 {"time": 6, "label": "Bar 4", "color": "#3b82f6"},
+                 {"time": 8, "label": "Bar 5", "color": "#a855f7"}
+             ]'>
                 </div>
             </div>
 
@@ -956,10 +970,12 @@ await player.loadTrack('another-song.mp3', 'Another Song');</code></pre>
                 <div class="timestamp-description">
                     <h4>Description:</h4>
                     <p>
-                        This mix starts with a smooth <a href="#" onclick="seekToTime(0, null, event)" class="inline-timestamp">0:00</a> intro,
+                        This mix starts with a smooth <a href="#" onclick="seekToTime(0, null, event)"
+                                                         class="inline-timestamp">0:00</a> intro,
                         building energy at <a href="#" onclick="seekToTime(3, null, event)" class="inline-timestamp">0:03</a>.
                         The main drop hits at <a href="#" onclick="seekToTime(6, null, event)" class="inline-timestamp">0:06</a>
-                        before winding down at <a href="#" onclick="seekToTime(9, null, event)" class="inline-timestamp">0:09</a>.
+                        before winding down at <a href="#" onclick="seekToTime(9, null, event)"
+                                                  class="inline-timestamp">0:09</a>.
                     </p>
                 </div>
             </div>
@@ -1038,6 +1054,205 @@ new WaveformPlayer('#player', {
                     <li>🔒 Works with protected/authenticated audio</li>
                     <li>📱 Reduces client-side processing on mobile</li>
                 </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     PLAYLIST & CHAPTERS
+     ============================================ -->
+<section class="playlists" id="playlists" style="background: var(--bg-secondary);">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">WAVEFORMPLAYLIST ADDON</div>
+            <h2>Playlists & Chapter Navigation</h2>
+            <p>Extend WaveformPlayer with playlist support and chapter navigation using our companion library</p>
+        </div>
+
+        <!-- How It Works -->
+        <div class="playground-card" style="margin-bottom: 3rem;">
+            <h3><i class="ti ti-code"></i> How It Works</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+                WaveformPlaylist uses simple HTML markup. Just nest your tracks and chapters as divs with data
+                attributes:
+            </p>
+
+            <div class="code-example">
+                <pre><code>&lt;!-- The container becomes the playlist --&gt;
+&lt;div data-waveform-playlist         &lt;!-- Activates playlist --&gt;
+     data-continuous="true"          &lt;!-- Auto-play next track --&gt;
+     data-waveform-style="mirror"&gt;  &lt;!-- Inherits all player options --&gt;
+
+  &lt;!-- Each track is a div with data-track --&gt;
+  &lt;div data-track
+       data-url="episode1.mp3"
+       data-title="Episode 1: Getting Started"
+       data-subtitle="with John Doe"
+       data-artwork="cover1.jpg"&gt;
+
+    &lt;!-- Chapters are nested divs with timestamps --&gt;
+    &lt;div data-chapter data-time="0:00"&gt;Introduction&lt;/div&gt;
+    &lt;div data-chapter data-time="5:30"&gt;Main Topic&lt;/div&gt;
+    &lt;div data-chapter data-time="25:00"&gt;Q&amp;A Session&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Add more tracks --&gt;
+  &lt;div data-track
+       data-url="episode2.mp3"
+       data-title="Episode 2: Advanced Topics"&gt;
+    &lt;div data-chapter data-time="0:00"&gt;Recap&lt;/div&gt;
+    &lt;div data-chapter data-time="3:00"&gt;Deep Dive&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- That's it! The library handles everything else --&gt;</code></pre>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding: 2rem; background: rgba(168, 85, 247, 0.1); border-radius: 8px;">
+                <strong style="color: var(--accent);">✨ Key Points:</strong>
+                <ul style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
+                    <li>The outer div with <code>data-waveform-playlist</code> creates the playlist</li>
+                    <li>Each <code>data-track</code> div becomes a track in the list</li>
+                    <li>Nested <code>data-chapter</code> divs become clickable timestamps</li>
+                    <li>All WaveformPlayer options work on the container</li>
+                    <li>No JavaScript required - just HTML!</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Live Examples -->
+        <h3 style="margin-bottom: 2rem; text-align: center;">Live Examples</h3>
+
+        <!-- Podcast with Chapters -->
+        <div class="example-card" style="margin-bottom: 2rem;">
+            <div class="example-title">
+                <i class="ti ti-microphone"></i>
+                Podcast Episode
+                <span class="style-badge">Single track + 5 chapters</span>
+            </div>
+
+            <!-- Show the actual markup in a collapsible -->
+            <details style="margin-bottom: 1rem;">
+                <summary style="cursor: pointer; color: var(--accent); font-size: 0.9rem;">
+                    View HTML Markup ↓
+                </summary>
+                <pre style="margin-top: 1rem; background: #000; padding: 1rem; border-radius: 6px; font-size: 0.8rem;"><code>&lt;div data-waveform-playlist
+     data-waveform-style="mirror"
+     data-height="80"&gt;
+  &lt;div data-track
+       data-url="podcast.mp3"
+       data-title="Episode 42: The Future of Web Audio"
+       data-subtitle="with Sarah Chen"
+       data-artwork="cover.svg"&gt;
+    &lt;div data-chapter data-time="0:00"&gt;Introduction&lt;/div&gt;
+    &lt;div data-chapter data-time="0:02"&gt;Background&lt;/div&gt;
+    &lt;div data-chapter data-time="0:04"&gt;Deep Dive&lt;/div&gt;
+    &lt;div data-chapter data-time="0:06"&gt;Future&lt;/div&gt;
+    &lt;div data-chapter data-time="0:08"&gt;Q&amp;A&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+            </details>
+
+            <!-- The actual player -->
+            <div data-waveform-playlist
+                 data-waveform-style="mirror"
+                 data-bar-width="1"
+                 data-bar-spacing="1"
+                 data-height="80"
+                 data-waveform-color="rgba(168, 85, 247, 0.3)"
+                 data-progress-color="rgba(168, 85, 247, 0.9)">
+                <div data-track
+                     data-url="assets/audio/pluck-pieces-of-you.mp3"
+                     data-title="Episode 42: The Future of Web Audio"
+                     data-subtitle="with Sarah Chen"
+                     data-artwork="assets/img/album-cover.svg">
+                    <div data-chapter data-time="0:00">Introduction & Welcome</div>
+                    <div data-chapter data-time="0:02">Sarah's Background</div>
+                    <div data-chapter data-time="0:04">Web Audio API Deep Dive</div>
+                    <div data-chapter data-time="0:06">Future Predictions</div>
+                    <div data-chapter data-time="0:08">Q&A Session</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Music Playlist -->
+        <div class="example-card" style="margin-bottom: 2rem;">
+            <div class="example-title">
+                <i class="ti ti-playlist"></i>
+                Music Playlist
+                <span class="style-badge">3 tracks + continuous play</span>
+            </div>
+
+            <details style="margin-bottom: 1rem;">
+                <summary style="cursor: pointer; color: var(--accent); font-size: 0.9rem;">
+                    View HTML Markup ↓
+                </summary>
+                <pre style="margin-top: 1rem; background: #000; padding: 1rem; border-radius: 6px; font-size: 0.8rem;"><code>&lt;div data-waveform-playlist
+     data-continuous="true"
+     data-show-play-state="true"&gt;
+  &lt;div data-track
+       data-url="song1.mp3"
+       data-title="Wings"
+       data-subtitle="Ambient Dreams"
+       data-artwork="cover1.svg"
+       data-duration="0:10"&gt;&lt;/div&gt;
+  &lt;div data-track
+       data-url="song2.mp3"
+       data-title="Desire"
+       data-subtitle="Electronic Vibes"
+       data-artwork="cover2.svg"
+       data-duration="0:10"&gt;&lt;/div&gt;
+  &lt;div data-track
+       data-url="song3.mp3"
+       data-title="Lovely"
+       data-subtitle="Chill Beats"
+       data-artwork="cover3.svg"
+       data-duration="0:10"&gt;&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+            </details>
+
+            <div data-waveform-playlist
+                 data-waveform-style="bars"
+                 data-height="60"
+                 data-continuous="true"
+                 data-show-play-state="true"
+                 data-bar-width="3"
+                 data-bar-spacing="1">
+                <div data-track
+                     data-url="assets/audio/pluck-wings.mp3"
+                     data-title="Wings"
+                     data-subtitle="Ambient Dreams"
+                     data-artwork="assets/img/album-cover.svg"
+                     data-duration="0:10"></div>
+                <div data-track
+                     data-url="assets/audio/pluck-desire.mp3"
+                     data-title="Desire"
+                     data-subtitle="Electronic Vibes"
+                     data-artwork="assets/img/album-cover.svg"
+                     data-duration="0:10"></div>
+                <div data-track
+                     data-url="assets/audio/pluck-lovely.mp3"
+                     data-title="Lovely"
+                     data-subtitle="Chill Beats"
+                     data-artwork="assets/img/album-cover.svg"
+                     data-duration="0:10"></div>
+            </div>
+        </div>
+
+        <!-- Get Started -->
+        <div class="cta-box" style="margin-top: 3rem;">
+            <h3>Add Playlist Support to Your Site</h3>
+            <p style="color: var(--text-muted); margin: 1rem 0;">
+                Just 4KB gzipped. Works with any WaveformPlayer configuration.
+            </p>
+            <div class="buttons">
+                <a href="https://github.com/arraypress/waveform-playlist" class="btn btn-primary">
+                    <i class="ti ti-brand-github"></i> View on GitHub
+                </a>
+                <a href="https://npmjs.com/package/@arraypress/waveform-playlist" class="btn btn-secondary">
+                    <i class="ti ti-package"></i> Install via NPM
+                </a>
             </div>
         </div>
     </div>
@@ -1317,7 +1532,7 @@ new WaveformPlayer('#player', {
 <footer class="footer">
     <div class="container">
         <p>Made with ♥ by <a href="https://github.com/arraypress">ArrayPress</a></p>
-        <p style="margin-top: 0.5rem;">MIT License · Version 1.1.0</p>
+        <p style="margin-top: 0.5rem;">MIT License · Version 1.1.3</p>
     </div>
 </footer>
 
