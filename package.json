@@ -1,6 +1,6 @@
 {
   "name": "@arraypress/waveform-player",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Lightweight, customizable audio player with waveform visualization",
   "main": "dist/waveform-player.js",
   "module": "dist/waveform-player.esm.js",
@@ -17,10 +17,10 @@
     "build:iife": "esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.js",
     "build:min": "esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.min.js --minify",
     "build:esm": "esbuild src/js/index.js --bundle --format=esm --outfile=dist/waveform-player.esm.js --minify",
-    "build:demo": "npm run build:css && mkdir -p demo/dist && cp dist/*.js demo/dist/ 2>/dev/null || true && cp dist/*.css demo/dist/",
+    "build:demo": "mkdir -p demo/dist && cp -r dist/* demo/dist/",
     "dev": "npm run build:css && esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.js --watch",
     "dev:css": "esbuild src/css/waveform-player.css --outfile=dist/waveform-player.css --watch",
-    "dev:all": "npm run build:css && npm run build:demo && concurrently \"npm run dev\" \"npm run dev:css\"",
+    "dev:demo": "npm run build:css && npm run build:demo && concurrently \"npm run dev\" \"npm run dev:css\"",
     "size": "npm run build:min && npm run build:css && echo 'JS:' && gzip -c dist/waveform-player.min.js | wc -c && echo 'CSS:' && gzip -c dist/waveform-player.css | wc -c",
     "prepublishOnly": "npm run build"
   },

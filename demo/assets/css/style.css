@@ -20,12 +20,17 @@
     box-sizing: border-box;
 }
 
+html {
+    overflow-x: hidden;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
     overflow-x: hidden;
+    max-width: 100vw;
 }
 
 /* ========================================
@@ -45,10 +50,13 @@ body {
     max-width: var(--max-width);
     margin: 0 auto;
     padding: 0 2rem;
+    width: 100%;
+    overflow: hidden;
 }
 
 section {
     padding: 6rem 0;
+    overflow: hidden;
 }
 
 /* ========================================
@@ -132,6 +140,7 @@ section {
     padding: 10rem 0 6rem;
     position: relative;
     text-align: center;
+    overflow: hidden;
 }
 
 .hero-background {
@@ -261,7 +270,7 @@ section {
    ======================================== */
 .feature-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
     margin-top: 3rem;
 }
@@ -354,7 +363,7 @@ section {
 
 .playground-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
     margin-top: 3rem;
 }
@@ -365,6 +374,7 @@ section {
     border: 1px solid var(--border);
     border-radius: 1rem;
     margin-bottom: 1rem;
+    overflow: hidden;
 }
 
 .playground-card h3 {
@@ -457,7 +467,7 @@ section {
 
 .builder-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr;  /* Always 2 columns on desktop */
     gap: 2rem;
     margin-top: 3rem;
 }
@@ -468,15 +478,17 @@ section {
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 1rem;
+    overflow: hidden;
 }
 
 .builder-code {
-    grid-column: 1 / -1;
+    grid-column: 1 / -1;  /* Spans full width */
     padding: 2rem;
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 1rem;
     position: relative;
+    overflow: hidden;
 }
 
 .builder-code pre {
@@ -486,6 +498,16 @@ section {
     color: var(--success);
     overflow-x: auto;
     margin-bottom: 1rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Then in the responsive section */
+@media (max-width: 768px) {
+    .builder-container {
+        grid-template-columns: 1fr !important;  /* Single column on mobile */
+        gap: 1rem;
+    }
 }
 
 /* ========================================
@@ -583,12 +605,16 @@ small {
 }
 
 .code-block pre,
-.code-snippet pre {
+.code-snippet pre,
+.code-example pre {
     color: var(--success);
     font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
     font-size: 14px;
     line-height: 1.6;
     margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .code-snippet {
@@ -602,6 +628,10 @@ small {
 
 .code-snippet pre {
     font-size: 0.875rem;
+}
+
+.code-example {
+    overflow: hidden;
 }
 
 /* ========================================
@@ -647,7 +677,7 @@ small {
 
 .faq-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
     margin: 0 auto;
 }
@@ -755,6 +785,14 @@ small {
     margin: 0 auto;
 }
 
+.complete-features {
+    background: var(--bg-secondary);
+}
+
+.advanced {
+    background: var(--bg);
+}
+
 /* ========================================
    CTA SECTION
    ======================================== */
@@ -783,7 +821,9 @@ small {
     margin-bottom: 2rem;
 }
 
-/* Track list styles */
+/* ========================================
+   TRACK LIST STYLES
+   ======================================== */
 .track-list {
     display: flex;
     flex-direction: column;
@@ -839,7 +879,9 @@ small {
     color: var(--text-muted);
 }
 
-/* Timestamp navigation styles */
+/* ========================================
+   TIMESTAMP NAVIGATION STYLES
+   ======================================== */
 .timestamp-list {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
@@ -894,7 +936,6 @@ small {
     font-size: 0.9rem;
 }
 
-/* Inline timestamps in descriptions */
 .timestamp-description {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
@@ -925,6 +966,19 @@ small {
 }
 
 /* ========================================
+   MISC COMPONENTS
+   ======================================== */
+.feature-list {
+    list-style: none;
+    padding: 0;
+}
+
+.feature-list li {
+    padding: 0.5rem 0;
+    color: var(--text-muted);
+}
+
+/* ========================================
    FOOTER
    ======================================== */
 .footer {
@@ -943,28 +997,129 @@ small {
    RESPONSIVE DESIGN
    ======================================== */
 @media (max-width: 768px) {
+    /* Layout adjustments */
+    .container {
+        padding: 0 1rem;
+    }
+
+    section {
+        padding: 3rem 0;
+    }
+
+    /* Navigation */
     .nav-links {
         display: none;
     }
 
-    .hero {
-        padding: 8rem 0 4rem;
+    .nav-container {
+        padding: 1rem;
     }
 
+    /* Hero */
+    .hero {
+        padding: 6rem 0 3rem;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .hero-demo {
+        padding: 1rem;
+    }
+
+    /* Cards and grids */
+    .feature-grid,
+    .playground-grid,
+    .builder-container,
+    .faq-grid,
+    .examples-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+
+    .feature-card,
+    .playground-card,
+    .example-card,
+    .builder-preview,
+    .builder-controls,
+    .builder-code,
+    .faq-item {
+        padding: 1rem;
+    }
+
+    /* Buttons */
     .buttons {
         flex-direction: column;
+    }
+
+    .control-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .control-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Tables */
+    .config-table {
+        font-size: 0.875rem;
+    }
+
+    .config-table th,
+    .config-table td {
+        padding: 0.5rem;
+    }
+
+    /* Code blocks */
+    .code-block,
+    .code-snippet {
+        padding: 1rem;
+        font-size: 0.75rem;
+    }
+
+    /* CTA */
+    .cta-box {
+        padding: 2rem 1rem;
+    }
+
+    .cta-box h2 {
+        font-size: 1.75rem;
+    }
+
+    /* Trust badges */
+    .trust-badges {
+        gap: 1rem;
+    }
+
+    .trust-item {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Even smaller screens */
+    .hero-title {
+        font-size: 1.75rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
     }
 
     .feature-grid {
         grid-template-columns: 1fr;
     }
 
-    .playground-grid,
-    .builder-container {
-        grid-template-columns: 1fr;
-    }
-
-    .faq-grid {
-        grid-template-columns: 1fr;
+    /* Hide overflow text on very small screens */
+    .timestamp-label,
+    .track-btn-subtitle {
+        display: none;
     }
 }
