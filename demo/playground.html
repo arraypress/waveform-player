@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Builder - WaveformPlayer</title>
+
+    <meta name="description" content="Build and customize your WaveformPlayer with real-time preview and code generation">
+
+    <!-- External Dependencies -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+
+    <!-- WaveformPlayer -->
+    <link rel="stylesheet" href="dist/waveform-player.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/playground.css">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+    <div class="nav-container">
+        <a href="index.html" class="nav-logo">
+            <img src="assets/img/logo.svg" alt="WaveformPlayer Logo" class="logo-icon" width="36" height="36">
+            <span>WaveformPlayer</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="examples.html">Examples</a>
+            <a href="playground.html" class="nav-link-active">Builder</a>
+            <a href="docs.html">Docs</a>
+            <a href="addons.html">Add-ons</a>
+            <a href="https://github.com/arraypress/waveform-player" class="nav-cta">
+                <i class="ti ti-brand-github"></i> GitHub
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1>Player Builder</h1>
+        <p>Customize your player and get the code instantly</p>
+    </div>
+</section>
+
+<!-- Builder Section -->
+<section class="builder">
+    <div class="container">
+        <div class="builder-container">
+            <!-- Preview Panel -->
+            <div class="builder-panel preview-panel">
+                <div class="panel-header">
+                    <h3><i class="ti ti-eye"></i> Live Preview</h3>
+                    <div class="preview-actions">
+                        <button class="btn-icon" onclick="resetPlayer()" title="Reset">
+                            <i class="ti ti-refresh"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div id="builder-player"></div>
+                </div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="builder-panel controls-panel">
+                <div class="panel-header">
+                    <h3><i class="ti ti-adjustments"></i> Customize</h3>
+                </div>
+                <div class="panel-body">
+                    <!-- Style Section -->
+                    <div class="control-section">
+                        <h4>Visual Style</h4>
+                        <div class="control-group">
+                            <label>Style</label>
+                            <select id="builder-style" onchange="updateBuilder()">
+                                <option value="bars">Bars</option>
+                                <option value="mirror" selected>Mirror</option>
+                                <option value="line">Line</option>
+                                <option value="blocks">Blocks</option>
+                                <option value="dots">Dots</option>
+                                <option value="seekbar">Seekbar</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Dimensions Section -->
+                    <div class="control-section">
+                        <h4>Dimensions</h4>
+                        <div class="control-group">
+                            <label>Bar Width: <span id="width-value">2</span>px</label>
+                            <input type="range" id="builder-width" min="1" max="5" value="2" onchange="updateBuilder()">
+                        </div>
+                        <div class="control-group">
+                            <label>Bar Spacing: <span id="spacing-value">0</span>px</label>
+                            <input type="range" id="builder-spacing" min="0" max="5" value="0" onchange="updateBuilder()">
+                        </div>
+                        <div class="control-group">
+                            <label>Height: <span id="height-value">60</span>px</label>
+                            <input type="range" id="builder-height" min="30" max="120" step="10" value="60" onchange="updateBuilder()">
+                        </div>
+                        <div class="control-group">
+                            <label>Samples: <span id="samples-value">200</span></label>
+                            <input type="range" id="builder-samples" min="50" max="500" step="50" value="200" onchange="updateBuilder()">
+                        </div>
+                    </div>
+
+                    <!-- Colors Section -->
+                    <div class="control-section">
+                        <h4>Colors</h4>
+                        <div class="control-group">
+                            <label>Waveform Color</label>
+                            <div class="color-input-group">
+                                <input type="color" id="builder-color" value="#a855f7" onchange="updateBuilder()">
+                                <input type="range" id="builder-opacity" min="0" max="100" value="30" onchange="updateBuilder()">
+                                <span id="opacity-value">30%</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>Progress Color</label>
+                            <div class="color-input-group">
+                                <input type="color" id="builder-progress" value="#a855f7" onchange="updateBuilder()">
+                                <input type="range" id="builder-progress-opacity" min="0" max="100" value="90" onchange="updateBuilder()">
+                                <span id="progress-opacity-value">90%</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>Button Color</label>
+                            <div class="color-input-group">
+                                <input type="color" id="builder-button" value="#ffffff" onchange="updateBuilder()">
+                                <input type="range" id="builder-button-opacity" min="0" max="100" value="90" onchange="updateBuilder()">
+                                <span id="button-opacity-value">90%</span>
+                            </div>
+                        </div>
+
+                        <!-- Color Presets -->
+                        <div class="color-presets">
+                            <button class="preset-btn" onclick="applyPreset('purple')" style="background: #a855f7;">
+                                <span class="preset-tooltip">Default Purple</span>
+                            </button>
+                            <button class="preset-btn" onclick="applyPreset('spotify')" style="background: #1db954;">
+                                <span class="preset-tooltip">Spotify Green</span>
+                            </button>
+                            <button class="preset-btn" onclick="applyPreset('youtube')" style="background: #ff0000;">
+                                <span class="preset-tooltip">YouTube Red</span>
+                            </button>
+                            <button class="preset-btn" onclick="applyPreset('soundcloud')" style="background: #ff5500;">
+                                <span class="preset-tooltip">SoundCloud</span>
+                            </button>
+                            <button class="preset-btn" onclick="applyPreset('twitter')" style="background: #1da1f2;">
+                                <span class="preset-tooltip">Twitter Blue</span>
+                            </button>
+                            <button class="preset-btn" onclick="applyPreset('dark')" style="background: #ffffff;">
+                                <span class="preset-tooltip">White</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Content Section -->
+                    <div class="control-section">
+                        <h4>Content</h4>
+                        <div class="control-group">
+                            <label>Title</label>
+                            <input type="text" id="builder-title" placeholder="Track Title" value="Custom Player" onchange="updateBuilder()">
+                        </div>
+                        <div class="control-group">
+                            <label>Subtitle</label>
+                            <input type="text" id="builder-subtitle" placeholder="Artist or description" value="" onchange="updateBuilder()">
+                        </div>
+                        <div class="control-group">
+                            <label>Audio URL (optional)</label>
+                            <input type="url" id="builder-url" placeholder="https://example.com/audio.mp3" onchange="updateBuilder()">
+                            <small>External URLs may not work due to CORS</small>
+                        </div>
+                    </div>
+
+                    <!-- Features Section -->
+                    <div class="control-section">
+                        <h4>Features</h4>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="builder-showtime" checked onchange="updateBuilder()">
+                                <span>Show Time Display</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="builder-showbpm" onchange="updateBuilder()">
+                                <span>Show BPM Detection</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="builder-showspeed" onchange="updateBuilder()">
+                                <span>Show Speed Control</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="builder-autoplay" onchange="updateBuilder()">
+                                <span>Autoplay</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="builder-mediasession" checked onchange="updateBuilder()">
+                                <span>Enable Media Session</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Code Output Panel -->
+            <div class="builder-panel code-panel">
+                <div class="panel-header">
+                    <h3><i class="ti ti-code"></i> Generated Code</h3>
+                    <div class="code-actions">
+                        <button class="btn-sm btn-primary" onclick="copyCode()">
+                            <i class="ti ti-copy"></i> Copy Code
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="code-tabs">
+                        <button class="code-tab active" data-tab="html">HTML</button>
+                        <button class="code-tab" data-tab="javascript">JavaScript</button>
+                        <button class="code-tab" data-tab="react">React</button>
+                        <button class="code-tab" data-tab="vue">Vue</button>
+                    </div>
+                    <div class="code-content">
+                        <pre id="builder-output-html" class="code-output active"><code></code></pre>
+                        <pre id="builder-output-javascript" class="code-output"><code></code></pre>
+                        <pre id="builder-output-react" class="code-output"><code></code></pre>
+                        <pre id="builder-output-vue" class="code-output"><code></code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <div class="action-card">
+                <i class="ti ti-download"></i>
+                <h4>Export Configuration</h4>
+                <p>Download your configuration as JSON</p>
+                <button class="btn btn-secondary" onclick="exportConfig()">Export</button>
+            </div>
+            <div class="action-card">
+                <i class="ti ti-upload"></i>
+                <h4>Import Configuration</h4>
+                <p>Load a previously saved configuration</p>
+                <button class="btn btn-secondary" onclick="importConfig()">Import</button>
+                <input type="file" id="import-file" accept=".json" style="display: none;" onchange="handleImport(event)">
+            </div>
+            <div class="action-card">
+                <i class="ti ti-share"></i>
+                <h4>Share Configuration</h4>
+                <p>Get a shareable link to this configuration</p>
+                <button class="btn btn-secondary" onclick="shareConfig()">Share</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Waveform Generator Tool -->
+<section class="generator-section">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">DEVELOPER TOOL</div>
+            <h2>Waveform Data Generator</h2>
+            <p>Generate waveform data server-side for better performance</p>
+        </div>
+
+        <div class="generator-card">
+            <div class="generator-controls">
+                <div class="control-group">
+                    <label>Audio URL</label>
+                    <input type="url" id="generator-url" placeholder="https://example.com/audio.mp3" value="assets/audio/drum-loop.mp3">
+                </div>
+                <div class="control-group">
+                    <label>Samples: <span id="generator-samples-value">200</span></label>
+                    <input type="range" id="generator-samples" min="50" max="500" value="200"
+                           oninput="document.getElementById('generator-samples-value').textContent = this.value">
+                </div>
+                <button class="btn btn-primary" onclick="generateWaveformData()">
+                    <i class="ti ti-waveform"></i> Generate Waveform Data
+                </button>
+            </div>
+
+            <div class="generator-output">
+                <label>Generated Data (JSON)</label>
+                <pre id="waveform-output">// Waveform data will appear here...</pre>
+                <button class="btn btn-secondary" onclick="copyWaveformData()">
+                    <i class="ti ti-copy"></i> Copy Data
+                </button>
+            </div>
+
+            <div class="generator-info">
+                <h4>How to Use</h4>
+                <ol>
+                    <li>Generate waveform data using the tool above</li>
+                    <li>Save the JSON data to your server/database</li>
+                    <li>Pass the data to WaveformPlayer:</li>
+                </ol>
+                <pre><code>new WaveformPlayer('#player', {
+    url: 'audio.mp3',
+    waveform: savedWaveformData
+});</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Product</h4>
+                <ul>
+                    <li><a href="examples.html">Examples</a></li>
+                    <li><a href="playground.html">Builder</a></li>
+                    <li><a href="docs.html">Documentation</a></li>
+                    <li><a href="addons.html">Add-ons</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="docs.html#api">API Reference</a></li>
+                    <li><a href="docs.html#config">Configuration</a></li>
+                    <li><a href="docs.html#frameworks">Framework Guides</a></li>
+                    <li><a href="https://github.com/arraypress/waveform-player/issues">Support</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Community</h4>
+                <ul>
+                    <li><a href="https://github.com/arraypress/waveform-player">GitHub</a></li>
+                    <li><a href="https://npmjs.com/package/@arraypress/waveform-player">NPM</a></li>
+                    <li><a href="https://twitter.com/arraypress">Twitter</a></li>
+                    <li><a href="https://github.com/arraypress/waveform-player/discussions">Discussions</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Made with ♥ by <a href="https://github.com/arraypress">ArrayPress</a> · Version 1.1.5</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Scripts -->
+<script src="dist/waveform-player.js"></script>
+<script src="assets/js/playground.js"></script>
+
+</body>
+</html>

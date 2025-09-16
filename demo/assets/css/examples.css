@@ -1,0 +1,557 @@
+/* ========================================
+   EXAMPLES PAGE STYLES
+   ======================================== */
+
+/* Page Header */
+.page-header {
+    background: linear-gradient(135deg, var(--bg-secondary), rgba(168, 85, 247, 0.05));
+    padding: 6rem 0 3rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    margin-top: 60px; /* Account for fixed nav */
+}
+
+.page-header h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.page-header p {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+}
+
+/* Examples Navigation */
+.examples-nav {
+    background: var(--bg-secondary);
+    padding: 1.5rem 0;
+    position: sticky;
+    top: 60px;
+    z-index: 100;
+    border-bottom: 1px solid var(--border);
+}
+
+.nav-pills {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.nav-pill {
+    padding: 0.5rem 1.25rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.nav-pill:hover {
+    background: rgba(168, 85, 247, 0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.nav-pill.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+
+/* Examples Section */
+.examples-section {
+    padding: 4rem 0;
+}
+
+.examples-section.alt-bg {
+    background: var(--bg-secondary);
+}
+
+/* Examples Grid */
+.examples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+/* Code Snippets */
+.code-snippet {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.code-snippet pre {
+    font-size: 0.8rem;
+    color: var(--success);
+    margin: 0;
+    overflow-x: auto;
+}
+
+/* Feature Description */
+.feature-description {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(168, 85, 247, 0.05);
+    border-left: 3px solid var(--accent);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.feature-description strong {
+    color: var(--text);
+}
+
+/* Playground Grid */
+.playground-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.playground-card {
+    padding: 2rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+}
+
+.playground-card h3 {
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Control Buttons */
+.control-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+}
+
+.control-btn {
+    padding: 0.5rem 1rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+}
+
+.control-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+}
+
+/* Event Log */
+.event-log {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.event-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent);
+}
+
+.event-list {
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 0.875rem;
+    font-family: monospace;
+}
+
+.event-item {
+    padding: 0.25rem 0;
+    color: var(--text-muted);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Track List */
+.track-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.track-btn {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+}
+
+.track-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent);
+}
+
+.track-btn.active {
+    background: rgba(168, 85, 247, 0.1);
+    border-color: var(--accent);
+}
+
+.track-btn i {
+    color: var(--accent);
+    font-size: 1.25rem;
+}
+
+.track-btn > div {
+    flex: 1;
+}
+
+.track-btn-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.track-btn-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.track-btn-duration {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Advanced Cards */
+.advanced-card {
+    padding: 2.5rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+}
+
+.advanced-card h3 {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+}
+
+.advanced-card p {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+.code-example {
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.code-example pre {
+    color: var(--success);
+    font-size: 0.9rem;
+    margin: 0;
+    overflow-x: auto;
+}
+
+/* Feature Benefits */
+.feature-benefits {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.benefit {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: rgba(168, 85, 247, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.benefit i {
+    color: var(--accent);
+    font-size: 1.25rem;
+}
+
+.benefit span {
+    color: var(--text);
+    font-size: 0.9rem;
+}
+
+/* Timestamp Navigation */
+.timestamp-list {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.timestamp-list h4 {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.timestamp-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.timestamp-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: var(--text);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.timestamp-link:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border);
+}
+
+.timestamp-link.active {
+    background: rgba(168, 85, 247, 0.1);
+    border-color: var(--accent);
+}
+
+.timestamp-time {
+    font-family: monospace;
+    font-size: 0.875rem;
+    color: var(--accent);
+    min-width: 3rem;
+}
+
+.timestamp-label {
+    font-size: 0.9rem;
+}
+
+/* Multi Player Demo */
+.multi-player-demo {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+/* Feature Note */
+.feature-note {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: rgba(168, 85, 247, 0.05);
+    border-left: 3px solid var(--accent);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+.feature-note i {
+    color: var(--accent);
+    font-size: 1.2rem;
+}
+
+/* Footer Styles (same as landing) */
+.footer {
+    background: var(--bg-secondary);
+    padding: 4rem 0 2rem;
+    border-top: 1px solid var(--border);
+    margin-top: 4rem;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 3rem;
+    margin-bottom: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.footer-section h4 {
+    color: var(--text);
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-section a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s;
+    font-size: 0.9rem;
+}
+
+.footer-section a:hover {
+    color: var(--accent);
+}
+
+.footer-bottom {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.footer-bottom a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+/* Navigation active state */
+.nav-link-active {
+    color: var(--accent) !important;
+    font-weight: 600;
+}
+
+/* Navigation Logo as Link */
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text) !important;
+    text-decoration: none !important;
+    border-bottom: none !important;
+    transition: opacity 0.2s;
+}
+
+.nav-logo:hover {
+    opacity: 0.8;
+    text-decoration: none !important;
+    border-bottom: none !important;
+}
+
+.logo-icon {
+    width: 36px;
+    height: 36px;
+    display: block;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .page-header h1 {
+        font-size: 2rem;
+    }
+
+    .examples-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .playground-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .nav-pills {
+        gap: 0.5rem;
+    }
+
+    .nav-pill {
+        padding: 0.4rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .control-buttons {
+        flex-direction: column;
+    }
+
+    .control-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .event-stats {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .feature-benefits {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-content {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 2rem;
+    }
+}

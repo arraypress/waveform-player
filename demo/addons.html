@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add-ons - WaveformPlayer</title>
+
+    <meta name="description" content="Extend WaveformPlayer with playlist support and analytics tracking">
+
+    <!-- External Dependencies -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+
+    <!-- WaveformPlayer -->
+    <link rel="stylesheet" href="dist/waveform-player.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/addons.css">
+
+    <!-- WaveformPlaylist Add-on from CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-playlist@latest/dist/waveform-playlist.css">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+    <div class="nav-container">
+        <a href="index.html" class="nav-logo">
+            <img src="assets/img/logo.svg" alt="WaveformPlayer Logo" class="logo-icon" width="36" height="36">
+            <span>WaveformPlayer</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="examples.html">Examples</a>
+            <a href="playground.html">Builder</a>
+            <a href="docs.html">Docs</a>
+            <a href="addons.html" class="nav-link-active">Add-ons</a>
+            <a href="https://github.com/arraypress/waveform-player" class="nav-cta">
+                <i class="ti ti-brand-github"></i> GitHub
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1>WaveformPlayer Add-ons</h1>
+        <p>Extend functionality with official add-on libraries</p>
+    </div>
+</section>
+
+<!-- Add-ons Overview -->
+<section class="addons-hero">
+    <div class="container">
+        <div class="addons-grid">
+            <div class="addon-card featured">
+                <div class="addon-icon">
+                    <i class="ti ti-playlist"></i>
+                </div>
+                <h2>WaveformPlaylist</h2>
+                <p>Add playlist and chapter navigation with zero JavaScript. Just HTML markup.</p>
+                <div class="addon-stats">
+                    <span><i class="ti ti-weight"></i> 4KB</span>
+                    <span><i class="ti ti-code"></i> Zero Config</span>
+                    <span><i class="ti ti-star"></i> 500+ Users</span>
+                </div>
+                <a href="#waveform-playlist" class="btn btn-primary">Learn More</a>
+            </div>
+
+            <div class="addon-card featured">
+                <div class="addon-icon">
+                    <i class="ti ti-chart-line"></i>
+                </div>
+                <h2>WaveformTracker</h2>
+                <p>Track meaningful audio engagement, not just clicks. Privacy-focused analytics.</p>
+                <div class="addon-stats">
+                    <span><i class="ti ti-weight"></i> 2KB</span>
+                    <span><i class="ti ti-shield-lock"></i> Privacy First</span>
+                    <span><i class="ti ti-users"></i> 300+ Users</span>
+                </div>
+                <a href="#waveform-tracker" class="btn btn-primary">Learn More</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- WaveformPlaylist Section -->
+<section id="waveform-playlist" class="addon-section">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">WAVEFORMPLAYLIST</div>
+            <h2>Playlist & Chapter Support</h2>
+            <p>Turn WaveformPlayer into a full playlist system with chapter navigation</p>
+        </div>
+
+        <!-- Demo 1: Podcast with Chapters -->
+        <div class="demo-card">
+            <h3>Demo 1: Podcast with Chapters</h3>
+            <p>Single track with clickable chapter navigation - chapters automatically highlight during playback</p>
+
+            <div data-waveform-playlist
+                 data-waveform-style="mirror"
+                 data-bar-width="1"
+                 data-bar-spacing="1"
+                 data-height="80">
+                <div data-track
+                     data-url="assets/audio/pluck-pieces-of-you.mp3"
+                     data-title="Episode 1: Getting Started with Web Audio"
+                     data-subtitle="with Sarah Chen">
+                    <div data-chapter data-time="0:00">Introduction & Welcome</div>
+                    <div data-chapter data-time="0:02">Guest Introduction</div>
+                    <div data-chapter data-time="0:04">Web Audio API Basics</div>
+                    <div data-chapter data-time="0:06">Building Your First Player</div>
+                    <div data-chapter data-time="0:08">Advanced Techniques</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo 2: Music Playlist -->
+        <div class="demo-card">
+            <h3>Demo 2: Music Playlist</h3>
+            <p>Multiple tracks with continuous playback - click any track to play</p>
+
+            <div data-waveform-playlist
+                 data-continuous="true"
+                 data-waveform-style="bars"
+                 data-bar-width="3"
+                 data-bar-spacing="1"
+                 data-height="60">
+                <div data-track
+                     data-url="assets/audio/pluck-wings.mp3"
+                     data-title="Midnight Wings"
+                     data-subtitle="Ambient Dreams"
+                     data-duration="0:10"></div>
+                <div data-track
+                     data-url="assets/audio/pluck-desire.mp3"
+                     data-title="Electric Desire"
+                     data-subtitle="Synthwave Nights"
+                     data-duration="0:10"></div>
+                <div data-track
+                     data-url="assets/audio/pluck-lovely.mp3"
+                     data-title="Lovely Moments"
+                     data-subtitle="Chill Vibes"
+                     data-duration="0:10"></div>
+                <div data-track
+                     data-url="assets/audio/pluck-icarus.mp3"
+                     data-title="Icarus Rising"
+                     data-subtitle="Epic Journey"
+                     data-duration="0:10"></div>
+            </div>
+        </div>
+
+        <!-- Demo 3: Album with Chapters -->
+        <div class="demo-card">
+            <h3>Demo 3: Album with Track Chapters</h3>
+            <p>Multiple tracks, each with their own chapter markers</p>
+
+            <div data-waveform-playlist
+                 data-expand-chapters="true"
+                 data-waveform-style="mirror"
+                 data-height="70">
+                <div data-track
+                     data-url="assets/audio/pluck-pieces-of-you.mp3"
+                     data-title="Track 1: Opening Suite"
+                     data-subtitle="Classical Fusion">
+                    <div data-chapter data-time="0:00">Movement I</div>
+                    <div data-chapter data-time="0:05">Movement II</div>
+                </div>
+                <div data-track
+                     data-url="assets/audio/pluck-small-moments.mp3"
+                     data-title="Track 2: Jazz Interlude"
+                     data-subtitle="Smooth Jazz">
+                    <div data-chapter data-time="0:00">Intro</div>
+                    <div data-chapter data-time="0:03">Solo Section</div>
+                    <div data-chapter data-time="0:07">Outro</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="feature-section">
+            <h3>How It Works</h3>
+            <p>WaveformPlaylist uses simple HTML markup. No JavaScript required!</p>
+
+            <div class="steps-grid">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Include the Library</h4>
+                        <p>Add the playlist script after WaveformPlayer</p>
+                        <pre class="code-snippet"><code>&lt;script src="waveform-playlist.js"&gt;&lt;/script&gt;</code></pre>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Add HTML Markup</h4>
+                        <p>Define your playlist and chapters with data attributes</p>
+                        <pre class="code-snippet"><code>&lt;div data-waveform-playlist&gt;
+  &lt;div data-track data-url="song1.mp3"&gt;
+    &lt;div data-chapter data-time="0:30"&gt;Verse&lt;/div&gt;
+    &lt;div data-chapter data-time="1:00"&gt;Chorus&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>That's It!</h4>
+                        <p>The library auto-initializes and handles everything - playback, navigation, UI generation, and state management</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="feature-section">
+            <h3>Key Features</h3>
+            <div class="features-grid">
+                <div class="feature">
+                    <i class="ti ti-playlist"></i>
+                    <h4>Multi-Track Playlists</h4>
+                    <p>Sequential playback with auto-advance</p>
+                </div>
+                <div class="feature">
+                    <i class="ti ti-clock"></i>
+                    <h4>Chapter Markers</h4>
+                    <p>Clickable timestamps for navigation</p>
+                </div>
+                <div class="feature">
+                    <i class="ti ti-repeat"></i>
+                    <h4>Continuous Play</h4>
+                    <p>Auto-play next track when one ends</p>
+                </div>
+                <div class="feature">
+                    <i class="ti ti-photo"></i>
+                    <h4>Track Artwork</h4>
+                    <p>Individual artwork per track</p>
+                </div>
+                <div class="feature">
+                    <i class="ti ti-list-check"></i>
+                    <h4>Visual Indicators</h4>
+                    <p>Shows current playing track</p>
+                </div>
+                <div class="feature">
+                    <i class="ti ti-code-off"></i>
+                    <h4>Zero Config</h4>
+                    <p>Works with just HTML attributes</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Installation -->
+        <div class="installation-section">
+            <h3>Installation</h3>
+
+            <div class="install-tabs">
+                <button class="install-tab active" onclick="switchInstallTab('playlist', 'npm')">NPM</button>
+                <button class="install-tab" onclick="switchInstallTab('playlist', 'cdn')">CDN</button>
+                <button class="install-tab" onclick="switchInstallTab('playlist', 'download')">Download</button>
+            </div>
+
+            <div class="install-content">
+                <div class="install-pane active" id="playlist-npm">
+                    <pre class="code-block"><code>npm install @arraypress/waveform-playlist</code></pre>
+                </div>
+                <div class="install-pane" id="playlist-cdn">
+                    <pre class="code-block"><code>&lt;link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-playlist@latest/dist/waveform-playlist.css"&gt;
+&lt;script src="https://unpkg.com/@arraypress/waveform-playlist@latest/dist/waveform-playlist.js"&gt;&lt;/script&gt;</code></pre>
+                </div>
+                <div class="install-pane" id="playlist-download">
+                    <p>Download from GitHub and include the files:</p>
+                    <pre class="code-block"><code>&lt;link rel="stylesheet" href="waveform-playlist.css"&gt;
+&lt;script src="waveform-playlist.js"&gt;&lt;/script&gt;</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="addon-cta">
+            <h3>Add Playlist Support to Your Site</h3>
+            <p>Just 4KB gzipped. Works with any WaveformPlayer configuration.</p>
+            <div class="buttons">
+                <a href="https://github.com/arraypress/waveform-playlist" class="btn btn-primary">
+                    <i class="ti ti-brand-github"></i> View on GitHub
+                </a>
+                <a href="https://npmjs.com/package/@arraypress/waveform-playlist" class="btn btn-secondary">
+                    <i class="ti ti-package"></i> Install via NPM
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- WaveformTracker Section -->
+<section id="waveform-tracker" class="addon-section alt-bg">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">WAVEFORMTRACKER</div>
+            <h2>Analytics & Engagement Tracking</h2>
+            <p>Understand how your audience actually engages with audio content</p>
+        </div>
+
+        <!-- Key Points -->
+        <div class="highlights-grid">
+            <div class="highlight">
+                <i class="ti ti-target"></i>
+                <h4>Smart Tracking</h4>
+                <p>Only tracks real listens, not bounces. Knows the difference between a click and actual engagement.</p>
+            </div>
+            <div class="highlight">
+                <i class="ti ti-shield-lock"></i>
+                <h4>Privacy First</h4>
+                <p>No user tracking, cookies, or personal data. Only anonymous content metrics.</p>
+            </div>
+            <div class="highlight">
+                <i class="ti ti-feather"></i>
+                <h4>Lightweight</h4>
+                <p>Just 2KB gzipped. Minimal performance impact on your site.</p>
+            </div>
+        </div>
+
+        <!-- Live Demo -->
+        <div class="demo-card">
+            <h3>Live Tracking Demo</h3>
+            <p>Play these tracks and watch the analytics update in real-time:</p>
+
+            <div class="tracker-demo-grid">
+                <div>
+                    <div data-waveform-player
+                         data-url="assets/audio/pluck-wings.mp3"
+                         data-title="Demo Track 1"
+                         data-subtitle="Try playing for 5+ seconds"
+                         data-waveform-style="bars"
+                         id="track1">
+                    </div>
+                </div>
+                <div>
+                    <div data-waveform-player
+                         data-url="assets/audio/pluck-desire.mp3"
+                         data-title="Demo Track 2"
+                         data-subtitle="Watch the stats update"
+                         data-waveform-style="mirror"
+                         id="track2">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Dashboard -->
+            <div class="analytics-dashboard">
+                <h4>📊 Real-time Analytics</h4>
+
+                <div class="analytics-stats">
+                    <div class="stat-card">
+                        <span class="stat-label">Total Plays</span>
+                        <span class="stat-value" id="total-plays">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Engaged Plays</span>
+                        <span class="stat-value" id="engaged-plays">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Avg Listen %</span>
+                        <span class="stat-value" id="avg-completion">0%</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Total Time</span>
+                        <span class="stat-value" id="total-time">0s</span>
+                    </div>
+                </div>
+
+                <div class="event-log">
+                    <h5>Event Log</h5>
+                    <div id="tracker-events">
+                        <div class="log-item">Waiting for events...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- What Gets Tracked -->
+        <div class="feature-section">
+            <h3>Smart Engagement Metrics</h3>
+            <p>WaveformTracker provides meaningful data about how people listen:</p>
+
+            <div class="metrics-grid">
+                <div class="metric">
+                    <div class="metric-icon">
+                        <i class="ti ti-player-play"></i>
+                    </div>
+                    <h4>Play Events</h4>
+                    <p>Track when and how often tracks are played</p>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-icon">
+                        <i class="ti ti-clock-pause"></i>
+                    </div>
+                    <h4>Engagement Rate</h4>
+                    <p>Distinguish between clicks and actual listens (5+ seconds)</p>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-icon">
+                        <i class="ti ti-percentage"></i>
+                    </div>
+                    <h4>Completion Rate</h4>
+                    <p>How much of your content people actually consume</p>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-icon">
+                        <i class="ti ti-map-pin"></i>
+                    </div>
+                    <h4>Drop-off Points</h4>
+                    <p>Identify where listeners stop engaging</p>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-icon">
+                        <i class="ti ti-hourglass"></i>
+                    </div>
+                    <h4>Listen Duration</h4>
+                    <p>Total time spent listening to your content</p>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-icon">
+                        <i class="ti ti-player-track-next"></i>
+                    </div>
+                    <h4>Speed Settings</h4>
+                    <p>Track playback speed preferences</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integration Examples -->
+        <div class="feature-section">
+            <h3>Easy Integration</h3>
+
+            <div class="integration-examples">
+                <div class="example">
+                    <h4>Basic Setup</h4>
+                    <pre class="code-block"><code>// Initialize tracker
+const tracker = new WaveformTracker();
+
+// That's it! Auto-tracks all players on the page</code></pre>
+                </div>
+
+                <div class="example">
+                    <h4>Google Analytics</h4>
+                    <pre class="code-block"><code>new WaveformTracker({
+    adapter: 'google',
+    category: 'Audio'
+});</code></pre>
+                </div>
+
+                <div class="example">
+                    <h4>Custom Backend</h4>
+                    <pre class="code-block"><code>new WaveformTracker({
+    adapter: 'custom',
+    endpoint: '/api/audio-analytics',
+    headers: { 'API-Key': 'your-key' }
+});</code></pre>
+                </div>
+
+                <div class="example">
+                    <h4>Multiple Analytics</h4>
+                    <pre class="code-block"><code>new WaveformTracker({
+    adapters: ['google', 'plausible', 'custom'],
+    customEndpoint: '/api/analytics'
+});</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Privacy Features -->
+        <div class="privacy-section">
+            <h3>🔒 Privacy By Design</h3>
+
+            <div class="privacy-features">
+                <div class="privacy-item">
+                    <i class="ti ti-cookie-off"></i>
+                    <h4>No Cookies</h4>
+                    <p>Zero cookies or local storage usage</p>
+                </div>
+                <div class="privacy-item">
+                    <i class="ti ti-user-x"></i>
+                    <h4>No User Tracking</h4>
+                    <p>Anonymous content metrics only</p>
+                </div>
+                <div class="privacy-item">
+                    <i class="ti ti-shield-check"></i>
+                    <h4>GDPR Compliant</h4>
+                    <p>No personal data collection</p>
+                </div>
+                <div class="privacy-item">
+                    <i class="ti ti-server"></i>
+                    <h4>Server-Side Ready</h4>
+                    <p>Process analytics on your own servers</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Installation -->
+        <div class="installation-section">
+            <h3>Installation</h3>
+
+            <div class="install-tabs">
+                <button class="install-tab active" onclick="switchInstallTab('tracker', 'npm')">NPM</button>
+                <button class="install-tab" onclick="switchInstallTab('tracker', 'cdn')">CDN</button>
+                <button class="install-tab" onclick="switchInstallTab('tracker', 'download')">Download</button>
+            </div>
+
+            <div class="install-content">
+                <div class="install-pane active" id="tracker-npm">
+                    <pre class="code-block"><code>npm install @arraypress/waveform-tracker</code></pre>
+                </div>
+                <div class="install-pane" id="tracker-cdn">
+                    <pre class="code-block"><code>&lt;script src="https://unpkg.com/@arraypress/waveform-tracker@latest/dist/waveform-tracker.js"&gt;&lt;/script&gt;</code></pre>
+                </div>
+                <div class="install-pane" id="tracker-download">
+                    <p>Download from GitHub and include:</p>
+                    <pre class="code-block"><code>&lt;script src="waveform-tracker.js"&gt;&lt;/script&gt;</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="addon-cta">
+            <h3>Start Tracking Real Engagement</h3>
+            <p>Understand how your audience actually listens. Just 2KB, privacy-focused.</p>
+            <div class="buttons">
+                <a href="https://github.com/arraypress/waveform-tracker" class="btn btn-primary">
+                    <i class="ti ti-brand-github"></i> View on GitHub
+                </a>
+                <a href="https://npmjs.com/package/@arraypress/waveform-tracker" class="btn btn-secondary">
+                    <i class="ti ti-package"></i> Install via NPM
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Coming Soon Section -->
+<section class="coming-soon-section">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">COMING SOON</div>
+            <h2>More Add-ons in Development</h2>
+            <p>We're working on more ways to extend WaveformPlayer</p>
+        </div>
+
+        <div class="coming-soon-grid">
+            <div class="coming-soon-card">
+                <i class="ti ti-subtitles"></i>
+                <h3>WaveformCaptions</h3>
+                <p>Synchronized captions and transcripts with search</p>
+                <span class="status">Q1 2025</span>
+            </div>
+
+            <div class="coming-soon-card">
+                <i class="ti ti-share"></i>
+                <h3>WaveformShare</h3>
+                <p>Social sharing with timestamp links and clips</p>
+                <span class="status">Q2 2025</span>
+            </div>
+
+            <div class="coming-soon-card">
+                <i class="ti ti-cloud"></i>
+                <h3>WaveformCloud</h3>
+                <p>Cloud processing and CDN delivery for audio</p>
+                <span class="status">Q2 2025</span>
+            </div>
+        </div>
+
+        <div class="newsletter">
+            <h3>Get Notified</h3>
+            <p>Be the first to know when new add-ons are released</p>
+            <a href="https://github.com/arraypress/waveform-player" class="btn btn-primary">
+                <i class="ti ti-bell"></i> Watch on GitHub
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Product</h4>
+                <ul>
+                    <li><a href="examples.html">Examples</a></li>
+                    <li><a href="playground.html">Builder</a></li>
+                    <li><a href="docs.html">Documentation</a></li>
+                    <li><a href="addons.html">Add-ons</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Add-ons</h4>
+                <ul>
+                    <li><a href="#waveform-playlist">WaveformPlaylist</a></li>
+                    <li><a href="#waveform-tracker">WaveformTracker</a></li>
+                    <li><a href="#coming-soon">Coming Soon</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Community</h4>
+                <ul>
+                    <li><a href="https://github.com/arraypress">GitHub</a></li>
+                    <li><a href="https://npmjs.com/package/@arraypress">NPM</a></li>
+                    <li><a href="https://twitter.com/arraypress">Twitter</a></li>
+                    <li><a href="https://github.com/arraypress/waveform-player/discussions">Discussions</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Made with ♥ by <a href="https://github.com/arraypress">ArrayPress</a> · Version 1.1.5</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Scripts -->
+<script src="dist/waveform-player.js"></script>
+<script src="https://unpkg.com/@arraypress/waveform-playlist@latest/dist/waveform-playlist.js"></script>
+<script>
+    // Simple demo tracking for WaveformTracker section
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize simulated tracker demo
+        initSimpleTrackerDemo();
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const target = document.getElementById(targetId);
+
+                if (target) {
+                    const navHeight = 80;
+                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navHeight;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Installation tab switching
+        window.switchInstallTab = function(addon, method) {
+            const prefix = addon === 'playlist' ? 'playlist' : 'tracker';
+            const tabs = document.querySelectorAll(`.install-tabs button[onclick*="${addon}"]`);
+            const panes = document.querySelectorAll(`[id^="${prefix}-"]`);
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            panes.forEach(pane => pane.classList.remove('active'));
+
+            event.target.classList.add('active');
+            const activePane = document.getElementById(`${prefix}-${method}`);
+            if (activePane) activePane.classList.add('active');
+        };
+    });
+
+    // Simple tracker demo
+    function initSimpleTrackerDemo() {
+        let stats = { plays: 0, engaged: 0, time: 0, completion: 0 };
+
+        setTimeout(() => {
+            const track1 = document.getElementById('track1');
+            const track2 = document.getElementById('track2');
+
+            [track1, track2].forEach((el, i) => {
+                if (!el) return;
+                const player = WaveformPlayer.getInstance(el);
+                if (!player) return;
+
+                let startTime = null;
+
+                const originalPlay = player.onPlay || (() => {});
+                player.onPlay = function() {
+                    originalPlay.call(this);
+                    stats.plays++;
+                    startTime = Date.now();
+                    document.getElementById('total-plays').textContent = stats.plays;
+                    addEvent(`▶️ Play: Track ${i + 1}`);
+
+                    setTimeout(() => {
+                        if (startTime) {
+                            stats.engaged++;
+                            document.getElementById('engaged-plays').textContent = stats.engaged;
+                            addEvent(`🎯 Engaged: Track ${i + 1}`);
+                        }
+                    }, 5000);
+                };
+
+                const originalPause = player.onPause || (() => {});
+                player.onPause = function() {
+                    originalPause.call(this);
+                    if (startTime) {
+                        stats.time += (Date.now() - startTime) / 1000;
+                        startTime = null;
+                        document.getElementById('total-time').textContent = Math.round(stats.time) + 's';
+                    }
+                    const pct = Math.round((this.audio.currentTime / this.audio.duration) * 100);
+                    stats.completion = pct;
+                    document.getElementById('avg-completion').textContent = pct + '%';
+                    addEvent(`⏸️ Paused at ${pct}%`);
+                };
+            });
+        }, 1000);
+    }
+
+    function addEvent(msg) {
+        const log = document.getElementById('tracker-events');
+        if (!log) return;
+
+        if (log.children[0]?.textContent === 'Waiting for events...') {
+            log.innerHTML = '';
+        }
+
+        const item = document.createElement('div');
+        item.className = 'log-item';
+        item.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        log.insertBefore(item, log.firstChild);
+
+        while (log.children.length > 10) {
+            log.removeChild(log.lastChild);
+        }
+    }
+</script>
+
+</body>
+</html>

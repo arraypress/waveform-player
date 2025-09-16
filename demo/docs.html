@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - WaveformPlayer</title>
+
+    <meta name="description" content="Complete documentation for WaveformPlayer - API reference, configuration options, and integration guides">
+
+    <!-- External Dependencies -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+
+    <!-- WaveformPlayer -->
+    <link rel="stylesheet" href="dist/waveform-player.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/docs.css">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+    <div class="nav-container">
+        <a href="index.html" class="nav-logo">
+            <img src="assets/img/logo.svg" alt="WaveformPlayer Logo" class="logo-icon" width="36" height="36">
+            <span>WaveformPlayer</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="examples.html">Examples</a>
+            <a href="playground.html">Builder</a>
+            <a href="docs.html" class="nav-link-active">Docs</a>
+            <a href="addons.html">Add-ons</a>
+            <a href="https://github.com/arraypress/waveform-player" class="nav-cta">
+                <i class="ti ti-brand-github"></i> GitHub
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1>Documentation</h1>
+        <p>Complete API reference and integration guides</p>
+    </div>
+</section>
+
+<!-- Documentation Navigation -->
+<div class="docs-layout">
+    <aside class="docs-sidebar">
+        <div class="sidebar-section">
+            <h4>Getting Started</h4>
+            <ul>
+                <li><a href="#installation" class="sidebar-link">Installation</a></li>
+                <li><a href="#quick-start" class="sidebar-link">Quick Start</a></li>
+                <li><a href="#basic-usage" class="sidebar-link">Basic Usage</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-section">
+            <h4>Configuration</h4>
+            <ul>
+                <li><a href="#config" class="sidebar-link">Configuration Options</a></li>
+                <li><a href="#data-attributes" class="sidebar-link">Data Attributes</a></li>
+                <li><a href="#styling" class="sidebar-link">Styling</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-section">
+            <h4>API Reference</h4>
+            <ul>
+                <li><a href="#api" class="sidebar-link">Methods</a></li>
+                <li><a href="#events" class="sidebar-link">Events</a></li>
+                <li><a href="#callbacks" class="sidebar-link">Callbacks</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-section">
+            <h4>Frameworks</h4>
+            <ul>
+                <li><a href="#frameworks" class="sidebar-link">Overview</a></li>
+                <li><a href="#react" class="sidebar-link">React</a></li>
+                <li><a href="#vue" class="sidebar-link">Vue</a></li>
+                <li><a href="#angular" class="sidebar-link">Angular</a></li>
+                <li><a href="#wordpress" class="sidebar-link">WordPress</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-section">
+            <h4>Advanced</h4>
+            <ul>
+                <li><a href="#keyboard" class="sidebar-link">Keyboard Controls</a></li>
+                <li><a href="#media-session" class="sidebar-link">Media Session API</a></li>
+                <li><a href="#performance" class="sidebar-link">Performance</a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <main class="docs-content">
+        <!-- Installation -->
+        <section id="installation" class="docs-section">
+            <h2>Installation</h2>
+
+            <h3>NPM</h3>
+            <pre class="code-block"><code>npm install @arraypress/waveform-player</code></pre>
+
+            <h3>Yarn</h3>
+            <pre class="code-block"><code>yarn add @arraypress/waveform-player</code></pre>
+
+            <h3>CDN</h3>
+            <pre class="code-block"><code>&lt;link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css"&gt;
+&lt;script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js"&gt;&lt;/script&gt;</code></pre>
+
+            <h3>Download</h3>
+            <p>Download the latest release from <a href="https://github.com/arraypress/waveform-player/releases">GitHub Releases</a> and include the files:</p>
+            <pre class="code-block"><code>&lt;link rel="stylesheet" href="path/to/waveform-player.css"&gt;
+&lt;script src="path/to/waveform-player.js"&gt;&lt;/script&gt;</code></pre>
+        </section>
+
+        <!-- Quick Start -->
+        <section id="quick-start" class="docs-section">
+            <h2>Quick Start</h2>
+
+            <h3>Zero Configuration (HTML Only)</h3>
+            <p>The simplest way to use WaveformPlayer - just add data attributes:</p>
+            <pre class="code-block"><code>&lt;div data-waveform-player data-url="audio.mp3"&gt;&lt;/div&gt;</code></pre>
+
+            <h3>JavaScript API</h3>
+            <p>For programmatic control, use the JavaScript API:</p>
+            <pre class="code-block"><code>const player = new WaveformPlayer('#player', {
+    url: 'audio.mp3',
+    title: 'My Song',
+    waveformStyle: 'mirror'
+});</code></pre>
+        </section>
+
+        <!-- Basic Usage -->
+        <section id="basic-usage" class="docs-section">
+            <h2>Basic Usage</h2>
+
+            <h3>HTML with Data Attributes</h3>
+            <pre class="code-block"><code>&lt;div data-waveform-player
+     data-url="audio.mp3"
+     data-title="Song Title"
+     data-subtitle="Artist Name"
+     data-waveform-style="mirror"
+     data-height="80"&gt;
+&lt;/div&gt;</code></pre>
+
+            <h3>JavaScript Initialization</h3>
+            <pre class="code-block"><code>// Using element selector
+const player = new WaveformPlayer('#my-player', {
+    url: 'audio.mp3',
+    title: 'Song Title'
+});
+
+// Using DOM element
+const element = document.getElementById('my-player');
+const player = new WaveformPlayer(element, {
+    url: 'audio.mp3'
+});
+
+// With callbacks
+const player = new WaveformPlayer('#player', {
+    url: 'audio.mp3',
+    onPlay: () => console.log('Playing'),
+    onPause: () => console.log('Paused'),
+    onEnd: () => console.log('Ended')
+});</code></pre>
+        </section>
+
+        <!-- Configuration -->
+        <section id="config" class="docs-section">
+            <h2>Configuration Options</h2>
+
+            <div class="config-table-wrapper">
+                <table class="config-table">
+                    <thead>
+                    <tr>
+                        <th>Option</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><code>url</code></td>
+                        <td>string</td>
+                        <td>''</td>
+                        <td>Audio file URL (required)</td>
+                    </tr>
+                    <tr>
+                        <td><code>waveformStyle</code></td>
+                        <td>string</td>
+                        <td>'bars'</td>
+                        <td>Visual style: bars, mirror, line, blocks, dots, seekbar</td>
+                    </tr>
+                    <tr>
+                        <td><code>height</code></td>
+                        <td>number</td>
+                        <td>60</td>
+                        <td>Waveform height in pixels</td>
+                    </tr>
+                    <tr>
+                        <td><code>barWidth</code></td>
+                        <td>number</td>
+                        <td>3</td>
+                        <td>Width of waveform bars</td>
+                    </tr>
+                    <tr>
+                        <td><code>barSpacing</code></td>
+                        <td>number</td>
+                        <td>1</td>
+                        <td>Space between bars</td>
+                    </tr>
+                    <tr>
+                        <td><code>samples</code></td>
+                        <td>number</td>
+                        <td>200</td>
+                        <td>Number of waveform samples</td>
+                    </tr>
+                    <tr>
+                        <td><code>waveformColor</code></td>
+                        <td>string</td>
+                        <td>'rgba(255,255,255,0.3)'</td>
+                        <td>Waveform color</td>
+                    </tr>
+                    <tr>
+                        <td><code>progressColor</code></td>
+                        <td>string</td>
+                        <td>'rgba(255,255,255,0.9)'</td>
+                        <td>Progress color</td>
+                    </tr>
+                    <tr>
+                        <td><code>buttonColor</code></td>
+                        <td>string</td>
+                        <td>'rgba(255,255,255,0.9)'</td>
+                        <td>Play button color</td>
+                    </tr>
+                    <tr>
+                        <td><code>showTime</code></td>
+                        <td>boolean</td>
+                        <td>true</td>
+                        <td>Show time display</td>
+                    </tr>
+                    <tr>
+                        <td><code>showBPM</code></td>
+                        <td>boolean</td>
+                        <td>false</td>
+                        <td>Enable BPM detection</td>
+                    </tr>
+                    <tr>
+                        <td><code>showPlaybackSpeed</code></td>
+                        <td>boolean</td>
+                        <td>false</td>
+                        <td>Show speed control menu</td>
+                    </tr>
+                    <tr>
+                        <td><code>playbackRate</code></td>
+                        <td>number</td>
+                        <td>1</td>
+                        <td>Initial playback speed (0.5-2)</td>
+                    </tr>
+                    <tr>
+                        <td><code>autoplay</code></td>
+                        <td>boolean</td>
+                        <td>false</td>
+                        <td>Autoplay on load</td>
+                    </tr>
+                    <tr>
+                        <td><code>title</code></td>
+                        <td>string</td>
+                        <td>''</td>
+                        <td>Track title</td>
+                    </tr>
+                    <tr>
+                        <td><code>subtitle</code></td>
+                        <td>string</td>
+                        <td>''</td>
+                        <td>Track subtitle</td>
+                    </tr>
+                    <tr>
+                        <td><code>artwork</code></td>
+                        <td>string</td>
+                        <td>''</td>
+                        <td>Album artwork URL</td>
+                    </tr>
+                    <tr>
+                        <td><code>album</code></td>
+                        <td>string</td>
+                        <td>''</td>
+                        <td>Album name for Media Session</td>
+                    </tr>
+                    <tr>
+                        <td><code>markers</code></td>
+                        <td>array</td>
+                        <td>[]</td>
+                        <td>Chapter markers array</td>
+                    </tr>
+                    <tr>
+                        <td><code>enableMediaSession</code></td>
+                        <td>boolean</td>
+                        <td>true</td>
+                        <td>Enable system media controls</td>
+                    </tr>
+                    <tr>
+                        <td><code>waveform</code></td>
+                        <td>array</td>
+                        <td>null</td>
+                        <td>Pre-generated waveform data</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Data Attributes -->
+        <section id="data-attributes" class="docs-section">
+            <h2>Data Attributes</h2>
+            <p>All configuration options can be set via HTML data attributes by prefixing with <code>data-</code> and using kebab-case:</p>
+
+            <pre class="code-block"><code>&lt;div data-waveform-player
+     data-url="audio.mp3"
+     data-waveform-style="mirror"
+     data-bar-width="2"
+     data-bar-spacing="1"
+     data-show-bpm="true"
+     data-show-playback-speed="true"
+     data-enable-media-session="true"&gt;
+&lt;/div&gt;</code></pre>
+        </section>
+
+        <!-- API Methods -->
+        <section id="api" class="docs-section">
+            <h2>API Methods</h2>
+
+            <h3>Playback Control</h3>
+            <div class="method-list">
+                <div class="method">
+                    <h4><code>play()</code></h4>
+                    <p>Start playback</p>
+                    <pre class="code-block"><code>player.play();</code></pre>
+                </div>
+
+                <div class="method">
+                    <h4><code>pause()</code></h4>
+                    <p>Pause playback</p>
+                    <pre class="code-block"><code>player.pause();</code></pre>
+                </div>
+
+                <div class="method">
+                    <h4><code>togglePlay()</code></h4>
+                    <p>Toggle between play and pause</p>
+                    <pre class="code-block"><code>player.togglePlay();</code></pre>
+                </div>
+            </div>
+
+            <h3>Seeking</h3>
+            <div class="method-list">
+                <div class="method">
+                    <h4><code>seekTo(seconds)</code></h4>
+                    <p>Seek to specific time in seconds</p>
+                    <pre class="code-block"><code>player.seekTo(30); // Seek to 30 seconds</code></pre>
+                </div>
+
+                <div class="method">
+                    <h4><code>seekToPercent(percent)</code></h4>
+                    <p>Seek to percentage (0-1)</p>
+                    <pre class="code-block"><code>player.seekToPercent(0.5); // Seek to 50%</code></pre>
+                </div>
+            </div>
+
+            <h3>Volume & Speed</h3>
+            <div class="method-list">
+                <div class="method">
+                    <h4><code>setVolume(volume)</code></h4>
+                    <p>Set volume (0-1)</p>
+                    <pre class="code-block"><code>player.setVolume(0.8); // 80% volume</code></pre>
+                </div>
+
+                <div class="method">
+                    <h4><code>setPlaybackRate(rate)</code></h4>
+                    <p>Set playback speed (0.5-2)</p>
+                    <pre class="code-block"><code>player.setPlaybackRate(1.5); // 1.5x speed</code></pre>
+                </div>
+            </div>
+
+            <h3>Dynamic Loading</h3>
+            <div class="method">
+                <h4><code>loadTrack(url, title, subtitle, options)</code></h4>
+                <p>Load a new track dynamically</p>
+                <pre class="code-block"><code>await player.loadTrack(
+    'new-song.mp3',
+    'Song Title',
+    'Artist Name',
+    {
+        markers: [{time: 30, label: 'Chorus'}],
+        artwork: 'cover.jpg'
+    }
+);</code></pre>
+            </div>
+
+            <h3>Lifecycle</h3>
+            <div class="method">
+                <h4><code>destroy()</code></h4>
+                <p>Destroy the player instance and clean up</p>
+                <pre class="code-block"><code>player.destroy();</code></pre>
+            </div>
+
+            <h3>Static Methods</h3>
+            <div class="method-list">
+                <div class="method">
+                    <h4><code>WaveformPlayer.getInstance(id)</code></h4>
+                    <p>Get player instance by ID or element</p>
+                    <pre class="code-block"><code>const player = WaveformPlayer.getInstance('my-player');</code></pre>
+                </div>
+
+                <div class="method">
+                    <h4><code>WaveformPlayer.getAllInstances()</code></h4>
+                    <p>Get all player instances</p>
+                    <pre class="code-block"><code>const players = WaveformPlayer.getAllInstances();</code></pre>
+                </div>
+
+                <div class="method">
+                    <h4><code>WaveformPlayer.destroyAll()</code></h4>
+                    <p>Destroy all player instances</p>
+                    <pre class="code-block"><code>WaveformPlayer.destroyAll();</code></pre>
+                </div>
+
+                <div class="method">
+                    <h4><code>WaveformPlayer.generateWaveformData(url, samples)</code></h4>
+                    <p>Generate waveform data from audio URL</p>
+                    <pre class="code-block"><code>const data = await WaveformPlayer.generateWaveformData('audio.mp3', 200);</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Events -->
+        <section id="events" class="docs-section">
+            <h2>Events</h2>
+
+            <h3>DOM Events</h3>
+            <p>The player emits custom DOM events on the container element:</p>
+
+            <pre class="code-block"><code>const container = document.getElementById('player');
+
+container.addEventListener('waveformplayer:ready', (e) => {
+    console.log('Player ready', e.detail);
+});
+
+container.addEventListener('waveformplayer:play', (e) => {
+    console.log('Playing', e.detail);
+});
+
+container.addEventListener('waveformplayer:pause', (e) => {
+    console.log('Paused', e.detail);
+});
+
+container.addEventListener('waveformplayer:ended', (e) => {
+    console.log('Ended', e.detail);
+});
+
+container.addEventListener('waveformplayer:timeupdate', (e) => {
+    console.log('Time:', e.detail.currentTime, '/', e.detail.duration);
+});</code></pre>
+        </section>
+
+        <!-- Callbacks -->
+        <section id="callbacks" class="docs-section">
+            <h2>Callbacks</h2>
+            <p>You can also use callback functions in the options:</p>
+
+            <pre class="code-block"><code>new WaveformPlayer('#player', {
+    url: 'audio.mp3',
+
+    onLoad: (player) => {
+        console.log('Audio loaded');
+    },
+
+    onPlay: (player) => {
+        console.log('Playback started');
+    },
+
+    onPause: (player) => {
+        console.log('Playback paused');
+    },
+
+    onEnd: (player) => {
+        console.log('Playback ended');
+    },
+
+    onTimeUpdate: (currentTime, duration, player) => {
+        console.log(`Progress: ${currentTime}/${duration}`);
+    },
+
+    onError: (error, player) => {
+        console.error('Error:', error);
+    }
+});</code></pre>
+        </section>
+
+        <!-- Framework Integration -->
+        <section id="frameworks" class="docs-section">
+            <h2>Framework Integration</h2>
+            <p>WaveformPlayer works with any JavaScript framework. Here are examples for popular frameworks:</p>
+        </section>
+
+        <!-- React -->
+        <section id="react" class="docs-section">
+            <h2>React Integration</h2>
+
+            <h3>Function Component with Hooks</h3>
+            <pre class="code-block"><code>import { useEffect, useRef } from 'react';
+import WaveformPlayer from '@arraypress/waveform-player';
+import '@arraypress/waveform-player/dist/waveform-player.css';
+
+function AudioPlayer({ url, title }) {
+    const playerRef = useRef();
+    const instanceRef = useRef();
+
+    useEffect(() => {
+        // Create player
+        instanceRef.current = new WaveformPlayer(playerRef.current, {
+            url,
+            title,
+            waveformStyle: 'mirror'
+        });
+
+        // Cleanup
+        return () => {
+            instanceRef.current?.destroy();
+        };
+    }, [url, title]);
+
+    return (
+        &lt;div&gt;
+            &lt;div ref={playerRef} /&gt;
+            &lt;button onClick={() =&gt; instanceRef.current?.play()}&gt;
+                Play
+            &lt;/button&gt;
+        &lt;/div&gt;
+    );
+}</code></pre>
+
+            <h3>Custom Hook</h3>
+            <pre class="code-block"><code>import { useEffect, useRef } from 'react';
+import WaveformPlayer from '@arraypress/waveform-player';
+
+export function useWaveformPlayer(options) {
+    const containerRef = useRef();
+    const playerRef = useRef();
+
+    useEffect(() => {
+        if (containerRef.current && options.url) {
+            playerRef.current = new WaveformPlayer(
+                containerRef.current,
+                options
+            );
+
+            return () => playerRef.current?.destroy();
+        }
+    }, [options.url]);
+
+    return {
+        containerRef,
+        player: playerRef.current,
+        play: () => playerRef.current?.play(),
+        pause: () => playerRef.current?.pause(),
+        seekTo: (time) => playerRef.current?.seekTo(time)
+    };
+}</code></pre>
+        </section>
+
+        <!-- Vue -->
+        <section id="vue" class="docs-section">
+            <h2>Vue Integration</h2>
+
+            <h3>Vue 3 Composition API</h3>
+            <pre class="code-block"><code>&lt;template&gt;
+  &lt;div&gt;
+    &lt;div ref="playerEl"&gt;&lt;/div&gt;
+    &lt;button @click="play"&gt;Play&lt;/button&gt;
+    &lt;button @click="pause"&gt;Pause&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script setup&gt;
+import { ref, onMounted, onUnmounted } from 'vue';
+import WaveformPlayer from '@arraypress/waveform-player';
+import '@arraypress/waveform-player/dist/waveform-player.css';
+
+const props = defineProps({
+  url: String,
+  title: String
+});
+
+const playerEl = ref();
+let player = null;
+
+onMounted(() => {
+  player = new WaveformPlayer(playerEl.value, {
+    url: props.url,
+    title: props.title
+  });
+});
+
+onUnmounted(() => {
+  player?.destroy();
+});
+
+const play = () => player?.play();
+const pause = () => player?.pause();
+&lt;/script&gt;</code></pre>
+        </section>
+
+        <!-- Angular -->
+        <section id="angular" class="docs-section">
+            <h2>Angular Integration</h2>
+
+            <pre class="code-block"><code>import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import WaveformPlayer from '@arraypress/waveform-player';
+
+@Component({
+  selector: 'app-audio-player',
+  template: `
+    &lt;div #playerContainer&gt;&lt;/div&gt;
+    &lt;button (click)="play()"&gt;Play&lt;/button&gt;
+    &lt;button (click)="pause()"&gt;Pause&lt;/button&gt;
+  `,
+  styleUrls: [
+    'node_modules/@arraypress/waveform-player/dist/waveform-player.css'
+  ]
+})
+export class AudioPlayerComponent implements OnInit, OnDestroy {
+  @ViewChild('playerContainer', { static: true })
+  playerContainer: ElementRef;
+
+  private player: any;
+
+  ngOnInit() {
+    this.player = new WaveformPlayer(
+      this.playerContainer.nativeElement,
+      {
+        url: 'audio.mp3',
+        title: 'My Song'
+      }
+    );
+  }
+
+  ngOnDestroy() {
+    this.player?.destroy();
+  }
+
+  play() {
+    this.player?.play();
+  }
+
+  pause() {
+    this.player?.pause();
+  }
+}</code></pre>
+        </section>
+
+        <!-- WordPress -->
+        <section id="wordpress" class="docs-section">
+            <h2>WordPress Integration</h2>
+
+            <h3>Theme Integration</h3>
+            <pre class="code-block"><code>// In functions.php
+function enqueue_waveform_player() {
+    wp_enqueue_style(
+        'waveform-player',
+        'https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css'
+    );
+
+    wp_enqueue_script(
+        'waveform-player',
+        'https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js',
+        array(),
+        null,
+        true
+    );
+}
+add_action('wp_enqueue_scripts', 'enqueue_waveform_player');</code></pre>
+
+            <h3>Shortcode</h3>
+            <pre class="code-block"><code>// Create shortcode
+function waveform_player_shortcode($atts) {
+    $atts = shortcode_atts(array(
+        'url' => '',
+        'title' => '',
+        'style' => 'mirror',
+        'height' => '60'
+    ), $atts);
+
+    return sprintf(
+        '&lt;div data-waveform-player
+              data-url="%s"
+              data-title="%s"
+              data-waveform-style="%s"
+              data-height="%s"&gt;&lt;/div&gt;',
+        esc_attr($atts['url']),
+        esc_attr($atts['title']),
+        esc_attr($atts['style']),
+        esc_attr($atts['height'])
+    );
+}
+add_shortcode('waveform', 'waveform_player_shortcode');
+
+// Usage in posts/pages
+[waveform url="audio.mp3" title="My Song" style="mirror"]</code></pre>
+
+            <h3>Gutenberg Block</h3>
+            <pre class="code-block"><code>// Basic Gutenberg block
+registerBlockType('my-plugin/waveform-player', {
+    title: 'Waveform Player',
+    icon: 'format-audio',
+    category: 'media',
+    attributes: {
+        url: { type: 'string' },
+        title: { type: 'string' },
+        style: { type: 'string', default: 'mirror' }
+    },
+    edit: (props) => {
+        // Editor interface
+    },
+    save: (props) => {
+        return el('div', {
+            'data-waveform-player': true,
+            'data-url': props.attributes.url,
+            'data-title': props.attributes.title,
+            'data-waveform-style': props.attributes.style
+        });
+    }
+});</code></pre>
+        </section>
+
+        <!-- Keyboard Controls -->
+        <section id="keyboard" class="docs-section">
+            <h2>Keyboard Controls</h2>
+            <p>When a player is focused (click on it), these keyboard controls are available:</p>
+
+            <table class="config-table">
+                <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td><kbd>Space</kbd></td>
+                    <td>Play/Pause</td>
+                </tr>
+                <tr>
+                    <td><kbd>←</kbd> / <kbd>→</kbd></td>
+                    <td>Seek backward/forward 5 seconds</td>
+                </tr>
+                <tr>
+                    <td><kbd>↑</kbd> / <kbd>↓</kbd></td>
+                    <td>Volume up/down 10%</td>
+                </tr>
+                <tr>
+                    <td><kbd>M</kbd></td>
+                    <td>Mute/Unmute</td>
+                </tr>
+                <tr>
+                    <td><kbd>0</kbd> - <kbd>9</kbd></td>
+                    <td>Jump to 0% - 90% of track</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Media Session API -->
+        <section id="media-session" class="docs-section">
+            <h2>Media Session API</h2>
+            <p>WaveformPlayer integrates with the Media Session API for system-level media controls:</p>
+
+            <ul>
+                <li>Lock screen controls on mobile</li>
+                <li>Media key support (play/pause/prev/next)</li>
+                <li>Bluetooth device controls</li>
+                <li>Browser media hub integration</li>
+                <li>Picture-in-picture support (where available)</li>
+            </ul>
+
+            <pre class="code-block"><code>new WaveformPlayer('#player', {
+    url: 'audio.mp3',
+    title: 'Song Title',
+    subtitle: 'Artist Name',
+    album: 'Album Name',
+    artwork: 'cover.jpg',
+    enableMediaSession: true  // Enabled by default
+});</code></pre>
+        </section>
+
+        <!-- Performance -->
+        <section id="performance" class="docs-section">
+            <h2>Performance Optimization</h2>
+
+            <h3>Pre-generated Waveforms</h3>
+            <p>For best performance, generate waveform data on the server:</p>
+
+            <pre class="code-block"><code>// 1. Generate waveform data once (server-side or build time)
+const waveformData = await WaveformPlayer.generateWaveformData('audio.mp3', 200);
+
+// 2. Store in database/JSON file
+saveToDatabase(audioId, waveformData);
+
+// 3. Use pre-generated data for instant display
+new WaveformPlayer('#player', {
+    url: 'audio.mp3',
+    waveform: waveformData  // No client-side processing!
+});</code></pre>
+
+            <h3>Lazy Loading</h3>
+            <p>For pages with many players, use intersection observer:</p>
+
+            <pre class="code-block"><code>const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            // Initialize player when visible
+            new WaveformPlayer(entry.target);
+            observer.unobserve(entry.target);
+        }
+    });
+});
+
+// Observe all player containers
+document.querySelectorAll('[data-waveform-player]').forEach(el => {
+    observer.observe(el);
+});</code></pre>
+
+            <h3>Best Practices</h3>
+            <ul>
+                <li>Use <code>samples: 100-200</code> for optimal balance</li>
+                <li>Pre-generate waveforms for known audio files</li>
+                <li>Use <code>preload="none"</code> for many players on one page</li>
+                <li>Destroy unused instances with <code>player.destroy()</code></li>
+                <li>Use simpler styles (seekbar) for better mobile performance</li>
+            </ul>
+        </section>
+    </main>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Product</h4>
+                <ul>
+                    <li><a href="examples.html">Examples</a></li>
+                    <li><a href="playground.html">Builder</a></li>
+                    <li><a href="docs.html">Documentation</a></li>
+                    <li><a href="addons.html">Add-ons</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="#api">API Reference</a></li>
+                    <li><a href="#config">Configuration</a></li>
+                    <li><a href="#frameworks">Framework Guides</a></li>
+                    <li><a href="https://github.com/arraypress/waveform-player/issues">Support</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Community</h4>
+                <ul>
+                    <li><a href="https://github.com/arraypress/waveform-player">GitHub</a></li>
+                    <li><a href="https://npmjs.com/package/@arraypress/waveform-player">NPM</a></li>
+                    <li><a href="https://twitter.com/arraypress">Twitter</a></li>
+                    <li><a href="https://github.com/arraypress/waveform-player/discussions">Discussions</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Made with ♥ by <a href="https://github.com/arraypress">ArrayPress</a> · Version 1.1.5</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Scripts -->
+<script src="dist/waveform-player.js"></script>
+<script src="assets/js/docs.js"></script>
+
+</body>
+</html>

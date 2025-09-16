@@ -1,6 +1,6 @@
 /* ========================================
-   ROOT VARIABLES & RESET
-   ======================================== */
+ROOT VARIABLES & RESET
+======================================== */
 :root {
     --bg: #0a0a0a;
     --bg-secondary: #111111;
@@ -31,6 +31,31 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
     max-width: 100vw;
+}
+
+/* Navigation Logo as Link */
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text) !important;
+    text-decoration: none !important;
+    border-bottom: none !important;
+    transition: opacity 0.2s;
+}
+
+.nav-logo:hover {
+    opacity: 0.8;
+    text-decoration: none !important;
+    border-bottom: none !important;
+}
+
+.logo-icon {
+    width: 36px;
+    height: 36px;
+    display: block;
 }
 
 /* ========================================
@@ -467,7 +492,7 @@ section {
 
 .builder-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;  /* Always 2 columns on desktop */
+    grid-template-columns: 1fr 1fr; /* Always 2 columns on desktop */
     gap: 2rem;
     margin-top: 3rem;
 }
@@ -482,7 +507,7 @@ section {
 }
 
 .builder-code {
-    grid-column: 1 / -1;  /* Spans full width */
+    grid-column: 1 / -1; /* Spans full width */
     padding: 2rem;
     background: var(--bg);
     border: 1px solid var(--border);
@@ -505,7 +530,7 @@ section {
 /* Then in the responsive section */
 @media (max-width: 768px) {
     .builder-container {
-        grid-template-columns: 1fr !important;  /* Single column on mobile */
+        grid-template-columns: 1fr !important; /* Single column on mobile */
         gap: 1rem;
     }
 }
@@ -531,7 +556,7 @@ input[type="url"],
 input[type="range"],
 select {
     width: 100%;
-    padding: 8px 12px;
+    padding: 4px 12px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 4px;
