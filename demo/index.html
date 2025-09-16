@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WaveformPlayer - Beautiful Audio Visualization for the Web</title>
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
 
     <!-- Primary Meta Tags -->
     <meta name="title" content="WaveformPlayer - Beautiful Audio Visualization for the Web">
@@ -31,6 +32,8 @@
 
     <!-- WaveformPlayer -->
     <link rel="stylesheet" href="dist/waveform-player.css">
+
+    <!-- Demo Site Styles -->
     <link rel="stylesheet" href="assets/css/base.css">
     <link rel="stylesheet" href="assets/css/landing.css">
 </head>
@@ -46,9 +49,9 @@
             <span>WaveformPlayer</span>
         </a>
         <div class="nav-links">
-            <a href="index.html" class="nav-link-active">Home</a>
+            <a href="index.html">Home</a>
             <a href="examples.html">Examples</a>
-            <a href="playground.html">Builder</a>
+            <a href="builder.html">Builder</a>
             <a href="docs.html">Docs</a>
             <a href="addons.html">Add-ons</a>
             <a href="https://github.com/arraypress/waveform-player" class="nav-cta">
@@ -122,7 +125,7 @@
 </section>
 
 <!-- ============================================
-     QUICK START (Simplified)
+     QUICK START (Fixed)
      ============================================ -->
 <section class="quick-start" id="quickstart">
     <div class="container">
@@ -137,22 +140,18 @@
             <div class="quickstart-step">
                 <div class="step-number">1</div>
                 <h3>Include the Files</h3>
-                <div class="code-block-compact">
-<pre><code class="code-block">&lt;link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css"&gt;
+                <pre class="code-block"><code>&lt;link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css"&gt;
 &lt;script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js"&gt;&lt;/script&gt;</code></pre>
-                </div>
             </div>
 
             <!-- Step 2 -->
             <div class="quickstart-step">
                 <div class="step-number">2</div>
                 <h3>Add a Player</h3>
-                <div class="code-block-compact">
-<pre><code>&lt;div data-waveform-player
+                <pre class="code-block"><code>&lt;div data-waveform-player
      data-url="your-audio.mp3"
      data-title="Song Title"&gt;
 &lt;/div&gt;</code></pre>
-                </div>
             </div>
 
             <!-- Step 3 -->
@@ -160,7 +159,7 @@
                 <div class="step-number">3</div>
                 <h3>That's It!</h3>
                 <p>No initialization. No configuration. It auto-initializes when the page loads.</p>
-                <a href="playground.html" class="btn btn-sm btn-primary">
+                <a href="builder.html" class="btn btn-sm btn-primary">
                     <i class="ti ti-palette"></i> Customize Your Player
                 </a>
             </div>
@@ -175,17 +174,16 @@
             </div>
             <div class="tab-content">
                 <div class="tab-pane active" id="npm">
-                    <pre><code>npm install @arraypress/waveform-player</code></pre>
+                    <pre class="code-block"><code>npm install @arraypress/waveform-player</code></pre>
                 </div>
                 <div class="tab-pane" id="cdn">
-                    <code class="code-block">&lt;link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css"&gt;
-&lt;script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js"&gt;&lt;/script&gt;</code>
+                    <pre class="code-block"><code>&lt;link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css"&gt;
+&lt;script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js"&gt;&lt;/script&gt;</code></pre>
                 </div>
                 <div class="tab-pane" id="download">
-                    <pre><code>&lt;link rel="stylesheet" href="waveform-player.css"&gt;
+                    <pre class="code-block"><code>&lt;link rel="stylesheet" href="waveform-player.css"&gt;
 &lt;script src="waveform-player.js"&gt;&lt;/script&gt;</code></pre>
-                    <a href="https://github.com/arraypress/waveform-player/releases" class="btn btn-sm btn-primary">Download Latest
-                        Release</a>
+                    <a href="https://github.com/arraypress/waveform-player/releases" class="btn btn-sm btn-primary">Download Latest Release</a>
                 </div>
             </div>
         </div>
@@ -661,7 +659,7 @@
                 <h4>Product</h4>
                 <ul>
                     <li><a href="examples.html">Examples</a></li>
-                    <li><a href="playground.html">Builder</a></li>
+                    <li><a href="builder.html">Builder</a></li>
                     <li><a href="docs.html">Documentation</a></li>
                     <li><a href="addons.html">Add-ons</a></li>
                 </ul>

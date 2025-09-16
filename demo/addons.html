@@ -15,6 +15,9 @@
     <link rel="stylesheet" href="assets/css/base.css">
     <link rel="stylesheet" href="assets/css/addons.css">
 
+    <!-- Favorite Icon -->
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+
     <!-- WaveformPlaylist Add-on from CDN -->
     <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-playlist@latest/dist/waveform-playlist.css">
 </head>
@@ -30,9 +33,9 @@
         <div class="nav-links">
             <a href="index.html">Home</a>
             <a href="examples.html">Examples</a>
-            <a href="playground.html">Builder</a>
+            <a href="builder.html">Builder</a>
             <a href="docs.html">Docs</a>
-            <a href="addons.html" class="nav-link-active">Add-ons</a>
+            <a href="addons.html">Add-ons</a>
             <a href="https://github.com/arraypress/waveform-player" class="nav-cta">
                 <i class="ti ti-brand-github"></i> GitHub
             </a>
@@ -555,24 +558,24 @@ const tracker = new WaveformTracker();
 
         <div class="coming-soon-grid">
             <div class="coming-soon-card">
-                <i class="ti ti-subtitles"></i>
+                <i class="ti ti-message-language"></i>
                 <h3>WaveformCaptions</h3>
                 <p>Synchronized captions and transcripts with search</p>
-                <span class="status">Q1 2025</span>
+                <span class="status">Q4 2025</span>
             </div>
 
             <div class="coming-soon-card">
                 <i class="ti ti-share"></i>
                 <h3>WaveformShare</h3>
                 <p>Social sharing with timestamp links and clips</p>
-                <span class="status">Q2 2025</span>
+                <span class="status">Q4 2025</span>
             </div>
 
             <div class="coming-soon-card">
-                <i class="ti ti-cloud"></i>
-                <h3>WaveformCloud</h3>
-                <p>Cloud processing and CDN delivery for audio</p>
-                <span class="status">Q2 2025</span>
+                <i class="ti ti-map-pin"></i>
+                <h3>WaveformMarkers</h3>
+                <p>User-added markers for bookmarks and annotations</p>
+                <span class="status">Q4 2025</span>
             </div>
         </div>
 
@@ -594,7 +597,7 @@ const tracker = new WaveformTracker();
                 <h4>Product</h4>
                 <ul>
                     <li><a href="examples.html">Examples</a></li>
-                    <li><a href="playground.html">Builder</a></li>
+                    <li><a href="builder.html">Builder</a></li>
                     <li><a href="docs.html">Documentation</a></li>
                     <li><a href="addons.html">Add-ons</a></li>
                 </ul>
@@ -626,112 +629,8 @@ const tracker = new WaveformTracker();
 <!-- Scripts -->
 <script src="dist/waveform-player.js"></script>
 <script src="https://unpkg.com/@arraypress/waveform-playlist@latest/dist/waveform-playlist.js"></script>
-<script>
-    // Simple demo tracking for WaveformTracker section
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize simulated tracker demo
-        initSimpleTrackerDemo();
-
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('href').substring(1);
-                const target = document.getElementById(targetId);
-
-                if (target) {
-                    const navHeight = 80;
-                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navHeight;
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
-
-        // Installation tab switching
-        window.switchInstallTab = function(addon, method) {
-            const prefix = addon === 'playlist' ? 'playlist' : 'tracker';
-            const tabs = document.querySelectorAll(`.install-tabs button[onclick*="${addon}"]`);
-            const panes = document.querySelectorAll(`[id^="${prefix}-"]`);
-
-            tabs.forEach(tab => tab.classList.remove('active'));
-            panes.forEach(pane => pane.classList.remove('active'));
-
-            event.target.classList.add('active');
-            const activePane = document.getElementById(`${prefix}-${method}`);
-            if (activePane) activePane.classList.add('active');
-        };
-    });
-
-    // Simple tracker demo
-    function initSimpleTrackerDemo() {
-        let stats = { plays: 0, engaged: 0, time: 0, completion: 0 };
-
-        setTimeout(() => {
-            const track1 = document.getElementById('track1');
-            const track2 = document.getElementById('track2');
-
-            [track1, track2].forEach((el, i) => {
-                if (!el) return;
-                const player = WaveformPlayer.getInstance(el);
-                if (!player) return;
-
-                let startTime = null;
-
-                const originalPlay = player.onPlay || (() => {});
-                player.onPlay = function() {
-                    originalPlay.call(this);
-                    stats.plays++;
-                    startTime = Date.now();
-                    document.getElementById('total-plays').textContent = stats.plays;
-                    addEvent(`▶️ Play: Track ${i + 1}`);
-
-                    setTimeout(() => {
-                        if (startTime) {
-                            stats.engaged++;
-                            document.getElementById('engaged-plays').textContent = stats.engaged;
-                            addEvent(`🎯 Engaged: Track ${i + 1}`);
-                        }
-                    }, 5000);
-                };
-
-                const originalPause = player.onPause || (() => {});
-                player.onPause = function() {
-                    originalPause.call(this);
-                    if (startTime) {
-                        stats.time += (Date.now() - startTime) / 1000;
-                        startTime = null;
-                        document.getElementById('total-time').textContent = Math.round(stats.time) + 's';
-                    }
-                    const pct = Math.round((this.audio.currentTime / this.audio.duration) * 100);
-                    stats.completion = pct;
-                    document.getElementById('avg-completion').textContent = pct + '%';
-                    addEvent(`⏸️ Paused at ${pct}%`);
-                };
-            });
-        }, 1000);
-    }
-
-    function addEvent(msg) {
-        const log = document.getElementById('tracker-events');
-        if (!log) return;
-
-        if (log.children[0]?.textContent === 'Waiting for events...') {
-            log.innerHTML = '';
-        }
-
-        const item = document.createElement('div');
-        item.className = 'log-item';
-        item.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-        log.insertBefore(item, log.firstChild);
-
-        while (log.children.length > 10) {
-            log.removeChild(log.lastChild);
-        }
-    }
-</script>
+<script src="assets/js/common.js"></script>
+<script src="assets/js/addons.js"></script>
 
 </body>
 </html>

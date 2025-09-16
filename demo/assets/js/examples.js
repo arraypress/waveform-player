@@ -76,7 +76,7 @@ function setupEventTracking() {
 
         if (eventPlayer) {
             const originalPlay = eventPlayer.onPlay.bind(eventPlayer);
-            eventPlayer.onPlay = function() {
+            eventPlayer.onPlay = function () {
                 originalPlay();
                 playCount++;
                 lastPlayTime = Date.now();
@@ -85,7 +85,7 @@ function setupEventTracking() {
             };
 
             const originalPause = eventPlayer.onPause.bind(eventPlayer);
-            eventPlayer.onPause = function() {
+            eventPlayer.onPause = function () {
                 originalPause();
                 if (lastPlayTime) {
                     totalPlayTime += (Date.now() - lastPlayTime) / 1000;
@@ -96,7 +96,7 @@ function setupEventTracking() {
             };
 
             const originalEnd = eventPlayer.onEnded.bind(eventPlayer);
-            eventPlayer.onEnded = function() {
+            eventPlayer.onEnded = function () {
                 originalEnd();
                 if (lastPlayTime) {
                     totalPlayTime += (Date.now() - lastPlayTime) / 1000;
@@ -108,7 +108,7 @@ function setupEventTracking() {
             };
 
             const originalUpdate = eventPlayer.updateProgress.bind(eventPlayer);
-            eventPlayer.updateProgress = function() {
+            eventPlayer.updateProgress = function () {
                 originalUpdate();
                 const percent = Math.round(this.progress * 100);
                 document.getElementById('completion').textContent = percent + '%';
@@ -138,11 +138,11 @@ function addEvent(message) {
 }
 
 // Page Navigation
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     setupEventTracking();
 
     document.querySelectorAll('.nav-pill').forEach(pill => {
-        pill.addEventListener('click', function(e) {
+        pill.addEventListener('click', function (e) {
             e.preventDefault();
 
             document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));

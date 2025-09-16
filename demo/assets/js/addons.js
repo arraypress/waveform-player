@@ -1,9 +1,28 @@
 // Simple demo tracking for WaveformTracker section
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+    // Initialize simulated tracker demo
     initSimpleTrackerDemo();
-    
+
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const target = document.getElementById(targetId);
+
+            if (target) {
+                const navHeight = 80;
+                const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navHeight;
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
     // Installation tab switching
-    window.switchInstallTab = function(addon, method) {
+    window.switchInstallTab = function (addon, method) {
         const prefix = addon === 'playlist' ? 'playlist' : 'tracker';
         const tabs = document.querySelectorAll(`.install-tabs button[onclick*="${addon}"]`);
         const panes = document.querySelectorAll(`[id^="${prefix}-"]`);
@@ -19,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Simple tracker demo
 function initSimpleTrackerDemo() {
-    let stats = { plays: 0, engaged: 0, time: 0, completion: 0 };
+    let stats = {plays: 0, engaged: 0, time: 0, completion: 0};
 
     setTimeout(() => {
         const track1 = document.getElementById('track1');
@@ -32,8 +51,9 @@ function initSimpleTrackerDemo() {
 
             let startTime = null;
 
-            const originalPlay = player.onPlay || (() => {});
-            player.onPlay = function() {
+            const originalPlay = player.onPlay || (() => {
+            });
+            player.onPlay = function () {
                 originalPlay.call(this);
                 stats.plays++;
                 startTime = Date.now();
@@ -49,8 +69,9 @@ function initSimpleTrackerDemo() {
                 }, 5000);
             };
 
-            const originalPause = player.onPause || (() => {});
-            player.onPause = function() {
+            const originalPause = player.onPause || (() => {
+            });
+            player.onPause = function () {
                 originalPause.call(this);
                 if (startTime) {
                     stats.time += (Date.now() - startTime) / 1000;
@@ -85,4 +106,6 @@ function addEvent(msg) {
 }
 
 // Animate elements on scroll
-CommonUtils.initScrollAnimations('.addon-card, .highlight, .metric, .coming-soon-card, .privacy-item');
+if (typeof CommonUtils !== 'undefined') {
+    CommonUtils.initScrollAnimations('.addon-card, .highlight, .metric, .coming-soon-card, .privacy-item');
+}

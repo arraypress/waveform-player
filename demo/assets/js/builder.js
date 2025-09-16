@@ -120,17 +120,13 @@ function getColorWithOpacity(colorId, opacityId) {
 }
 
 function updateCodeOutputs(config, audioUrl) {
-    const htmlCode = generateHTMLCode(config, audioUrl);
-    document.querySelector('#builder-output-html code').textContent = htmlCode;
+    document.querySelector('#builder-output-html code').textContent = generateHTMLCode(config, audioUrl);
 
-    const jsCode = generateJavaScriptCode(config, audioUrl);
-    document.querySelector('#builder-output-javascript code').textContent = jsCode;
+    document.querySelector('#builder-output-javascript code').textContent = generateJavaScriptCode(config, audioUrl);
 
-    const reactCode = generateReactCode(config, audioUrl);
-    document.querySelector('#builder-output-react code').textContent = reactCode;
+    document.querySelector('#builder-output-react code').textContent = generateReactCode(config, audioUrl);
 
-    const vueCode = generateVueCode(config, audioUrl);
-    document.querySelector('#builder-output-vue code').textContent = vueCode;
+    document.querySelector('#builder-output-vue code').textContent = generateVueCode(config, audioUrl);
 }
 
 function generateHTMLCode(config, audioUrl) {
@@ -312,65 +308,6 @@ function setupCodeTabs() {
     });
 }
 
-function exportConfig() {
-    const dataStr = JSON.stringify(currentConfig, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-
-    const exportLink = document.createElement('a');
-    exportLink.setAttribute('href', dataUri);
-    exportLink.setAttribute('download', 'waveform-player-config.json');
-    document.body.appendChild(exportLink);
-    exportLink.click();
-    document.body.removeChild(exportLink);
-}
-
-function importConfig() {
-    document.getElementById('import-file').click();
-}
-
-function handleImport(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const config = JSON.parse(e.target.result);
-                applyImportedConfig(config);
-            } catch (error) {
-                alert('Invalid configuration file');
-            }
-        };
-        reader.readAsText(file);
-    }
-}
-
-function applyImportedConfig(config) {
-    if (config.style) document.getElementById('builder-style').value = config.style;
-    if (config.barWidth) document.getElementById('builder-width').value = config.barWidth;
-    if (config.barSpacing) document.getElementById('builder-spacing').value = config.barSpacing;
-    if (config.samples) document.getElementById('builder-samples').value = config.samples;
-    if (config.height) document.getElementById('builder-height').value = config.height;
-    if (config.title) document.getElementById('builder-title').value = config.title;
-    if (config.subtitle) document.getElementById('builder-subtitle').value = config.subtitle;
-
-    updateBuilder();
-}
-
-function shareConfig() {
-    const params = new URLSearchParams();
-    for (const [key, value] of Object.entries(currentConfig)) {
-        if (value !== '' && value !== false) {
-            params.append(key, value);
-        }
-    }
-
-    const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-
-    navigator.clipboard.writeText(shareUrl).then(() => {
-        alert('Share link copied to clipboard!');
-    });
-}
-
 async function generateWaveformData() {
     const url = document.getElementById('generator-url').value;
     const samples = parseInt(document.getElementById('generator-samples').value);
@@ -398,16 +335,3 @@ function copyWaveformData() {
 
     CommonUtils.copyToClipboard(text, event.target.closest('.btn'));
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    const params = new URLSearchParams(window.location.search);
-    const config = {};
-
-    for (const [key, value] of params.entries()) {
-        config[key] = value;
-    }
-
-    if (Object.keys(config).length > 0) {
-        applyImportedConfig(config);
-    }
-});

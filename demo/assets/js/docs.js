@@ -1,7 +1,7 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Smooth scrolling for sidebar links
     document.querySelectorAll('.sidebar-link').forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
             e.preventDefault();
 
             const targetId = this.getAttribute('href').substring(1);
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
         block.style.position = 'relative';
         block.appendChild(button);
 
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const code = block.querySelector('code').textContent;
             navigator.clipboard.writeText(code).then(() => {
                 button.innerHTML = '<i class="ti ti-check"></i>';

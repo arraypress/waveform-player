@@ -109,8 +109,13 @@
 }
 
 /* ========================================
-   QUICK START SECTION
+   QUICK START SECTION - FIXED
    ======================================== */
+.quick-start {
+    padding: 4rem 0;
+    background: var(--bg);
+}
+
 .quickstart-grid {
     display: grid;
     gap: 2rem;
@@ -119,7 +124,7 @@
 
 .quickstart-step {
     padding: 2rem;
-    background: var(--bg);
+    background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: 1rem;
     position: relative;
@@ -146,6 +151,10 @@
     color: var(--text);
 }
 
+.quickstart-step a {
+    margin-top: 1rem;
+}
+
 .code-block-compact {
     background: #000;
     border: 1px solid var(--border);
@@ -163,11 +172,11 @@
 }
 
 /* ========================================
-   INSTALLATION TABS
+   INSTALLATION TABS - FIXED
    ======================================== */
 .installation-tabs {
     margin-top: 3rem;
-    background: var(--bg);
+    background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: 1rem;
     overflow: hidden;
@@ -211,6 +220,26 @@
 
 .tab-pane.active {
     display: block;
+}
+
+.tab-pane .code-block {
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 0;
+    overflow-x: auto;
+}
+
+.tab-pane .code-block code {
+    color: var(--success);
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.installation-tabs a {
+    margin-top: 1rem;
 }
 
 /* ========================================

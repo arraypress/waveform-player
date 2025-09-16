@@ -7,15 +7,15 @@
  */
 function initSmoothScrolling() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
+        anchor.addEventListener('click', function (e) {
             e.preventDefault();
             const targetId = this.getAttribute('href').substring(1);
             const target = document.getElementById(targetId);
-            
+
             if (target) {
                 const navHeight = document.querySelector('.nav')?.offsetHeight || 80;
                 const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navHeight - 20;
-                
+
                 window.scrollTo({
                     top: targetPosition,
                     behavior: 'smooth'
@@ -33,14 +33,14 @@ function initCodeCopy() {
     document.querySelectorAll('.code-block, .code-snippet, pre code').forEach(block => {
         // Skip if already initialized
         if (block.dataset.copyInitialized === 'true') return;
-        
+
         block.style.cursor = 'pointer';
         block.title = 'Click to copy';
-        
-        block.addEventListener('click', function() {
+
+        block.addEventListener('click', function () {
             const codeElement = this.querySelector('code') || this;
             const text = codeElement.textContent;
-            
+
             navigator.clipboard.writeText(text).then(() => {
                 // Visual feedback
                 const originalBg = this.style.background;
@@ -50,7 +50,7 @@ function initCodeCopy() {
                 }, 300);
             });
         });
-        
+
         block.dataset.copyInitialized = 'true';
     });
 }
@@ -60,22 +60,22 @@ function initCodeCopy() {
  */
 function initTabSwitcher(containerSelector) {
     const containers = document.querySelectorAll(containerSelector);
-    
+
     containers.forEach(container => {
         const tabs = container.querySelectorAll('[data-tab]');
         const panes = container.querySelectorAll('.tab-pane');
-        
+
         tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
+            tab.addEventListener('click', function () {
                 const targetTab = this.dataset.tab;
-                
+
                 // Remove active class from all tabs and panes
                 tabs.forEach(t => t.classList.remove('active'));
                 panes.forEach(p => p.classList.remove('active'));
-                
+
                 // Add active class to clicked tab
                 this.classList.add('active');
-                
+
                 // Show corresponding pane
                 const targetPane = container.querySelector(`#${targetTab}`);
                 if (targetPane) {
@@ -94,9 +94,9 @@ function initScrollAnimations(selector = '.animate-on-scroll', options = {}) {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
     };
-    
-    const observerOptions = { ...defaultOptions, ...options };
-    
+
+    const observerOptions = {...defaultOptions, ...options};
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -105,7 +105,7 @@ function initScrollAnimations(selector = '.animate-on-scroll', options = {}) {
             }
         });
     }, observerOptions);
-    
+
     const elements = document.querySelectorAll(selector);
     elements.forEach(el => {
         // Set initial state
@@ -122,9 +122,9 @@ function initScrollAnimations(selector = '.animate-on-scroll', options = {}) {
 function initMobileNav() {
     const mobileToggle = document.querySelector('.nav-mobile-toggle');
     const navLinks = document.querySelector('.nav-links');
-    
+
     if (mobileToggle && navLinks) {
-        mobileToggle.addEventListener('click', function() {
+        mobileToggle.addEventListener('click', function () {
             if (navLinks.style.display === 'flex') {
                 navLinks.style.display = 'none';
             } else {
@@ -147,10 +147,10 @@ function initMobileNav() {
  */
 function updateActiveNav() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    
+
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.classList.remove('nav-link-active');
-        
+
         const href = link.getAttribute('href');
         if (href === currentPage) {
             link.classList.add('nav-link-active');
@@ -176,12 +176,12 @@ function copyToClipboard(text, button) {
  */
 function initParallax(selector, speed = 0.5) {
     const elements = document.querySelectorAll(selector);
-    
+
     if (elements.length === 0) return;
-    
+
     window.addEventListener('scroll', () => {
         const scrolled = window.pageYOffset;
-        
+
         elements.forEach(el => {
             const yPos = -(scrolled * speed);
             el.style.transform = `translateY(${yPos}px)`;
@@ -194,13 +194,13 @@ function initParallax(selector, speed = 0.5) {
  */
 function debounce(func, wait) {
     let timeout;
-    
+
     return function executedFunction(...args) {
         const later = () => {
             clearTimeout(timeout);
             func(...args);
         };
-        
+
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };

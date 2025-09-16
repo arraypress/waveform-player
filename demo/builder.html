@@ -10,10 +10,13 @@
     <!-- External Dependencies -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
 
+    <!-- Favorite Icon -->
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+
     <!-- WaveformPlayer -->
     <link rel="stylesheet" href="dist/waveform-player.css">
     <link rel="stylesheet" href="assets/css/base.css">
-    <link rel="stylesheet" href="assets/css/playground.css">
+    <link rel="stylesheet" href="assets/css/builder.css">
 </head>
 <body>
 
@@ -27,7 +30,7 @@
         <div class="nav-links">
             <a href="index.html">Home</a>
             <a href="examples.html">Examples</a>
-            <a href="playground.html" class="nav-link-active">Builder</a>
+            <a href="builder.html">Builder</a>
             <a href="docs.html">Docs</a>
             <a href="addons.html">Add-ons</a>
             <a href="https://github.com/arraypress/waveform-player" class="nav-cta">
@@ -231,29 +234,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Quick Actions -->
-        <div class="quick-actions">
-            <div class="action-card">
-                <i class="ti ti-download"></i>
-                <h4>Export Configuration</h4>
-                <p>Download your configuration as JSON</p>
-                <button class="btn btn-secondary" onclick="exportConfig()">Export</button>
-            </div>
-            <div class="action-card">
-                <i class="ti ti-upload"></i>
-                <h4>Import Configuration</h4>
-                <p>Load a previously saved configuration</p>
-                <button class="btn btn-secondary" onclick="importConfig()">Import</button>
-                <input type="file" id="import-file" accept=".json" style="display: none;" onchange="handleImport(event)">
-            </div>
-            <div class="action-card">
-                <i class="ti ti-share"></i>
-                <h4>Share Configuration</h4>
-                <p>Get a shareable link to this configuration</p>
-                <button class="btn btn-secondary" onclick="shareConfig()">Share</button>
-            </div>
-        </div>
     </div>
 </section>
 
@@ -314,7 +294,7 @@
                 <h4>Product</h4>
                 <ul>
                     <li><a href="examples.html">Examples</a></li>
-                    <li><a href="playground.html">Builder</a></li>
+                    <li><a href="builder.html">Builder</a></li>
                     <li><a href="docs.html">Documentation</a></li>
                     <li><a href="addons.html">Add-ons</a></li>
                 </ul>
@@ -347,7 +327,7 @@
 <!-- Scripts -->
 <script src="dist/waveform-player.js"></script>
 <script src="assets/js/common.js"></script>
-<script src="assets/js/playground.js"></script>
+<script src="assets/js/builder.js"></script>
 
 </body>
 </html>

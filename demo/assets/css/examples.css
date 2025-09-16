@@ -105,7 +105,6 @@
    ======================================== */
 .playground-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 2rem;
     margin-top: 3rem;
 }
@@ -207,7 +206,7 @@
 }
 
 /* ========================================
-   TRACK LIST
+   TRACK LIST - FIXED
    ======================================== */
 .track-list {
     display: flex;
@@ -229,6 +228,7 @@
     transition: all 0.2s;
     text-align: left;
     width: 100%;
+    position: relative;
 }
 
 .track-btn:hover {
@@ -239,6 +239,15 @@
 .track-btn.active {
     background: rgba(168, 85, 247, 0.1);
     border-color: var(--accent);
+}
+
+.track-btn > i {
+    flex-shrink: 0;
+}
+
+.track-btn > div {
+    flex: 1;
+    min-width: 0;
 }
 
 .track-btn-title {
@@ -254,10 +263,12 @@
 .track-btn-duration {
     font-size: 0.85rem;
     color: var(--text-muted);
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
 /* ========================================
-   ADVANCED CARDS
+   ADVANCED CARDS - FIXED
    ======================================== */
 .advanced-card {
     padding: 2.5rem;
@@ -282,7 +293,7 @@
 }
 
 /* ========================================
-   FEATURES & BENEFITS
+   FEATURES & BENEFITS - FIXED
    ======================================== */
 .feature-description {
     margin-top: 1rem;
@@ -305,10 +316,21 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 1rem;
+    padding: 0.75rem 1rem;
     background: rgba(168, 85, 247, 0.05);
     border-radius: 8px;
     border: 1px solid rgba(168, 85, 247, 0.2);
+    font-size: 0.9rem;
+}
+
+.benefit i {
+    color: var(--accent);
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.benefit span {
+    color: var(--text-muted);
 }
 
 .feature-note {
@@ -380,6 +402,26 @@
     font-size: 0.9rem;
 }
 
+/* Code example block */
+.code-example {
+    margin: 1.5rem 0;
+}
+
+.code-example pre {
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    overflow-x: auto;
+}
+
+.code-example code {
+    color: var(--success);
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
 /* ========================================
    MOBILE RESPONSIVE
    ======================================== */
@@ -417,6 +459,11 @@
 
     .feature-benefits {
         grid-template-columns: 1fr;
+    }
+
+    .benefit {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.85rem;
     }
 }
 
