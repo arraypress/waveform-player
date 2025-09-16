@@ -146,13 +146,28 @@ function initMobileNav() {
  * Active navigation highlight
  */
 function updateActiveNav() {
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const currentPath = window.location.pathname;
 
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.classList.remove('nav-link-active');
 
         const href = link.getAttribute('href');
-        if (href === currentPage) {
+        if (!href) return;
+
+        // Remove .html extension from href for comparison
+        const cleanHref = href.replace('.html', '');
+
+        // Handle different cases
+        const isActive =
+            // Exact match (with or without .html)
+            currentPath === '/' + href ||
+            currentPath === '/' + cleanHref ||
+            // Root/index page
+            (currentPath === '/' && (cleanHref === 'index' || href === 'index.html')) ||
+            // Current path ends with the clean href
+            currentPath.endsWith('/' + cleanHref);
+
+        if (isActive) {
             link.classList.add('nav-link-active');
         }
     });
