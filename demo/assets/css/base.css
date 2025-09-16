@@ -1,0 +1,420 @@
+/* ========================================
+   BASE STYLES - Common across all pages
+   ======================================== */
+
+/* ========================================
+   ROOT VARIABLES & RESET
+   ======================================== */
+:root {
+    --bg: #0a0a0a;
+    --bg-secondary: #111111;
+    --text: #ffffff;
+    --text-muted: #8b8b8b;
+    --accent: #a855f7;
+    --accent-light: #c084fc;
+    --accent-dark: #9333ea;
+    --success: #4ade80;
+    --border: #222222;
+    --max-width: 1200px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    overflow-x: hidden;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+/* ========================================
+   TYPOGRAPHY
+   ======================================== */
+.gradient-text {
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ========================================
+   LAYOUT UTILITIES
+   ======================================== */
+.container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 2rem;
+    width: 100%;
+    overflow: hidden;
+}
+
+section {
+    padding: 6rem 0;
+    overflow: hidden;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* ========================================
+   NAVIGATION
+   ======================================== */
+.nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    backdrop-filter: blur(20px);
+    background: rgba(10, 10, 10, 0.9);
+    border-bottom: 1px solid var(--border);
+    z-index: 1000;
+}
+
+.nav-container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text) !important;
+    text-decoration: none !important;
+    transition: opacity 0.2s;
+}
+
+.nav-logo:hover {
+    opacity: 0.8;
+}
+
+.logo-icon {
+    width: 36px;
+    height: 36px;
+    display: block;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: var(--text);
+}
+
+.nav-link-active {
+    color: var(--accent) !important;
+    font-weight: 600;
+}
+
+.nav-cta {
+    padding: 0.5rem 1.25rem;
+    background: var(--accent);
+    color: white !important;
+    border-radius: 50px;
+    font-weight: 600;
+}
+
+.nav-cta:hover {
+    background: var(--accent-light);
+}
+
+.nav-mobile-toggle {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* ========================================
+   PAGE HEADER (Common for inner pages)
+   ======================================== */
+.page-header {
+    background: linear-gradient(135deg, var(--bg-secondary), rgba(168, 85, 247, 0.05));
+    padding: 6rem 0 3rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    margin-top: 60px;
+    position: relative;
+    z-index: 1;
+}
+
+.page-header h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.page-header p {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+}
+
+/* ========================================
+   SECTION COMPONENTS
+   ======================================== */
+.section-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.section-badge {
+    display: inline-block;
+    padding: 0.25rem 1rem;
+    background: rgba(168, 85, 247, 0.1);
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+    color: var(--accent);
+}
+
+.section-header h2 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+.section-header p {
+    font-size: 1.125rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+.btn {
+    padding: 0.875rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--accent-light);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border-color: var(--border);
+}
+
+.btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.btn-large {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+
+.buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* ========================================
+   CODE BLOCKS
+   ======================================== */
+.code-block {
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+}
+
+.code-block code {
+    color: var(--success);
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.code-snippet {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.code-snippet pre {
+    font-size: 0.8rem;
+    color: var(--success);
+    margin: 0;
+    overflow-x: auto;
+}
+
+/* ========================================
+   FOOTER
+   ======================================== */
+.footer {
+    background: var(--bg-secondary);
+    padding: 4rem 0 2rem;
+    border-top: 1px solid var(--border);
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 3rem;
+    margin-bottom: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid var(--border);
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.footer-section h4 {
+    color: var(--text);
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-section li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-section a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s;
+    font-size: 0.9rem;
+}
+
+.footer-section a:hover {
+    color: var(--accent);
+}
+
+.footer-bottom {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.footer-bottom a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1rem;
+    }
+
+    section {
+        padding: 3rem 0;
+    }
+
+    /* Navigation */
+    .nav-links {
+        display: none !important;
+    }
+
+    .nav-mobile-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nav-container {
+        padding: 1rem;
+    }
+
+    /* Page Header */
+    .page-header h1 {
+        font-size: 2rem;
+    }
+
+    /* Buttons */
+    .buttons {
+        flex-direction: column;
+    }
+
+    /* Code blocks */
+    .code-block,
+    .code-snippet {
+        padding: 1rem;
+        font-size: 0.75rem;
+    }
+
+    /* Footer */
+    .footer-content {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-header h2 {
+        font-size: 1.5rem;
+    }
+}

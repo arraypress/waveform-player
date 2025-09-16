@@ -1,20 +1,12 @@
-// Playground/Builder JavaScript
-
 let builderPlayer = null;
 let currentConfig = {};
 
-// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize builder with default values
     setTimeout(updateBuilder, 500);
-
-    // Setup code tabs
     setupCodeTabs();
 });
 
-// Main update function
 function updateBuilder() {
-    // Get all values
     const config = {
         style: document.getElementById('builder-style').value,
         barWidth: parseInt(document.getElementById('builder-width').value),
@@ -34,10 +26,8 @@ function updateBuilder() {
         enableMediaSession: document.getElementById('builder-mediasession').checked
     };
 
-    // Store current config
     currentConfig = config;
 
-    // Update display values
     document.getElementById('width-value').textContent = config.barWidth;
     document.getElementById('spacing-value').textContent = config.barSpacing;
     document.getElementById('samples-value').textContent = config.samples;
@@ -46,10 +36,8 @@ function updateBuilder() {
     document.getElementById('progress-opacity-value').textContent = document.getElementById('builder-progress-opacity').value + '%';
     document.getElementById('button-opacity-value').textContent = document.getElementById('builder-button-opacity').value + '%';
 
-    // Use custom URL if provided, otherwise use default
     const audioUrl = config.customUrl || 'assets/audio/pluck-small-moments.mp3';
 
-    // Check if we need to recreate
     const needsRecreate = !builderPlayer ||
         builderPlayer.options.url !== audioUrl ||
         builderPlayer.options.waveformStyle !== config.style;
@@ -60,9 +48,7 @@ function updateBuilder() {
         builderPlayer = null;
     }
 
-    // Update existing player or create new one
     if (builderPlayer && !needsRecreate) {
-        // Update options
         builderPlayer.options.barWidth = config.barWidth;
         builderPlayer.options.barSpacing = config.barSpacing;
         builderPlayer.options.samples = config.samples;
@@ -76,7 +62,6 @@ function updateBuilder() {
         builderPlayer.options.autoplay = config.autoplay;
         builderPlayer.options.enableMediaSession = config.enableMediaSession;
 
-        // Update title and subtitle
         if (builderPlayer.titleEl) {
             builderPlayer.titleEl.textContent = config.title;
         }
@@ -89,17 +74,14 @@ function updateBuilder() {
             }
         }
 
-        // Update button colors
         if (builderPlayer.playBtn) {
             builderPlayer.playBtn.style.borderColor = config.buttonColor;
             builderPlayer.playBtn.style.color = config.buttonColor;
         }
 
-        // Resize and redraw
         builderPlayer.resizeCanvas();
         builderPlayer.drawWaveform();
     } else {
-        // Create new player
         const container = document.getElementById('builder-player');
         container.innerHTML = '';
 
@@ -123,11 +105,9 @@ function updateBuilder() {
         });
     }
 
-    // Update code outputs
     updateCodeOutputs(config, audioUrl);
 }
 
-// Helper function to get color with opacity
 function getColorWithOpacity(colorId, opacityId) {
     const color = document.getElementById(colorId).value;
     const opacity = document.getElementById(opacityId).value / 100;
@@ -139,26 +119,20 @@ function getColorWithOpacity(colorId, opacityId) {
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
 
-// Update all code outputs
 function updateCodeOutputs(config, audioUrl) {
-    // HTML output
     const htmlCode = generateHTMLCode(config, audioUrl);
     document.querySelector('#builder-output-html code').textContent = htmlCode;
 
-    // JavaScript output
     const jsCode = generateJavaScriptCode(config, audioUrl);
     document.querySelector('#builder-output-javascript code').textContent = jsCode;
 
-    // React output
     const reactCode = generateReactCode(config, audioUrl);
     document.querySelector('#builder-output-react code').textContent = reactCode;
 
-    // Vue output
     const vueCode = generateVueCode(config, audioUrl);
     document.querySelector('#builder-output-vue code').textContent = vueCode;
 }
 
-// Generate HTML code
 function generateHTMLCode(config, audioUrl) {
     let attributes = [`data-url="${audioUrl}"`];
 
@@ -186,7 +160,6 @@ function generateHTMLCode(config, audioUrl) {
 </div>`;
 }
 
-// Generate JavaScript code
 function generateJavaScriptCode(config, audioUrl) {
     const options = {
         url: audioUrl,
@@ -211,7 +184,6 @@ function generateJavaScriptCode(config, audioUrl) {
     return `const player = new WaveformPlayer('#my-player', ${JSON.stringify(options, null, 2)});`;
 }
 
-// Generate React code
 function generateReactCode(config, audioUrl) {
     return `import { useEffect, useRef } from 'react';
 import WaveformPlayer from '@arraypress/waveform-player';
@@ -242,7 +214,6 @@ function AudioPlayer() {
 }`;
 }
 
-// Generate Vue code
 function generateVueCode(config, audioUrl) {
     return `<template>
   <div ref="player"></div>
@@ -275,7 +246,6 @@ export default {
 </script>`;
 }
 
-// Apply color preset
 function applyPreset(preset) {
     const presets = {
         purple: { color: '#a855f7', progress: '#a855f7', button: '#ffffff' },
@@ -294,9 +264,7 @@ function applyPreset(preset) {
     }
 }
 
-// Reset player
 function resetPlayer() {
-    // Reset all inputs to defaults
     document.getElementById('builder-style').value = 'mirror';
     document.getElementById('builder-width').value = 2;
     document.getElementById('builder-spacing').value = 0;
@@ -320,22 +288,13 @@ function resetPlayer() {
     updateBuilder();
 }
 
-// Copy code
 function copyCode() {
     const activeTab = document.querySelector('.code-tab.active').dataset.tab;
     const code = document.querySelector(`#builder-output-${activeTab} code`).textContent;
 
-    navigator.clipboard.writeText(code).then(() => {
-        const btn = document.querySelector('.code-actions .btn-primary');
-        const originalHTML = btn.innerHTML;
-        btn.innerHTML = '<i class="ti ti-check"></i> Copied!';
-        setTimeout(() => {
-            btn.innerHTML = originalHTML;
-        }, 2000);
-    });
+    CommonUtils.copyToClipboard(code, document.querySelector('.code-actions .btn-primary'));
 }
 
-// Setup code tabs
 function setupCodeTabs() {
     const tabs = document.querySelectorAll('.code-tab');
     const outputs = document.querySelectorAll('.code-output');
@@ -353,7 +312,6 @@ function setupCodeTabs() {
     });
 }
 
-// Export configuration
 function exportConfig() {
     const dataStr = JSON.stringify(currentConfig, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
@@ -366,7 +324,6 @@ function exportConfig() {
     document.body.removeChild(exportLink);
 }
 
-// Import configuration
 function importConfig() {
     document.getElementById('import-file').click();
 }
@@ -388,7 +345,6 @@ function handleImport(event) {
 }
 
 function applyImportedConfig(config) {
-    // Apply imported configuration to controls
     if (config.style) document.getElementById('builder-style').value = config.style;
     if (config.barWidth) document.getElementById('builder-width').value = config.barWidth;
     if (config.barSpacing) document.getElementById('builder-spacing').value = config.barSpacing;
@@ -400,9 +356,7 @@ function applyImportedConfig(config) {
     updateBuilder();
 }
 
-// Share configuration
 function shareConfig() {
-    // Create a shareable URL with config in query params
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(currentConfig)) {
         if (value !== '' && value !== false) {
@@ -417,7 +371,6 @@ function shareConfig() {
     });
 }
 
-// Generate waveform data
 async function generateWaveformData() {
     const url = document.getElementById('generator-url').value;
     const samples = parseInt(document.getElementById('generator-samples').value);
@@ -439,22 +392,13 @@ async function generateWaveformData() {
     }
 }
 
-// Copy waveform data
 function copyWaveformData() {
     const output = document.getElementById('waveform-output');
     const text = output.textContent;
 
-    navigator.clipboard.writeText(text).then(() => {
-        const btn = event.target.closest('.btn');
-        const originalHTML = btn.innerHTML;
-        btn.innerHTML = '<i class="ti ti-check"></i> Copied!';
-        setTimeout(() => {
-            btn.innerHTML = originalHTML;
-        }, 2000);
-    });
+    CommonUtils.copyToClipboard(text, event.target.closest('.btn'));
 }
 
-// Load config from URL params on page load
 document.addEventListener('DOMContentLoaded', function() {
     const params = new URLSearchParams(window.location.search);
     const config = {};

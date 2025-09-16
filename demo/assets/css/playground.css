@@ -1,32 +1,7 @@
 /* ========================================
-   PLAYGROUND/BUILDER PAGE STYLES
+   PLAYGROUND/BUILDER PAGE SPECIFIC STYLES
    ======================================== */
 
-/* Page Header */
-.page-header {
-    background: linear-gradient(135deg, var(--bg-secondary), rgba(168, 85, 247, 0.05));
-    padding: 6rem 0 3rem;
-    text-align: center;
-    border-bottom: 1px solid var(--border);
-    margin-top: 60px;
-}
-
-.page-header h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, var(--accent), var(--accent-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.page-header p {
-    font-size: 1.25rem;
-    color: var(--text-muted);
-}
-
-/* Builder Section */
 .builder {
     padding: 4rem 0;
     background: var(--bg);
@@ -66,7 +41,6 @@
     padding: 2rem;
 }
 
-/* Preview Panel */
 .preview-panel {
     grid-row: span 2;
 }
@@ -95,7 +69,6 @@
     color: var(--accent);
 }
 
-/* Controls Panel */
 .control-section {
     margin-bottom: 2rem;
     padding-bottom: 2rem;
@@ -183,7 +156,6 @@
     opacity: 0.7;
 }
 
-/* Color Input Groups */
 .color-input-group {
     display: flex;
     align-items: center;
@@ -209,7 +181,6 @@
     font-size: 0.85rem;
 }
 
-/* Color Presets */
 .color-presets {
     display: flex;
     gap: 0.5rem;
@@ -253,7 +224,6 @@
     opacity: 1;
 }
 
-/* Checkbox Groups */
 .checkbox-group {
     display: flex;
     flex-direction: column;
@@ -280,7 +250,6 @@
     cursor: pointer;
 }
 
-/* Code Panel */
 .code-panel {
     grid-column: 1 / -1;
 }
@@ -288,11 +257,6 @@
 .code-actions {
     display: flex;
     gap: 0.5rem;
-}
-
-.btn-sm {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
 }
 
 .code-tabs {
@@ -347,7 +311,6 @@
     white-space: pre;
 }
 
-/* Quick Actions */
 .quick-actions {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -386,7 +349,6 @@
     margin-bottom: 1rem;
 }
 
-/* Generator Section */
 .generator-section {
     padding: 4rem 0;
     background: var(--bg-secondary);
@@ -459,93 +421,6 @@
     font-size: 0.85rem;
 }
 
-/* Footer */
-.footer {
-    background: var(--bg);
-    padding: 4rem 0 2rem;
-    border-top: 1px solid var(--border);
-}
-
-.footer-content {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 3rem;
-    margin-bottom: 3rem;
-    padding-bottom: 3rem;
-    border-bottom: 1px solid var(--border);
-}
-
-.footer-section h4 {
-    color: var(--text);
-    margin-bottom: 1rem;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.footer-section ul {
-    list-style: none;
-    padding: 0;
-}
-
-.footer-section li {
-    margin-bottom: 0.5rem;
-}
-
-.footer-section a {
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color 0.3s;
-    font-size: 0.9rem;
-}
-
-.footer-section a:hover {
-    color: var(--accent);
-}
-
-.footer-bottom {
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-}
-
-.footer-bottom a {
-    color: var(--accent);
-    text-decoration: none;
-}
-
-/* Navigation */
-.nav-link-active {
-    color: var(--accent) !important;
-    font-weight: 600;
-}
-
-/* Navigation Logo as Link */
-.nav-logo {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text) !important;
-    text-decoration: none !important;
-    border-bottom: none !important;
-    transition: opacity 0.2s;
-}
-
-.nav-logo:hover {
-    opacity: 0.8;
-    text-decoration: none !important;
-    border-bottom: none !important;
-}
-
-.logo-icon {
-    width: 36px;
-    height: 36px;
-    display: block;
-}
-
-/* Mobile Responsive */
 @media (max-width: 768px) {
     .builder-container {
         grid-template-columns: 1fr;

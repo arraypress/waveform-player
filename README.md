@@ -14,7 +14,7 @@ A lightweight, customizable audio player with waveform visualization. Under 6KB 
 ## Why WaveformPlayer?
 
 - **Zero Config** - Just add `data-waveform-player` to any div. No JavaScript required.
-- **Tiny** - 6KB gzipped vs 40KB+ for alternatives
+- **Tiny** - 8KB gzipped vs 40KB+ for alternatives
 - **Real Waveforms** - Actual audio analysis, not fake waves
 - **No Dependencies** - No jQuery, no bloat, pure vanilla JS
 - **Works Everywhere** - WordPress, Shopify, React, Vue, or plain HTML
@@ -51,7 +51,7 @@ npm install @arraypress/waveform-player
 ## Features
 
 - 🎨 **6 Visual Styles** - Bars, mirror, line, blocks, dots, seekbar
-- 🎯 **Tiny Footprint** - Under 6KB gzipped
+- 🎯 **Tiny Footprint** - Under 8KB gzipped
 - ⚡ **Zero Dependencies** - Pure JavaScript
 - 🎭 **Fully Customizable** - Colors, sizes, styles
 - 📱 **Responsive** - Works on all devices
@@ -98,16 +98,16 @@ WaveformTracker.init({
 ## Comparison
 
 | Feature | WaveformPlayer | WaveSurfer.js | Amplitude.js |
-|---------|---------------|---------------|--------------|
-| Size (gzipped) | 6KB | 40KB+ | 35KB+ |
-| Zero Config | ✅ | ❌ | ❌ |
-| Dependencies | None | None | None |
-| Waveform Styles | 6 | 3 | N/A |
-| Setup Time | 30 seconds | 5+ minutes | 5+ minutes |
-| Real Waveforms | ✅ | ✅ | ❌ |
-| Keyboard Controls | ✅ | ✅ | ❌ |
-| Media Session API | ✅ | ❌ | ❌ |
-| Speed Control | ✅ | ✅ | ❌ |
+|---------|----------------|---------------|--------------|
+| Size (gzipped) | 8KB            | 40KB+ | 35KB+ |
+| Zero Config | ✅              | ❌ | ❌ |
+| Dependencies | None           | None | None |
+| Waveform Styles | 6              | 3 | N/A |
+| Setup Time | 30 seconds     | 5+ minutes | 5+ minutes |
+| Real Waveforms | ✅              | ✅ | ❌ |
+| Keyboard Controls | ✅              | ✅ | ❌ |
+| Media Session API | ✅              | ❌ | ❌ |
+| Speed Control | ✅              | ✅ | ❌ |
 
 ## Usage
 

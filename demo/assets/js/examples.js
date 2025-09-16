@@ -1,5 +1,3 @@
-// Examples page JavaScript
-
 // Playground Controls
 function controlledPlay() {
     const controlledPlayer = WaveformPlayer.getInstance('controlled-player');
@@ -34,7 +32,6 @@ async function switchTrack(url, title, subtitle, button) {
     const player = WaveformPlayer.getInstance('switcher-player');
     if (!player) return;
 
-    // Update active button
     document.querySelectorAll('.track-btn').forEach(btn => {
         btn.classList.remove('active');
     });
@@ -56,15 +53,12 @@ function seekToTime(seconds, label, event) {
     const player = WaveformPlayer.getInstance('timestamp-player');
     if (!player) return;
 
-    // Seek to the time
     player.seekTo(seconds);
 
-    // Start playing if not already
     if (!player.isPlaying) {
         player.play();
     }
 
-    // Update active timestamp
     document.querySelectorAll('.timestamp-link').forEach(link => {
         link.classList.remove('active');
     });
@@ -81,7 +75,6 @@ function setupEventTracking() {
         const eventPlayer = WaveformPlayer.getInstance('event-player');
 
         if (eventPlayer) {
-            // Override the event handlers
             const originalPlay = eventPlayer.onPlay.bind(eventPlayer);
             eventPlayer.onPlay = function() {
                 originalPlay();
@@ -114,7 +107,6 @@ function setupEventTracking() {
                 addEvent('✅ Track completed');
             };
 
-            // Add time update tracking
             const originalUpdate = eventPlayer.updateProgress.bind(eventPlayer);
             eventPlayer.updateProgress = function() {
                 originalUpdate();
@@ -140,7 +132,6 @@ function addEvent(message) {
 
     list.insertBefore(item, list.firstChild);
 
-    // Keep only last 10 events
     while (list.children.length > 10) {
         list.removeChild(list.lastChild);
     }
@@ -148,19 +139,15 @@ function addEvent(message) {
 
 // Page Navigation
 document.addEventListener('DOMContentLoaded', function() {
-    // Setup event tracking
     setupEventTracking();
 
-    // Smooth scroll for navigation pills
     document.querySelectorAll('.nav-pill').forEach(pill => {
         pill.addEventListener('click', function(e) {
             e.preventDefault();
 
-            // Update active state
             document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
             this.classList.add('active');
 
-            // Scroll to section
             const targetId = this.getAttribute('href').substring(1);
             const target = document.getElementById(targetId);
 
@@ -201,45 +188,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Code copy functionality
-    document.querySelectorAll('pre code').forEach(block => {
-        block.style.cursor = 'pointer';
-        block.title = 'Click to copy';
-
-        block.addEventListener('click', function() {
-            const text = this.textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                // Visual feedback
-                const original = this.style.background;
-                this.style.background = 'rgba(168, 85, 247, 0.2)';
-                setTimeout(() => {
-                    this.style.background = original;
-                }, 300);
-            });
-        });
-    });
-
-    // Intersection observer for animations
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, observerOptions);
-
-    // Observe cards
-    const animatedElements = document.querySelectorAll('.example-card, .playground-card, .advanced-card');
-    animatedElements.forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(20px)';
-        el.style.transition = 'all 0.6s ease';
-        observer.observe(el);
-    });
+    // Animate elements
+    CommonUtils.initScrollAnimations('.example-card, .playground-card, .advanced-card');
 });

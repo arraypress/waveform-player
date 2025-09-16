@@ -1,32 +1,7 @@
 /* ========================================
-   DOCUMENTATION PAGE STYLES
+   DOCUMENTATION PAGE SPECIFIC STYLES
    ======================================== */
 
-/* Page Header */
-.page-header {
-    background: linear-gradient(135deg, var(--bg-secondary), rgba(168, 85, 247, 0.05));
-    padding: 6rem 0 3rem;
-    text-align: center;
-    border-bottom: 1px solid var(--border);
-    margin-top: 60px;
-}
-
-.page-header h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, var(--accent), var(--accent-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.page-header p {
-    font-size: 1.25rem;
-    color: var(--text-muted);
-}
-
-/* Documentation Layout */
 .docs-layout {
     display: flex;
     max-width: var(--max-width);
@@ -36,7 +11,6 @@
     position: relative;
 }
 
-/* Sidebar */
 .docs-sidebar {
     width: 260px;
     position: sticky;
@@ -91,7 +65,6 @@
     padding-left: 0.75rem;
 }
 
-/* Main Content */
 .docs-content {
     flex: 1;
     min-width: 0;
@@ -129,7 +102,6 @@
     margin-bottom: 0.75rem;
 }
 
-/* Link styling */
 .docs-section a:not(.sidebar-link) {
     color: var(--accent);
     text-decoration: none;
@@ -151,24 +123,15 @@
     margin-bottom: 0.5rem;
 }
 
-/* Code Blocks */
-.code-block {
-    background: #000;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin: 1.5rem 0;
-    overflow-x: auto;
-}
-
-.code-block code {
-    color: var(--success);
+.docs-section code:not(.code-block code) {
+    background: rgba(168, 85, 247, 0.1);
+    color: var(--accent-light);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
     font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-    font-size: 0.9rem;
-    line-height: 1.6;
 }
 
-/* Configuration Table */
 .config-table-wrapper {
     overflow-x: auto;
     margin: 2rem 0;
@@ -211,7 +174,6 @@
     font-size: 0.85em;
 }
 
-/* Method List */
 .method-list {
     display: flex;
     flex-direction: column;
@@ -241,17 +203,6 @@
     margin: 0.5rem 0 0;
 }
 
-/* Inline Code */
-.docs-section code:not(.code-block code) {
-    background: rgba(168, 85, 247, 0.1);
-    color: var(--accent-light);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.9em;
-    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-}
-
-/* Keyboard Keys */
 kbd {
     background: var(--bg-secondary);
     border: 1px solid var(--border);
@@ -263,7 +214,6 @@ kbd {
     box-shadow: 0 2px 0 var(--border);
 }
 
-/* Scrollbar Styling for Sidebar */
 .docs-sidebar::-webkit-scrollbar {
     width: 8px;
 }
@@ -281,7 +231,6 @@ kbd {
     background: var(--accent);
 }
 
-/* Mobile Toggle for Sidebar */
 .sidebar-toggle {
     display: none;
     position: fixed;
@@ -300,73 +249,6 @@ kbd {
     justify-content: center;
 }
 
-/* Footer */
-.footer {
-    background: var(--bg-secondary);
-    padding: 4rem 0 2rem;
-    border-top: 1px solid var(--border);
-    margin-top: 4rem;
-}
-
-.footer-content {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 3rem;
-    margin-bottom: 3rem;
-    padding-bottom: 3rem;
-    border-bottom: 1px solid var(--border);
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.footer-section h4 {
-    color: var(--text);
-    margin-bottom: 1rem;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.footer-section ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.footer-section li {
-    margin-bottom: 0.5rem;
-}
-
-.footer-section a {
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color 0.3s;
-    font-size: 0.9rem;
-}
-
-.footer-section a:hover {
-    color: var(--accent);
-}
-
-.footer-bottom {
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-}
-
-.footer-bottom a {
-    color: var(--accent);
-    text-decoration: none;
-}
-
-/* Navigation Active State */
-.nav-link-active {
-    color: var(--accent) !important;
-    font-weight: 600;
-}
-
-/* Mobile Responsive */
 @media (max-width: 1024px) {
     .docs-layout {
         gap: 2rem;
@@ -411,10 +293,5 @@ kbd {
     .config-table th,
     .config-table td {
         padding: 0.5rem;
-    }
-
-    .code-block {
-        padding: 1rem;
-        font-size: 0.8rem;
     }
 }

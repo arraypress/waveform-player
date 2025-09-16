@@ -1,5 +1,3 @@
-// Documentation page JavaScript
-
 document.addEventListener('DOMContentLoaded', function() {
     // Smooth scrolling for sidebar links
     document.querySelectorAll('.sidebar-link').forEach(link => {
@@ -10,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const target = document.getElementById(targetId);
 
             if (target) {
-                const offset = 80; // Account for fixed header
+                const offset = 80;
                 const targetPosition = target.offsetTop - offset;
 
                 window.scrollTo({
@@ -18,13 +16,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     behavior: 'smooth'
                 });
 
-                // Update active state
                 document.querySelectorAll('.sidebar-link').forEach(l => {
                     l.classList.remove('active');
                 });
                 this.classList.add('active');
 
-                // Update URL
                 history.pushState(null, null, `#${targetId}`);
             }
         });
@@ -53,11 +49,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.addEventListener('scroll', updateActiveLink);
-    updateActiveLink(); // Set initial state
+    updateActiveLink();
 
     // Copy code blocks on click
     document.querySelectorAll('.code-block').forEach(block => {
-        // Create copy button
         const button = document.createElement('button');
         button.className = 'copy-code-btn';
         button.innerHTML = '<i class="ti ti-copy"></i>';
@@ -98,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Mobile sidebar toggle (if we add it)
+    // Mobile sidebar toggle
     const sidebarToggle = document.querySelector('.sidebar-toggle');
     const sidebar = document.querySelector('.docs-sidebar');
 

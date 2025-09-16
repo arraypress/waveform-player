@@ -7,20 +7,23 @@
 
     <!-- Primary Meta Tags -->
     <meta name="title" content="WaveformPlayer - Beautiful Audio Visualization for the Web">
-    <meta name="description" content="Zero-config audio player with stunning waveform visualization. No JavaScript required. Just HTML attributes. ~8KB gzipped, zero dependencies.">
+    <meta name="description"
+          content="Zero-config audio player with stunning waveform visualization. No JavaScript required. Just HTML attributes. ~8KB gzipped, zero dependencies.">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://waveformplayer.com/">
     <meta property="og:title" content="WaveformPlayer - Beautiful Audio Visualization for the Web">
-    <meta property="og:description" content="Zero-config audio player with stunning waveform visualization. No JavaScript required.">
+    <meta property="og:description"
+          content="Zero-config audio player with stunning waveform visualization. No JavaScript required.">
     <meta property="og:image" content="https://waveformplayer.com/assets/img/og-image.png">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://waveformplayer.com/">
     <meta name="twitter:title" content="WaveformPlayer - Beautiful Audio Visualization">
-    <meta name="twitter:description" content="Zero-config audio player with stunning waveform visualization. Just HTML attributes needed.">
+    <meta name="twitter:description"
+          content="Zero-config audio player with stunning waveform visualization. Just HTML attributes needed.">
     <meta name="twitter:image" content="https://waveformplayer.com/assets/img/og-image.png">
 
     <!-- External Dependencies -->
@@ -28,7 +31,7 @@
 
     <!-- WaveformPlayer -->
     <link rel="stylesheet" href="dist/waveform-player.css">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/base.css">
     <link rel="stylesheet" href="assets/css/landing.css">
 </head>
 <body>
@@ -96,16 +99,6 @@
             </div>
         </div>
 
-        <!-- CTA Buttons -->
-        <div class="hero-cta">
-            <a href="#quickstart" class="btn btn-primary btn-large">
-                <i class="ti ti-rocket"></i> Get Started
-            </a>
-            <a href="examples.html" class="btn btn-secondary btn-large">
-                <i class="ti ti-eye"></i> View Examples
-            </a>
-        </div>
-
         <!-- Trust Badges -->
         <div class="trust-badges">
             <div class="trust-item">
@@ -145,7 +138,7 @@
                 <div class="step-number">1</div>
                 <h3>Include the Files</h3>
                 <div class="code-block-compact">
-<pre><code>&lt;link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css"&gt;
+<pre><code class="code-block">&lt;link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css"&gt;
 &lt;script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js"&gt;&lt;/script&gt;</code></pre>
                 </div>
             </div>
@@ -185,13 +178,14 @@
                     <pre><code>npm install @arraypress/waveform-player</code></pre>
                 </div>
                 <div class="tab-pane" id="cdn">
-                    <pre><code>&lt;link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css"&gt;
-&lt;script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js"&gt;&lt;/script&gt;</code></pre>
+                    <code class="code-block">&lt;link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css"&gt;
+&lt;script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js"&gt;&lt;/script&gt;</code>
                 </div>
                 <div class="tab-pane" id="download">
                     <pre><code>&lt;link rel="stylesheet" href="waveform-player.css"&gt;
 &lt;script src="waveform-player.js"&gt;&lt;/script&gt;</code></pre>
-                    <a href="https://github.com/arraypress/waveform-player/releases" class="btn btn-sm">Download Latest Release</a>
+                    <a href="https://github.com/arraypress/waveform-player/releases" class="btn btn-sm btn-primary">Download Latest
+                        Release</a>
                 </div>
             </div>
         </div>
@@ -606,7 +600,7 @@
                 <span>Angular</span>
             </div>
             <div class="logo-item">
-                <i class="ti ti-brand-shopify"></i>
+                <i class="ti ti-shopping-bag"></i>
                 <span>Shopify</span>
             </div>
             <div class="logo-item">
@@ -707,6 +701,7 @@
 
 <!-- Scripts -->
 <script src="dist/waveform-player.js"></script>
+<script src="assets/js/common.js"></script>
 <script src="assets/js/landing.js"></script>
 
 </body>

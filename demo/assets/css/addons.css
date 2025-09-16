@@ -1,38 +1,11 @@
 /* ========================================
-   ADD-ONS PAGE STYLES
+   ADD-ONS PAGE SPECIFIC STYLES
    ======================================== */
 
-/* Page Header */
-.page-header {
-    background: linear-gradient(135deg, var(--bg-secondary), rgba(168, 85, 247, 0.05));
-    padding: 6rem 0 3rem;
-    text-align: center;
-    border-bottom: 1px solid var(--border);
-    margin-top: 60px;
-    position: relative;
-    z-index: 1;
-}
-
-.page-header h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, var(--accent), var(--accent-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.page-header p {
-    font-size: 1.25rem;
-    color: var(--text-muted);
-}
-
-/* Add-ons Hero */
 .addons-hero {
     padding: 4rem 0;
     background: var(--bg);
-    overflow: visible; /* Fix hover cutoff */
+    overflow: visible;
 }
 
 .addons-grid {
@@ -112,7 +85,6 @@
     font-size: 1rem;
 }
 
-/* Add-on Sections */
 .addon-section {
     padding: 4rem 0;
     border-top: 1px solid var(--border);
@@ -122,7 +94,6 @@
     background: var(--bg-secondary);
 }
 
-/* Demo Cards */
 .demo-card {
     background: var(--bg);
     border: 1px solid var(--border);
@@ -146,37 +117,6 @@
     line-height: 1.6;
 }
 
-/* Playlist Demo */
-.playlist-demo {
-    margin: 1rem 0;
-}
-
-.chapter-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-}
-
-.chapter-btn {
-    padding: 0.75rem 1rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.chapter-btn:hover {
-    background: rgba(168, 85, 247, 0.1);
-    border-color: var(--accent);
-}
-
-/* Steps Grid */
 .steps-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -231,37 +171,6 @@
     line-height: 1.6;
 }
 
-.code-snippet {
-    background: #000;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 1rem;
-    margin: 0;
-    overflow-x: auto;
-}
-
-.code-snippet code {
-    color: var(--success);
-    font-size: 0.85rem;
-    font-family: 'SF Mono', 'Monaco', monospace;
-    line-height: 1.4;
-}
-
-/* For mobile, stack vertically */
-@media (max-width: 768px) {
-    .step {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        padding: 1.5rem;
-    }
-
-    .step-content {
-        width: 100%;
-    }
-}
-
-/* Features Section */
 .feature-section {
     margin: 3rem 0;
 }
@@ -280,24 +189,11 @@
     line-height: 1.6;
 }
 
-/* Features Grid */
 .features-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
     margin: 2.5rem 0;
-}
-
-@media (max-width: 992px) {
-    .features-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 576px) {
-    .features-grid {
-        grid-template-columns: 1fr;
-    }
 }
 
 .feature {
@@ -331,7 +227,6 @@
     font-size: 0.9rem;
 }
 
-/* Tracker Demo */
 .tracker-demo-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -339,7 +234,6 @@
     margin: 1.5rem 0;
 }
 
-/* Analytics Dashboard */
 .analytics-dashboard {
     margin-top: 2rem;
     padding: 1.5rem;
@@ -383,7 +277,6 @@
     color: var(--accent);
 }
 
-/* Event Log */
 .event-log {
     padding: 1rem;
     background: var(--bg-secondary);
@@ -396,6 +289,7 @@
     color: var(--text-muted);
     font-size: 0.9rem;
     text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 #tracker-events {
@@ -411,7 +305,6 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Highlights Grid */
 .highlights-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -440,7 +333,6 @@
     line-height: 1.6;
 }
 
-/* Metrics Grid */
 .metrics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -488,7 +380,6 @@
     font-size: 0.9rem;
 }
 
-/* Integration Examples */
 .integration-examples {
     display: grid;
     gap: 1.5rem;
@@ -508,7 +399,6 @@
     font-size: 1rem;
 }
 
-/* Privacy Section */
 .privacy-section {
     margin: 3rem 0;
     padding: 2rem;
@@ -550,7 +440,6 @@
     font-size: 0.9rem;
 }
 
-/* Installation Section */
 .installation-section {
     margin: 3rem 0;
     padding: 2rem;
@@ -598,22 +487,6 @@
     display: block;
 }
 
-.code-block {
-    background: #000;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 1.5rem;
-    overflow-x: auto;
-}
-
-.code-block code {
-    color: var(--success);
-    font-family: 'SF Mono', 'Monaco', monospace;
-    font-size: 0.9rem;
-    line-height: 1.5;
-}
-
-/* Add-on CTA */
 .addon-cta {
     margin: 3rem 0;
     padding: 3rem;
@@ -641,7 +514,6 @@
     flex-wrap: wrap;
 }
 
-/* Coming Soon Section */
 .coming-soon-section {
     padding: 4rem 0;
     background: var(--bg-secondary);
@@ -693,7 +565,6 @@
     font-weight: 600;
 }
 
-/* Newsletter */
 .newsletter {
     margin-top: 3rem;
     text-align: center;
@@ -709,93 +580,12 @@
     margin-bottom: 1.5rem;
 }
 
-/* Footer */
-.footer {
-    background: var(--bg);
-    padding: 4rem 0 2rem;
-    border-top: 1px solid var(--border);
+@media (max-width: 992px) {
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
-.footer-content {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 3rem;
-    margin-bottom: 3rem;
-    padding-bottom: 3rem;
-    border-bottom: 1px solid var(--border);
-}
-
-.footer-section h4 {
-    color: var(--text);
-    margin-bottom: 1rem;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.footer-section ul {
-    list-style: none;
-    padding: 0;
-}
-
-.footer-section li {
-    margin-bottom: 0.5rem;
-}
-
-.footer-section a {
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color 0.3s;
-    font-size: 0.9rem;
-}
-
-.footer-section a:hover {
-    color: var(--accent);
-}
-
-.footer-bottom {
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-}
-
-.footer-bottom a {
-    color: var(--accent);
-    text-decoration: none;
-}
-
-/* Navigation */
-.nav-link-active {
-    color: var(--accent) !important;
-    font-weight: 600;
-}
-
-/* Navigation Logo as Link */
-.nav-logo {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text) !important;
-    text-decoration: none !important;
-    border-bottom: none !important;
-    transition: opacity 0.2s;
-}
-
-.nav-logo:hover {
-    opacity: 0.8;
-    text-decoration: none !important;
-    border-bottom: none !important;
-}
-
-.logo-icon {
-    width: 36px;
-    height: 36px;
-    display: block;
-}
-
-/* Mobile Responsive */
 @media (max-width: 768px) {
     .addons-grid {
         grid-template-columns: 1fr;
@@ -803,6 +593,17 @@
 
     .steps-grid {
         grid-template-columns: 1fr;
+    }
+
+    .step {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 1.5rem;
+    }
+
+    .step-content {
+        width: 100%;
     }
 
     .features-grid {
