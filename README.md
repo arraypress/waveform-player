@@ -19,6 +19,26 @@ A lightweight, customizable audio player with waveform visualization. Under 6KB 
 - **No Dependencies** - No jQuery, no bloat, pure vanilla JS
 - **Works Everywhere** - WordPress, Shopify, React, Vue, or plain HTML
 - **Ecosystem** - Optional playlist and analytics addons available
+- 
+## What's New in 1.2.0
+
+### 🎨 Automatic Theme Detection
+
+WaveformPlayer now automatically adapts to your website's color scheme - no configuration needed!
+
+**Features:**
+- Detects light/dark themes automatically
+- Checks background brightness, theme classes, and system preferences
+- Works seamlessly on WordPress, Shopify, and all platforms
+- Override with explicit `data-color-preset="light"` or `"dark"` if needed
+
+**How it works:**
+1. Checks for explicit theme classes (`.dark-mode`, `.light-mode`, etc.)
+2. Analyzes background brightness
+3. Respects system color preferences (`prefers-color-scheme`)
+4. Falls back to sensible defaults
+
+[View live examples →](https://waveformplayer.com/modes/dark.html)
 
 ## Quick Start
 
