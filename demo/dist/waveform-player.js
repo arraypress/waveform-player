@@ -504,6 +504,68 @@
   }
 
   // src/js/themes.js
+  function detectColorScheme() {
+    const root = document.documentElement;
+    const body = document.body;
+    if (root.classList.contains("dark") || root.classList.contains("dark-mode") || root.classList.contains("theme-dark") || root.getAttribute("data-theme") === "dark" || root.getAttribute("data-color-scheme") === "dark" || body.classList.contains("dark") || body.classList.contains("dark-mode") || body.getAttribute("data-theme") === "dark") {
+      return "dark";
+    }
+    if (root.classList.contains("light") || root.classList.contains("light-mode") || root.classList.contains("theme-light") || root.getAttribute("data-theme") === "light" || root.getAttribute("data-color-scheme") === "light" || body.classList.contains("light") || body.classList.contains("light-mode") || body.getAttribute("data-theme") === "light") {
+      return "light";
+    }
+    try {
+      const bodyBg = getComputedStyle(document.body).backgroundColor;
+      const rgb = bodyBg.match(/\d+/g);
+      if (rgb && rgb.length >= 3) {
+        const [r, g, b] = rgb.map(Number);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1e3;
+        if (brightness > 128) {
+          return "light";
+        } else if (brightness < 128) {
+          return "dark";
+        }
+      }
+    } catch (e) {
+    }
+    if (window.matchMedia) {
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        return "dark";
+      }
+      if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+        return "light";
+      }
+    }
+    return "dark";
+  }
+  var COLOR_PRESETS = {
+    dark: {
+      waveformColor: "rgba(255, 255, 255, 0.3)",
+      progressColor: "rgba(255, 255, 255, 0.9)",
+      buttonColor: "rgba(255, 255, 255, 0.9)",
+      buttonHoverColor: "rgba(255, 255, 255, 1)",
+      textColor: "#ffffff",
+      textSecondaryColor: "rgba(255, 255, 255, 0.6)",
+      backgroundColor: "rgba(255, 255, 255, 0.03)",
+      borderColor: "rgba(255, 255, 255, 0.1)"
+    },
+    light: {
+      waveformColor: "rgba(0, 0, 0, 0.2)",
+      progressColor: "rgba(0, 0, 0, 0.8)",
+      buttonColor: "rgba(0, 0, 0, 0.8)",
+      buttonHoverColor: "rgba(0, 0, 0, 0.9)",
+      textColor: "#333333",
+      textSecondaryColor: "rgba(0, 0, 0, 0.6)",
+      backgroundColor: "rgba(0, 0, 0, 0.02)",
+      borderColor: "rgba(0, 0, 0, 0.1)"
+    }
+  };
+  function getColorPreset(presetName) {
+    if (presetName && COLOR_PRESETS[presetName]) {
+      return COLOR_PRESETS[presetName];
+    }
+    const detected = detectColorScheme();
+    return COLOR_PRESETS[detected];
+  }
   var DEFAULT_OPTIONS = {
     // Core settings
     url: "",
@@ -514,16 +576,14 @@
     playbackRate: 1,
     showPlaybackSpeed: false,
     playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
-    // Available speeds
     // Layout Options
     buttonAlign: "auto",
-    // 'auto', 'top', 'center', 'bottom'
     // Default waveform style
     waveformStyle: "mirror",
     barWidth: 2,
     barSpacing: 0,
-    // Color preset (dark/light or null for custom)
-    colorPreset: "dark",
+    // Color preset: null = auto-detect, 'dark' = force dark, 'light' = force light
+    colorPreset: null,
     // Individual color overrides (null means use preset)
     waveformColor: null,
     progressColor: null,
@@ -587,6 +647,12 @@
       }
       const dataOptions = parseDataAttributes(this.container);
       this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, options);
+      const preset = getColorPreset(this.options.colorPreset);
+      for (const [key, value] of Object.entries(preset)) {
+        if (this.options[key] === null || this.options[key] === void 0) {
+          this.options[key] = value;
+        }
+      }
       const styleDefaults = STYLE_DEFAULTS[this.options.waveformStyle];
       if (styleDefaults) {
         if (dataOptions.barWidth === void 0 && options.barWidth === void 0) {
@@ -596,11 +662,6 @@
           this.options.barSpacing = styleDefaults.barSpacing;
         }
       }
-      this.options.waveformColor = this.options.waveformColor || "rgba(255, 255, 255, 0.3)";
-      this.options.progressColor = this.options.progressColor || "rgba(255, 255, 255, 0.9)";
-      this.options.buttonColor = this.options.buttonColor || "rgba(255, 255, 255, 0.9)";
-      this.options.textColor = this.options.textColor || "#ffffff";
-      this.options.textSecondaryColor = this.options.textSecondaryColor || "rgba(255, 255, 255, 0.6)";
       this.audio = null;
       this.canvas = null;
       this.ctx = null;

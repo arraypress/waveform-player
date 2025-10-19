@@ -14,7 +14,7 @@ import {
     debounce
 } from './utils.js';
 
-import {DEFAULT_OPTIONS, STYLE_DEFAULTS} from './themes.js';
+import {DEFAULT_OPTIONS, STYLE_DEFAULTS, getColorPreset} from './themes.js';
 
 /**
  * WaveformPlayer - Modern audio player with waveform visualization
@@ -48,6 +48,16 @@ export class WaveformPlayer {
         // Merge options: defaults < data attributes < constructor options
         this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, options);
 
+        // Apply color preset (auto-detect if not specified)
+        const preset = getColorPreset(this.options.colorPreset);
+
+        // Apply preset colors only if individual colors aren't explicitly set
+        for (const [key, value] of Object.entries(preset)) {
+            if (this.options[key] === null || this.options[key] === undefined) {
+                this.options[key] = value;
+            }
+        }
+
         // Apply style-specific defaults if not explicitly set
         const styleDefaults = STYLE_DEFAULTS[this.options.waveformStyle];
         if (styleDefaults) {
@@ -58,13 +68,6 @@ export class WaveformPlayer {
                 this.options.barSpacing = styleDefaults.barSpacing;
             }
         }
-
-        // Set default colors if not provided
-        this.options.waveformColor = this.options.waveformColor || 'rgba(255, 255, 255, 0.3)';
-        this.options.progressColor = this.options.progressColor || 'rgba(255, 255, 255, 0.9)';
-        this.options.buttonColor = this.options.buttonColor || 'rgba(255, 255, 255, 0.9)';
-        this.options.textColor = this.options.textColor || '#ffffff';
-        this.options.textSecondaryColor = this.options.textSecondaryColor || 'rgba(255, 255, 255, 0.6)';
 
         // Initialize state
         this.audio = null;
@@ -90,7 +93,7 @@ export class WaveformPlayer {
         // Dispatch ready event after initialization
         setTimeout(() => {
             this.container.dispatchEvent(new CustomEvent('waveformplayer:ready', {
-                detail: { player: this, url: this.options.url }
+                detail: {player: this, url: this.options.url}
             }));
         }, 100);
     }
@@ -744,7 +747,7 @@ export class WaveformPlayer {
 
         // Dispatch play event
         this.container.dispatchEvent(new CustomEvent('waveformplayer:play', {
-            detail: { player: this, url: this.options.url }
+            detail: {player: this, url: this.options.url}
         }));
 
         if (this.options.onPlay) {
@@ -769,7 +772,7 @@ export class WaveformPlayer {
 
         // Dispatch pause event
         this.container.dispatchEvent(new CustomEvent('waveformplayer:pause', {
-            detail: { player: this, url: this.options.url }
+            detail: {player: this, url: this.options.url}
         }));
 
         if (this.options.onPause) {
@@ -793,7 +796,7 @@ export class WaveformPlayer {
 
         // Dispatch ended event
         this.container.dispatchEvent(new CustomEvent('waveformplayer:ended', {
-            detail: { player: this, url: this.options.url }
+            detail: {player: this, url: this.options.url}
         }));
 
         this.onPause();

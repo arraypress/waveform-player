@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Light Mode - WaveformPlayer</title>
+
+    <!-- External Styles -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../dist/waveform-player.css">
+    <link rel="stylesheet" href="../assets/css/modes.css">
+
+    <!-- Favorite Icon -->
+    <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+</head>
+<body class="light-mode">
+<div class="container">
+    <div class="header">
+        <div class="mode-badge">
+            <i class="ti ti-sun"></i>
+            LIGHT MODE DEMO
+        </div>
+        <h1>
+            <i class="ti ti-sun-high"></i>
+            Light Site
+        </h1>
+        <p class="subtitle">Player automatically uses dark colors for perfect contrast</p>
+    </div>
+
+    <div class="player-showcase">
+        <div data-waveform-player
+             data-url="../assets/audio/pluck-desire.mp3"
+             data-title="Auto-detected Light Theme"
+             data-subtitle="No configuration needed"
+             data-waveform-style="mirror"
+             data-height="80"
+             data-bar-width="2"
+             data-bar-spacing="1">
+        </div>
+    </div>
+
+    <div class="features">
+        <div class="feature">
+            <i class="ti ti-stars feature-icon"></i>
+            <div class="feature-text">Auto-detected</div>
+        </div>
+        <div class="feature">
+            <i class="ti ti-palette feature-icon"></i>
+            <div class="feature-text">Dark colors</div>
+        </div>
+        <div class="feature">
+            <i class="ti ti-bolt feature-icon"></i>
+            <div class="feature-text">Zero config</div>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <p><strong>How it works:</strong> The player detects your light background (<code class="code">#ffffff</code>)
+            and automatically applies dark colors for the waveform, buttons, and text.</p>
+        <p><strong>No code needed:</strong> Just add the player to your page - it adapts automatically to any light
+            theme.</p>
+    </div>
+
+    <a href="../index.html" class="back-link">
+        <i class="ti ti-arrow-left"></i>
+        Back to WaveformPlayer
+    </a>
+</div>
+
+<script src="../dist/waveform-player.js"></script>
+</body>
+</html>

@@ -9,11 +9,6 @@
     box-sizing: border-box;
 }
 
-.waveform-player-inner {
-    padding: 12px;
-    border-radius: 4px;
-}
-
 /* Body container */
 .waveform-body {
     display: flex;

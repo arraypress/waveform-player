@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Documentation - WaveformPlayer</title>
 
-    <meta name="description" content="Complete documentation for WaveformPlayer - API reference, configuration options, and integration guides">
+    <meta name="description"
+          content="Complete documentation for WaveformPlayer - API reference, configuration options, and integration guides">
 
     <!-- External Dependencies -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
@@ -64,7 +65,8 @@
             <ul>
                 <li><a href="#config" class="sidebar-link">Configuration Options</a></li>
                 <li><a href="#data-attributes" class="sidebar-link">Data Attributes</a></li>
-                <li><a href="#styling" class="sidebar-link">Styling</a></li>
+                <li><a href="#color-themes" class="sidebar-link">Color Themes</a></li>
+                <li><a href="#styling" class="sidebar-link">Custom Styling</a></li>
             </ul>
         </div>
         <div class="sidebar-section">
@@ -111,7 +113,8 @@
 &lt;script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js"&gt;&lt;/script&gt;</code></pre>
 
             <h3>Download</h3>
-            <p>Download the latest release from <a href="https://github.com/arraypress/waveform-player/releases">GitHub Releases</a> and include the files:</p>
+            <p>Download the latest release from <a href="https://github.com/arraypress/waveform-player/releases">GitHub
+                Releases</a> and include the files:</p>
             <pre class="code-block"><code>&lt;link rel="stylesheet" href="path/to/waveform-player.css"&gt;
 &lt;script src="path/to/waveform-player.js"&gt;&lt;/script&gt;</code></pre>
         </section>
@@ -192,7 +195,7 @@ const player = new WaveformPlayer('#player', {
                     <tr>
                         <td><code>waveformStyle</code></td>
                         <td>string</td>
-                        <td>'bars'</td>
+                        <td>'mirror'</td>
                         <td>Visual style: bars, mirror, line, blocks, dots, seekbar</td>
                     </tr>
                     <tr>
@@ -204,14 +207,14 @@ const player = new WaveformPlayer('#player', {
                     <tr>
                         <td><code>barWidth</code></td>
                         <td>number</td>
-                        <td>3</td>
-                        <td>Width of waveform bars</td>
+                        <td>varies</td>
+                        <td>Width of waveform bars (style-specific)</td>
                     </tr>
                     <tr>
                         <td><code>barSpacing</code></td>
                         <td>number</td>
-                        <td>1</td>
-                        <td>Space between bars</td>
+                        <td>varies</td>
+                        <td>Space between bars (style-specific)</td>
                     </tr>
                     <tr>
                         <td><code>samples</code></td>
@@ -220,22 +223,46 @@ const player = new WaveformPlayer('#player', {
                         <td>Number of waveform samples</td>
                     </tr>
                     <tr>
+                        <td><code>colorPreset</code></td>
+                        <td>string</td>
+                        <td>null</td>
+                        <td>Color theme: null (auto-detect), 'dark', or 'light'</td>
+                    </tr>
+                    <tr>
                         <td><code>waveformColor</code></td>
                         <td>string</td>
-                        <td>'rgba(255,255,255,0.3)'</td>
-                        <td>Waveform color</td>
+                        <td>Auto</td>
+                        <td>Waveform color (overrides preset)</td>
                     </tr>
                     <tr>
                         <td><code>progressColor</code></td>
                         <td>string</td>
-                        <td>'rgba(255,255,255,0.9)'</td>
-                        <td>Progress color</td>
+                        <td>Auto</td>
+                        <td>Progress color (overrides preset)</td>
                     </tr>
                     <tr>
                         <td><code>buttonColor</code></td>
                         <td>string</td>
-                        <td>'rgba(255,255,255,0.9)'</td>
-                        <td>Play button color</td>
+                        <td>Auto</td>
+                        <td>Play button color (overrides preset)</td>
+                    </tr>
+                    <tr>
+                        <td><code>buttonHoverColor</code></td>
+                        <td>string</td>
+                        <td>Auto</td>
+                        <td>Button hover color (overrides preset)</td>
+                    </tr>
+                    <tr>
+                        <td><code>textColor</code></td>
+                        <td>string</td>
+                        <td>Auto</td>
+                        <td>Text color (overrides preset)</td>
+                    </tr>
+                    <tr>
+                        <td><code>textSecondaryColor</code></td>
+                        <td>string</td>
+                        <td>Auto</td>
+                        <td>Secondary text color (overrides preset)</td>
                     </tr>
                     <tr>
                         <td><code>showTime</code></td>
@@ -317,17 +344,155 @@ const player = new WaveformPlayer('#player', {
         <!-- Data Attributes -->
         <section id="data-attributes" class="docs-section">
             <h2>Data Attributes</h2>
-            <p>All configuration options can be set via HTML data attributes by prefixing with <code>data-</code> and using kebab-case:</p>
+            <p>All configuration options can be set via HTML data attributes by prefixing with <code>data-</code> and
+                using kebab-case:</p>
 
             <pre class="code-block"><code>&lt;div data-waveform-player
      data-url="audio.mp3"
      data-waveform-style="mirror"
      data-bar-width="2"
      data-bar-spacing="1"
+     data-color-preset="light"
      data-show-bpm="true"
      data-show-playback-speed="true"
      data-enable-media-session="true"&gt;
 &lt;/div&gt;</code></pre>
+        </section>
+
+        <!-- Color Themes & Auto-Detection -->
+        <section id="color-themes" class="docs-section">
+            <h2>Color Themes & Auto-Detection</h2>
+
+            <p>WaveformPlayer automatically detects your website's color scheme and adapts its appearance. No
+                configuration needed!</p>
+
+            <h3>Automatic Detection</h3>
+            <p>By default, the player analyzes:</p>
+            <ol>
+                <li><strong>Website background color</strong> - Calculates brightness to determine light/dark theme</li>
+                <li><strong>Theme classes</strong> - Checks for common patterns like <code>.dark</code>, <code>data-theme="dark"</code>
+                </li>
+                <li><strong>System preference</strong> - Falls back to <code>prefers-color-scheme</code> media query
+                </li>
+                <li><strong>Default</strong> - Uses dark theme as ultimate fallback</li>
+            </ol>
+
+            <h3>Examples</h3>
+
+            <h4>Auto-detect (Recommended)</h4>
+            <pre class="code-block"><code>&lt;!-- No color configuration needed! --&gt;
+&lt;div data-waveform-player data-url="audio.mp3"&gt;&lt;/div&gt;</code></pre>
+
+            <h4>Force Dark Theme</h4>
+            <pre class="code-block"><code>&lt;div data-waveform-player
+     data-url="audio.mp3"
+     data-color-preset="dark"&gt;
+&lt;/div&gt;</code></pre>
+
+            <h4>Force Light Theme</h4>
+            <pre class="code-block"><code>&lt;div data-waveform-player
+     data-url="audio.mp3"
+     data-color-preset="light"&gt;
+&lt;/div&gt;</code></pre>
+
+            <h4>Custom Colors (Override Preset)</h4>
+            <pre class="code-block"><code>&lt;div data-waveform-player
+     data-url="audio.mp3"
+     data-color-preset="dark"
+     data-waveform-color="rgba(100, 150, 255, 0.3)"
+     data-progress-color="rgba(100, 150, 255, 0.9)"
+     data-button-color="#6496ff"&gt;
+&lt;/div&gt;</code></pre>
+
+            <h4>JavaScript API</h4>
+            <pre class="code-block"><code>// Auto-detect (default)
+new WaveformPlayer('#player', {
+    url: 'audio.mp3'
+});
+
+// Force theme
+new WaveformPlayer('#player', {
+    url: 'audio.mp3',
+    colorPreset: 'light'
+});
+
+// Custom colors
+new WaveformPlayer('#player', {
+    url: 'audio.mp3',
+    colorPreset: 'dark',
+    waveformColor: '#ff6b6b',
+    progressColor: '#ff0000',
+    buttonColor: '#ff0000'
+});</code></pre>
+
+            <h3>Color Presets</h3>
+            <p>Two built-in presets are available:</p>
+
+            <h4>Dark Preset (Default)</h4>
+            <ul>
+                <li>Waveform: <code>rgba(255, 255, 255, 0.3)</code></li>
+                <li>Progress: <code>rgba(255, 255, 255, 0.9)</code></li>
+                <li>Button: <code>rgba(255, 255, 255, 0.9)</code></li>
+                <li>Text: <code>#ffffff</code></li>
+                <li>Secondary Text: <code>rgba(255, 255, 255, 0.6)</code></li>
+            </ul>
+
+            <h4>Light Preset</h4>
+            <ul>
+                <li>Waveform: <code>rgba(0, 0, 0, 0.2)</code></li>
+                <li>Progress: <code>rgba(0, 0, 0, 0.8)</code></li>
+                <li>Button: <code>rgba(0, 0, 0, 0.8)</code></li>
+                <li>Text: <code>#333333</code></li>
+                <li>Secondary Text: <code>rgba(0, 0, 0, 0.6)</code></li>
+            </ul>
+
+            <h3>Detection Priority</h3>
+            <p>The auto-detection follows this priority order:</p>
+            <pre class="code-block"><code>1. Explicit colorPreset attribute → Use specified preset
+2. Body background brightness → Light (&gt;128) or Dark (&lt;128)
+3. Theme class/attribute → Check for .dark, data-theme="dark", etc.
+4. System preference → prefers-color-scheme media query
+5. Default → Dark theme fallback</code></pre>
+
+            <h3>Platform Compatibility</h3>
+            <p>Auto-detection works on:</p>
+            <ul>
+                <li>✅ WordPress (all themes)</li>
+                <li>✅ Shopify (Dawn and most themes)</li>
+                <li>✅ Wix, Squarespace, Webflow</li>
+                <li>✅ React, Vue, Angular, Next.js apps</li>
+                <li>✅ Tailwind CSS (dark mode class)</li>
+                <li>✅ Custom static sites</li>
+            </ul>
+
+            <div class="demo-card">
+                <h4>Live Demo</h4>
+                <p>Try it yourself! This player auto-detected your page's theme:</p>
+                <div data-waveform-player
+                     data-url="assets/audio/pluck-wings.mp3"
+                     data-title="Auto-detected Theme"
+                     data-subtitle="No configuration needed!">
+                </div>
+            </div>
+        </section>
+
+        <!-- Custom Styling -->
+        <section id="styling" class="docs-section">
+            <h2>Custom Styling</h2>
+            <p>Override default styles with CSS:</p>
+
+            <pre class="code-block"><code>.waveform-player {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+}
+
+.waveform-btn {
+    border-color: #fff;
+}
+
+.waveform-title {
+    font-weight: 700;
+}</code></pre>
         </section>
 
         <!-- API Methods -->
