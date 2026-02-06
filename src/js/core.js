@@ -415,8 +415,9 @@ export class WaveformPlayer {
         // Canvas interactions
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
 
-        // Window resize
-        window.addEventListener('resize', debounce(() => this.resizeCanvas(), 100));
+        // Window resize - store handler for cleanup
+        this.resizeHandler = debounce(() => this.resizeCanvas(), 100);
+        window.addEventListener('resize', this.resizeHandler);
     }
 
     /**
@@ -627,6 +628,11 @@ export class WaveformPlayer {
      * @private
      */
     resizeCanvas() {
+        // Guard against calls after destruction
+        if (!this.canvas || this.isDestroying) {
+            return;
+        }
+
         const dpr = window.devicePixelRatio || 1;
         const rect = this.canvas.getBoundingClientRect();
 
@@ -1031,6 +1037,12 @@ export class WaveformPlayer {
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
             this.resizeObserver = null;
+        }
+
+        // Remove window resize listener
+        if (this.resizeHandler) {
+            window.removeEventListener('resize', this.resizeHandler);
+            this.resizeHandler = null;
         }
 
         // Remove from instances map
