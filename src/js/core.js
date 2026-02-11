@@ -627,6 +627,9 @@ export class WaveformPlayer {
      * @private
      */
     resizeCanvas() {
+        // Ignore resize during destruction
+        if (this.isDestroying) return;
+
         const dpr = window.devicePixelRatio || 1;
         const rect = this.canvas.getBoundingClientRect();
 
@@ -723,6 +726,9 @@ export class WaveformPlayer {
      * @private
      */
     onMetadataLoaded() {
+        // Ignore during destruction
+        if (this.isDestroying) return;
+
         if (this.totalTimeEl) {
             this.totalTimeEl.textContent = formatTime(this.audio.duration);
         }
@@ -735,6 +741,9 @@ export class WaveformPlayer {
      * @private
      */
     onPlay() {
+        // Ignore during destruction
+        if (this.isDestroying) return;
+
         this.isPlaying = true;
         this.playBtn.classList.add('playing');
 
@@ -760,6 +769,9 @@ export class WaveformPlayer {
      * @private
      */
     onPause() {
+        // Ignore during destruction
+        if (this.isDestroying) return;
+
         this.isPlaying = false;
         this.playBtn.classList.remove('playing');
 
@@ -785,6 +797,9 @@ export class WaveformPlayer {
      * @private
      */
     onEnded() {
+        // Ignore during destruction
+        if (this.isDestroying) return;
+
         this.progress = 0;
         this.audio.currentTime = 0;
         this.drawWaveform();
