@@ -93,6 +93,7 @@ export class WaveformPlayer {
         // Dispatch ready event after initialization
         setTimeout(() => {
             this.container.dispatchEvent(new CustomEvent('waveformplayer:ready', {
+                bubbles: true,
                 detail: {player: this, url: this.options.url}
             }));
         }, 100);
@@ -756,6 +757,7 @@ export class WaveformPlayer {
 
         // Dispatch play event
         this.container.dispatchEvent(new CustomEvent('waveformplayer:play', {
+            bubbles: true,
             detail: {player: this, url: this.options.url}
         }));
 
@@ -784,6 +786,7 @@ export class WaveformPlayer {
 
         // Dispatch pause event
         this.container.dispatchEvent(new CustomEvent('waveformplayer:pause', {
+            bubbles: true,
             detail: {player: this, url: this.options.url}
         }));
 
@@ -811,6 +814,7 @@ export class WaveformPlayer {
 
         // Dispatch ended event
         this.container.dispatchEvent(new CustomEvent('waveformplayer:ended', {
+            bubbles: true,
             detail: {player: this, url: this.options.url}
         }));
 
@@ -902,6 +906,7 @@ export class WaveformPlayer {
 
         // Dispatch timeupdate event
         this.container.dispatchEvent(new CustomEvent('waveformplayer:timeupdate', {
+            bubbles: true,
             detail: {
                 player: this,
                 currentTime: this.audio.currentTime,
