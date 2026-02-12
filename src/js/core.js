@@ -93,6 +93,7 @@ export class WaveformPlayer {
         // Dispatch ready event after initialization
         setTimeout(() => {
             this.container.dispatchEvent(new CustomEvent('waveformplayer:ready', {
+                bubbles: true,
                 detail: {player: this, url: this.options.url}
             }));
         }, 100);
@@ -729,6 +730,9 @@ export class WaveformPlayer {
      * @private
      */
     onMetadataLoaded() {
+        // Ignore during destruction
+        if (this.isDestroying) return;
+
         if (this.totalTimeEl) {
             this.totalTimeEl.textContent = formatTime(this.audio.duration);
         }
@@ -741,6 +745,9 @@ export class WaveformPlayer {
      * @private
      */
     onPlay() {
+        // Ignore during destruction
+        if (this.isDestroying) return;
+
         this.isPlaying = true;
         this.playBtn.classList.add('playing');
 
@@ -753,6 +760,7 @@ export class WaveformPlayer {
 
         // Dispatch play event
         this.container.dispatchEvent(new CustomEvent('waveformplayer:play', {
+            bubbles: true,
             detail: {player: this, url: this.options.url}
         }));
 
@@ -766,6 +774,9 @@ export class WaveformPlayer {
      * @private
      */
     onPause() {
+        // Ignore during destruction
+        if (this.isDestroying) return;
+
         this.isPlaying = false;
         this.playBtn.classList.remove('playing');
 
@@ -778,6 +789,7 @@ export class WaveformPlayer {
 
         // Dispatch pause event
         this.container.dispatchEvent(new CustomEvent('waveformplayer:pause', {
+            bubbles: true,
             detail: {player: this, url: this.options.url}
         }));
 
@@ -791,6 +803,9 @@ export class WaveformPlayer {
      * @private
      */
     onEnded() {
+        // Ignore during destruction
+        if (this.isDestroying) return;
+
         this.progress = 0;
         this.audio.currentTime = 0;
         this.drawWaveform();
@@ -802,6 +817,7 @@ export class WaveformPlayer {
 
         // Dispatch ended event
         this.container.dispatchEvent(new CustomEvent('waveformplayer:ended', {
+            bubbles: true,
             detail: {player: this, url: this.options.url}
         }));
 
@@ -893,6 +909,7 @@ export class WaveformPlayer {
 
         // Dispatch timeupdate event
         this.container.dispatchEvent(new CustomEvent('waveformplayer:timeupdate', {
+            bubbles: true,
             detail: {
                 player: this,
                 currentTime: this.audio.currentTime,
