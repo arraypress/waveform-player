@@ -677,6 +677,7 @@
       this.init();
       setTimeout(() => {
         this.container.dispatchEvent(new CustomEvent("waveformplayer:ready", {
+          bubbles: true,
           detail: { player: this, url: this.options.url }
         }));
       }, 100);
@@ -938,7 +939,8 @@
       this.audio.addEventListener("ended", () => this.onEnded());
       this.audio.addEventListener("error", (e) => this.onError(e));
       this.canvas.addEventListener("click", (e) => this.handleCanvasClick(e));
-      window.addEventListener("resize", debounce(() => this.resizeCanvas(), 100));
+      this.resizeHandler = debounce(() => this.resizeCanvas(), 100);
+      window.addEventListener("resize", this.resizeHandler);
     }
     /**
      * Setup resize observer
@@ -1104,6 +1106,9 @@
      * @private
      */
     resizeCanvas() {
+      if (!this.canvas || this.isDestroying) {
+        return;
+      }
       const dpr = window.devicePixelRatio || 1;
       const rect = this.canvas.getBoundingClientRect();
       this.canvas.width = rect.width * dpr;
@@ -1177,6 +1182,7 @@
      * @private
      */
     onMetadataLoaded() {
+      if (this.isDestroying) return;
       if (this.totalTimeEl) {
         this.totalTimeEl.textContent = formatTime(this.audio.duration);
       }
@@ -1187,6 +1193,7 @@
      * @private
      */
     onPlay() {
+      if (this.isDestroying) return;
       this.isPlaying = true;
       this.playBtn.classList.add("playing");
       const playIcon = this.playBtn.querySelector(".waveform-icon-play");
@@ -1195,6 +1202,7 @@
       if (pauseIcon) pauseIcon.style.display = "flex";
       this.startSmoothUpdate();
       this.container.dispatchEvent(new CustomEvent("waveformplayer:play", {
+        bubbles: true,
         detail: { player: this, url: this.options.url }
       }));
       if (this.options.onPlay) {
@@ -1206,6 +1214,7 @@
      * @private
      */
     onPause() {
+      if (this.isDestroying) return;
       this.isPlaying = false;
       this.playBtn.classList.remove("playing");
       const playIcon = this.playBtn.querySelector(".waveform-icon-play");
@@ -1214,6 +1223,7 @@
       if (pauseIcon) pauseIcon.style.display = "none";
       this.stopSmoothUpdate();
       this.container.dispatchEvent(new CustomEvent("waveformplayer:pause", {
+        bubbles: true,
         detail: { player: this, url: this.options.url }
       }));
       if (this.options.onPause) {
@@ -1225,6 +1235,7 @@
      * @private
      */
     onEnded() {
+      if (this.isDestroying) return;
       this.progress = 0;
       this.audio.currentTime = 0;
       this.drawWaveform();
@@ -1232,6 +1243,7 @@
         this.currentTimeEl.textContent = "0:00";
       }
       this.container.dispatchEvent(new CustomEvent("waveformplayer:ended", {
+        bubbles: true,
         detail: { player: this, url: this.options.url }
       }));
       this.onPause();
@@ -1303,6 +1315,7 @@
         this.currentTimeEl.textContent = formatTime(this.audio.currentTime);
       }
       this.container.dispatchEvent(new CustomEvent("waveformplayer:timeupdate", {
+        bubbles: true,
         detail: {
           player: this,
           currentTime: this.audio.currentTime,
@@ -1423,6 +1436,10 @@
       if (this.resizeObserver) {
         this.resizeObserver.disconnect();
         this.resizeObserver = null;
+      }
+      if (this.resizeHandler) {
+        window.removeEventListener("resize", this.resizeHandler);
+        this.resizeHandler = null;
       }
       _WaveformPlayer.instances.delete(this.id);
       if (_WaveformPlayer.currentlyPlaying === this) {
