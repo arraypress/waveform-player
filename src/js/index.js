@@ -2,8 +2,6 @@
  * WaveformPlayer
  *
  * Modern audio player with waveform visualization
- *
- * @version 1.0.0
  */
 
 // Import the main class
