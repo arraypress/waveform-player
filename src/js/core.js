@@ -961,6 +961,7 @@ export class WaveformPlayer {
 
     /**
      * Play audio
+     * @return {Promise} The promise returned by HTMLMediaElement.play()
      */
     play() {
         if (this.options.singlePlay && WaveformPlayer.currentlyPlaying &&
@@ -969,7 +970,7 @@ export class WaveformPlayer {
         }
 
         WaveformPlayer.currentlyPlaying = this;
-        this.audio.play();
+        return this.audio.play();
     }
 
     /**
