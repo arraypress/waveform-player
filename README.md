@@ -2,8 +2,7 @@
 
 A lightweight, customizable audio player with waveform visualization. Under 8KB gzipped.
 
-**[Live Demo](https://waveformplayer.com)** | **[Documentation](https://waveformplayer.com/#docs)** | *
-*[NPM Package](https://www.npmjs.com/package/@arraypress/waveform-player)**
+**[Live Demo](https://waveformplayer.com)** | **[Documentation](https://waveformplayer.com/#docs)** | **[NPM Package](https://www.npmjs.com/package/@arraypress/waveform-player)**
 
 ![Version](https://img.shields.io/npm/v/@arraypress/waveform-player)
 ![Size](https://img.shields.io/bundlephobia/minzip/@arraypress/waveform-player)
@@ -20,6 +19,14 @@ A lightweight, customizable audio player with waveform visualization. Under 8KB 
 - **No Dependencies** - No jQuery, no bloat, pure vanilla JS
 - **Works Everywhere** - WordPress, Shopify, React, Vue, or plain HTML
 - **Ecosystem** - Optional playlist and analytics addons available
+
+## What's New in 1.2.2
+
+### 🐛 Bug Fix
+
+- `play()` now returns the Promise from `HTMLMediaElement.play()`, allowing callers to handle errors like `AbortError`
+
+Thanks to [@scruffian](https://github.com/scruffian) for the contribution.
 
 ## What's New in 1.2.1
 

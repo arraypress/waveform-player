@@ -1359,13 +1359,14 @@
     // ============================================
     /**
      * Play audio
+     * @return {Promise} The promise returned by HTMLMediaElement.play()
      */
     play() {
       if (this.options.singlePlay && _WaveformPlayer.currentlyPlaying && _WaveformPlayer.currentlyPlaying !== this) {
         _WaveformPlayer.currentlyPlaying.pause();
       }
       _WaveformPlayer.currentlyPlaying = this;
-      this.audio.play();
+      return this.audio.play();
     }
     /**
      * Pause audio

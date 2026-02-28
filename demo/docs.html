@@ -15,7 +15,7 @@
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
 
     <!-- WaveformPlayer -->
-    <link rel="stylesheet" href="dist/waveform-player.css">
+    <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.css">
     <link rel="stylesheet" href="assets/css/base.css">
     <link rel="stylesheet" href="assets/css/docs.css">
 </head>
@@ -109,8 +109,8 @@
             <pre class="code-block"><code>yarn add @arraypress/waveform-player</code></pre>
 
             <h3>CDN</h3>
-            <pre class="code-block"><code>&lt;link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css"&gt;
-&lt;script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js"&gt;&lt;/script&gt;</code></pre>
+            <pre class="code-block"><code>&lt;link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.css"&gt;
+&lt;script src="https://unpkg.com/@arraypress/waveform-player@latest/https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.js"&gt;&lt;/script&gt;</code></pre>
 
             <h3>Download</h3>
             <p>Download the latest release from <a href="https://github.com/arraypress/waveform-player/releases">GitHub
@@ -677,7 +677,7 @@ container.addEventListener('waveformplayer:timeupdate', (e) => {
             <h3>Function Component with Hooks</h3>
             <pre class="code-block"><code>import { useEffect, useRef } from 'react';
 import WaveformPlayer from '@arraypress/waveform-player';
-import '@arraypress/waveform-player/dist/waveform-player.css';
+import '@arraypress/waveform-player/https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.css';
 
 function AudioPlayer({ url, title }) {
     const playerRef = useRef();
@@ -752,7 +752,7 @@ export function useWaveformPlayer(options) {
 &lt;script setup&gt;
 import { ref, onMounted, onUnmounted } from 'vue';
 import WaveformPlayer from '@arraypress/waveform-player';
-import '@arraypress/waveform-player/dist/waveform-player.css';
+import '@arraypress/waveform-player/https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.css';
 
 const props = defineProps({
   url: String,
@@ -793,7 +793,7 @@ import WaveformPlayer from '@arraypress/waveform-player';
     &lt;button (click)="pause()"&gt;Pause&lt;/button&gt;
   `,
   styleUrls: [
-    'node_modules/@arraypress/waveform-player/dist/waveform-player.css'
+    'node_modules/@arraypress/waveform-player/https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.css'
   ]
 })
 export class AudioPlayerComponent implements OnInit, OnDestroy {
@@ -835,12 +835,12 @@ export class AudioPlayerComponent implements OnInit, OnDestroy {
 function enqueue_waveform_player() {
     wp_enqueue_style(
         'waveform-player',
-        'https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css'
+        'https://unpkg.com/@arraypress/waveform-player@latest/https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.css'
     );
 
     wp_enqueue_script(
         'waveform-player',
-        'https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js',
+        'https://unpkg.com/@arraypress/waveform-player@latest/https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.js',
         array(),
         null,
         true
@@ -1048,7 +1048,7 @@ document.querySelectorAll('[data-waveform-player]').forEach(el => {
 </footer>
 
 <!-- Scripts -->
-<script src="dist/waveform-player.js"></script>
+<script src="https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.js"></script>
 <script src="assets/js/common.js"></script>
 <script src="assets/js/docs.js"></script>
 
