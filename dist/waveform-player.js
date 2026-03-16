@@ -1126,7 +1126,6 @@
       const rect = this.canvas.parentElement.getBoundingClientRect();
       this.canvas.width = rect.width * dpr;
       this.canvas.height = this.options.height * dpr;
-      this.canvas.style.height = this.options.height + "px";
       this.canvas.parentElement.style.height = this.options.height + "px";
       this.drawWaveform();
     }

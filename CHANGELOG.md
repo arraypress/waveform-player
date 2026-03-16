@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.3] - 2026-03-17
+
+### Bug Fixes
+
+- Removed inline `style.height` on canvas element that prevented it from filling available width in flex containers. Container div still controls height.
+
 ## [1.3.2] - 2026-03-17
 
 ### Bug Fixes
