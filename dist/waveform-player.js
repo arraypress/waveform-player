@@ -1078,7 +1078,8 @@
         this.options.markers = options.markers;
       }
       await this.load(url);
-      this.play();
+      this.play().catch(() => {
+      });
     }
     // ============================================
     // Visualization

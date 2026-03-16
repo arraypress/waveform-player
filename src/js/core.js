@@ -595,7 +595,7 @@ export class WaveformPlayer {
         await this.load(url);
 
         // Auto-play the new track
-        this.play();
+        this.play().catch(() => {});
     }
 
     // ============================================
