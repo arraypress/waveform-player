@@ -1123,7 +1123,7 @@
         return;
       }
       const dpr = window.devicePixelRatio || 1;
-      const rect = this.canvas.getBoundingClientRect();
+      const rect = this.canvas.parentElement.getBoundingClientRect();
       this.canvas.width = rect.width * dpr;
       this.canvas.height = this.options.height * dpr;
       this.canvas.style.height = this.options.height + "px";
