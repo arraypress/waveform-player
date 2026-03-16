@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-03-16
+
+### Features
+
+- **`showControls` option** - Hide the play/pause button for custom UI implementations (`data-show-controls="false"`)
+- **`showInfo` option** - Hide the title, subtitle, time, and metadata bar (`data-show-info="false"`)
+- Both options work via HTML data attributes or JavaScript API
+- Waveform automatically fills the full width when controls are hidden
+
+### Usage
+```html
+<!-- Waveform only, no button or info -->
+<div data-waveform-player
+     data-url="song.mp3"
+     data-show-controls="false"
+     data-show-info="false">
+</div>
+```
+
 ## [1.2.2] - 2026-02-28
 
 ### Bug Fixes
@@ -26,10 +45,10 @@ Thanks to [@scruffian](https://github.com/scruffian) for contributing these fixe
 ### Features
 
 - **Automatic Theme Detection** - Player now automatically adapts to your website's color scheme
-    - Detects light/dark themes automatically
-    - Checks background brightness, theme classes, and system preferences
-    - Works seamlessly on WordPress, Shopify, and all platforms
-    - Override with explicit `data-color-preset="light"` or `"dark"` if needed
+  - Detects light/dark themes automatically
+  - Checks background brightness, theme classes, and system preferences
+  - Works seamlessly on WordPress, Shopify, and all platforms
+  - Override with explicit `data-color-preset="light"` or `"dark"` if needed
 
 ## [1.1.0] - 2025-09-15
 

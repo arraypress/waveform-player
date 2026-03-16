@@ -15,7 +15,7 @@
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
 
     <!-- WaveformPlayer -->
-    <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.css">
+    <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css">
     <link rel="stylesheet" href="assets/css/base.css">
     <link rel="stylesheet" href="assets/css/docs.css">
 </head>
@@ -109,8 +109,8 @@
             <pre class="code-block"><code>yarn add @arraypress/waveform-player</code></pre>
 
             <h3>CDN</h3>
-            <pre class="code-block"><code>&lt;link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.css"&gt;
-&lt;script src="https://unpkg.com/@arraypress/waveform-player@latest/https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.js"&gt;&lt;/script&gt;</code></pre>
+            <pre class="code-block"><code>&lt;link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css"&gt;
+&lt;script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js"&gt;&lt;/script&gt;</code></pre>
 
             <h3>Download</h3>
             <p>Download the latest release from <a href="https://github.com/arraypress/waveform-player/releases">GitHub
@@ -169,6 +169,20 @@ const player = new WaveformPlayer('#player', {
     onPause: () => console.log('Paused'),
     onEnd: () => console.log('Ended')
 });</code></pre>
+
+            <h3>Waveform Only (Custom UI)</h3>
+            <p>Hide the built-in controls and info bar to use just the waveform with your own custom UI:</p>
+            <pre class="code-block"><code>&lt;!-- Waveform only - no play button, no info bar --&gt;
+&lt;div data-waveform-player
+     data-url="audio.mp3"
+     data-show-controls="false"
+     data-show-info="false"&gt;
+&lt;/div&gt;
+
+&lt;!-- Your own custom controls --&gt;
+&lt;button onclick="WaveformPlayer.getInstance('my-player').togglePlay()"&gt;
+    Play / Pause
+&lt;/button&gt;</code></pre>
         </section>
 
         <!-- Configuration -->
@@ -265,6 +279,22 @@ const player = new WaveformPlayer('#player', {
                         <td>Secondary text color (overrides preset)</td>
                     </tr>
                     <tr>
+                        <td><code>showControls</code></td>
+                        <td>boolean</td>
+                        <td>true</td>
+                        <td>Show the play/pause button. Set to <code>false</code> for waveform-only display with custom
+                            UI.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code>showInfo</code></td>
+                        <td>boolean</td>
+                        <td>true</td>
+                        <td>Show the info bar (title, subtitle, time, BPM, speed controls). Set to <code>false</code> to
+                            hide.
+                        </td>
+                    </tr>
+                    <tr>
                         <td><code>showTime</code></td>
                         <td>boolean</td>
                         <td>true</td>
@@ -353,6 +383,8 @@ const player = new WaveformPlayer('#player', {
      data-bar-width="2"
      data-bar-spacing="1"
      data-color-preset="light"
+     data-show-controls="true"
+     data-show-info="true"
      data-show-bpm="true"
      data-show-playback-speed="true"
      data-enable-media-session="true"&gt;
@@ -677,7 +709,7 @@ container.addEventListener('waveformplayer:timeupdate', (e) => {
             <h3>Function Component with Hooks</h3>
             <pre class="code-block"><code>import { useEffect, useRef } from 'react';
 import WaveformPlayer from '@arraypress/waveform-player';
-import '@arraypress/waveform-player/https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.css';
+import '@arraypress/waveform-player/dist/waveform-player.css';
 
 function AudioPlayer({ url, title }) {
     const playerRef = useRef();
@@ -752,7 +784,7 @@ export function useWaveformPlayer(options) {
 &lt;script setup&gt;
 import { ref, onMounted, onUnmounted } from 'vue';
 import WaveformPlayer from '@arraypress/waveform-player';
-import '@arraypress/waveform-player/https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.css';
+import '@arraypress/waveform-player/dist/waveform-player.css';
 
 const props = defineProps({
   url: String,
@@ -793,7 +825,7 @@ import WaveformPlayer from '@arraypress/waveform-player';
     &lt;button (click)="pause()"&gt;Pause&lt;/button&gt;
   `,
   styleUrls: [
-    'node_modules/@arraypress/waveform-player/https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.css'
+    'node_modules/@arraypress/waveform-player/dist/waveform-player.css'
   ]
 })
 export class AudioPlayerComponent implements OnInit, OnDestroy {
@@ -835,12 +867,12 @@ export class AudioPlayerComponent implements OnInit, OnDestroy {
 function enqueue_waveform_player() {
     wp_enqueue_style(
         'waveform-player',
-        'https://unpkg.com/@arraypress/waveform-player@latest/https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.css'
+        'https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css'
     );
 
     wp_enqueue_script(
         'waveform-player',
-        'https://unpkg.com/@arraypress/waveform-player@latest/https://unpkg.com/@arraypress/waveform-player@1.2.2/dist/waveform-player.js',
+        'https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js',
         array(),
         null,
         true
@@ -1042,7 +1074,7 @@ document.querySelectorAll('[data-waveform-player]').forEach(el => {
             </div>
         </div>
         <div class="footer-bottom">
-            <p>Made with ♥ by <a href="https://github.com/arraypress">ArrayPress</a> · Version 1.2.1</p>
+            <p>Made with ♥ by <a href="https://github.com/arraypress">ArrayPress</a> · Version 1.3.0</p>
         </div>
     </div>
 </footer>

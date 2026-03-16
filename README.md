@@ -20,6 +20,26 @@ A lightweight, customizable audio player with waveform visualization. Under 8KB 
 - **Works Everywhere** - WordPress, Shopify, React, Vue, or plain HTML
 - **Ecosystem** - Optional playlist and analytics addons available
 
+## What's New in 1.3.0
+
+### 🎛️ Show/Hide Controls & Info
+
+You can now hide the play/pause button and info bar independently, making it easy to build custom UIs around the waveform.
+```html
+<!-- Waveform only — no button, no info -->
+<div data-waveform-player
+     data-url="song.mp3"
+     data-show-controls="false"
+     data-show-info="false">
+</div>
+```
+
+- `showControls` — toggle the play/pause button (default: `true`)
+- `showInfo` — toggle the title, subtitle, time, BPM, and speed controls (default: `true`)
+- Waveform automatically fills the full width when controls are hidden
+
+Thanks to [@mulhoon](https://github.com/mulhoon) for suggesting this feature.
+
 ## What's New in 1.2.2
 
 ### 🐛 Bug Fix
@@ -64,7 +84,6 @@ WaveformPlayer now automatically adapts to your website's color scheme - no conf
 ## Quick Start
 
 Simplest possible usage:
-
 ```html
 <!-- Just this. That's it. -->
 <div data-waveform-player data-url="song.mp3"></div>
@@ -73,13 +92,11 @@ Simplest possible usage:
 ## Installation
 
 ### NPM
-
 ```bash
 npm install @arraypress/waveform-player
 ```
 
 ### CDN
-
 ```html
 
 <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css">
@@ -87,7 +104,6 @@ npm install @arraypress/waveform-player
 ```
 
 ### Download
-
 ```html
 
 <link rel="stylesheet" href="waveform-player.css">
@@ -100,6 +116,7 @@ npm install @arraypress/waveform-player
 - 🎯 **Tiny Footprint** - Under 8KB gzipped
 - ⚡ **Zero Dependencies** - Pure JavaScript
 - 🎭 **Fully Customizable** - Colors, sizes, styles
+- 🎛️ **Show/Hide Controls** - Hide button and info bar for custom UIs
 - 📱 **Responsive** - Works on all devices
 - 🎵 **BPM Detection** - Automatic tempo detection (optional)
 - 💾 **Waveform Caching** - Pre-generate waveforms for performance
@@ -115,7 +132,6 @@ npm install @arraypress/waveform-player
 ### WaveformPlaylist (Optional Addon)
 
 Add playlist and chapter support with zero JavaScript:
-
 ```html
 
 <div data-waveform-playlist data-continuous="true">
@@ -132,7 +148,6 @@ Add playlist and chapter support with zero JavaScript:
 ### WaveformTracker (Optional Addon)
 
 Track meaningful audio engagement:
-
 ```javascript
 WaveformTracker.init({
     endpoint: '/api/analytics',
@@ -161,7 +176,6 @@ WaveformTracker.init({
 ## Usage
 
 ### HTML (Zero JavaScript)
-
 ```html
 
 <div data-waveform-player
@@ -175,7 +189,6 @@ WaveformTracker.init({
 ```
 
 ### JavaScript API
-
 ```javascript
 import WaveformPlayer from '@arraypress/waveform-player';
 
@@ -216,6 +229,8 @@ Choose from 6 built-in styles:
 | `waveformColor`      | string  | `'rgba(255,255,255,0.3)'` | Waveform color                                          |
 | `progressColor`      | string  | `'rgba(255,255,255,0.9)'` | Progress color                                          |
 | `buttonColor`        | string  | `'rgba(255,255,255,0.9)'` | Play button color                                       |
+| `showControls`       | boolean | `true`                    | Show play/pause button                                  |
+| `showInfo`           | boolean | `true`                    | Show title, subtitle, time, and metadata                |
 | `showTime`           | boolean | `true`                    | Show time display                                       |
 | `showBPM`            | boolean | `false`                   | Enable BPM detection                                    |
 | `showPlaybackSpeed`  | boolean | `false`                   | Show speed control menu                                 |
@@ -228,7 +243,6 @@ Choose from 6 built-in styles:
 | `enableMediaSession` | boolean | `true`                    | Enable system media controls                            |
 
 ## API Methods
-
 ```javascript
 // Control playback
 player.play();
@@ -253,7 +267,6 @@ player.destroy();
 ```
 
 ## Events
-
 ```javascript
 new WaveformPlayer('#player', {
     url: 'audio.mp3',
@@ -282,7 +295,6 @@ When a player is focused (click on it):
 ### Pre-generated Waveforms
 
 For better performance, generate waveform data server-side:
-
 ```javascript
 // Generate waveform data once
 const waveformData = await WaveformPlayer.generateWaveformData('audio.mp3');
@@ -295,7 +307,6 @@ new WaveformPlayer('#player', {
 ```
 
 ### Multiple Players
-
 ```javascript
 // Get all instances
 const players = WaveformPlayer.getAllInstances();
@@ -308,7 +319,6 @@ WaveformPlayer.destroyAll();
 ```
 
 ### Custom Styling
-
 ```css
 .waveform-player {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -323,7 +333,6 @@ WaveformPlayer.destroyAll();
 ## Framework Integration
 
 ### React
-
 ```jsx
 import {useEffect, useRef} from 'react';
 import WaveformPlayer from '@arraypress/waveform-player';
@@ -341,7 +350,6 @@ function AudioPlayer({url}) {
 ```
 
 ### Vue
-
 ```vue
 
 <template>
@@ -388,7 +396,6 @@ See the [live demo](https://waveformplayer.com) for:
 - Analytics tracking
 
 ## Development
-
 ```bash
 # Install dependencies
 npm install
