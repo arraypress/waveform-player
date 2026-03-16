@@ -20,6 +20,12 @@ A lightweight, customizable audio player with waveform visualization. Under 8KB 
 - **Works Everywhere** - WordPress, Shopify, React, Vue, or plain HTML
 - **Ecosystem** - Optional playlist and analytics addons available
 
+## What's New in 1.3.1
+
+### 🐛 Bug Fix
+
+- Fixed uncaught `NotAllowedError` when `loadTrack()` triggers autoplay before user interaction (e.g. on session restore)
+
 ## What's New in 1.3.0
 
 ### 🎛️ Show/Hide Controls & Info

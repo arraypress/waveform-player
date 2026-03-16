@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.1] - 2026-03-17
+
+### Bug Fixes
+
+- Fixed uncaught `NotAllowedError` when `loadTrack()` triggers autoplay before user interaction (e.g. on session restore). The `play()` promise returned since v1.2.2 was not being caught internally.
+
 ## [1.3.0] - 2026-03-16
 
 ### Features
