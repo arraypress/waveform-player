@@ -24,6 +24,8 @@
     if (element.dataset.color) options.waveformColor = element.dataset.color;
     if (element.dataset.theme) options.colorPreset = element.dataset.theme;
     if (element.dataset.autoplay) options.autoplay = element.dataset.autoplay === "true";
+    if (element.dataset.showControls !== void 0) options.showControls = element.dataset.showControls === "true";
+    if (element.dataset.showInfo !== void 0) options.showInfo = element.dataset.showInfo === "true";
     if (element.dataset.showTime) options.showTime = element.dataset.showTime === "true";
     if (element.dataset.showHoverTime) options.showHoverTime = element.dataset.showHoverTime === "true";
     if (element.dataset.showBpm) options.showBPM = element.dataset.showBpm === "true";
@@ -595,6 +597,8 @@
     borderColor: null,
     // Features
     autoplay: false,
+    showControls: true,
+    showInfo: true,
     showTime: true,
     showHoverTime: false,
     showBPM: false,
@@ -725,10 +729,7 @@
           buttonAlign = "center";
         }
       }
-      this.container.innerHTML = `
-  <div class="waveform-player-inner">
-    <div class="waveform-body">
-      <div class="waveform-track waveform-align-${buttonAlign}">
+      const buttonHTML = this.options.showControls ? `
         <button class="waveform-btn" aria-label="Play/Pause" style="
             border-color: ${this.options.buttonColor};
             color: ${this.options.buttonColor};
@@ -736,17 +737,8 @@
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
         </button>
-        
-        <div class="waveform-container">
-          <canvas></canvas>
-          <div class="waveform-markers"></div>
-          <div class="waveform-loading" style="display:none;"></div>
-          <div class="waveform-error" style="display:none;">
-            <span class="waveform-error-text">Unable to load audio</span>
-          </div>
-        </div>
-      </div>
-      
+        ` : "";
+      const infoHTML = this.options.showInfo ? `
       <div class="waveform-info">
         ${this.options.artwork ? `
           <img class="waveform-artwork" src="${this.options.artwork}" alt="Album artwork" style="
@@ -786,6 +778,24 @@
           ` : ""}
         </div>
       </div>
+        ` : "";
+      this.container.innerHTML = `
+  <div class="waveform-player-inner">
+    <div class="waveform-body">
+      <div class="waveform-track waveform-align-${buttonAlign}">
+        ${buttonHTML}
+        
+        <div class="waveform-container">
+          <canvas></canvas>
+          <div class="waveform-markers"></div>
+          <div class="waveform-loading" style="display:none;"></div>
+          <div class="waveform-error" style="display:none;">
+            <span class="waveform-error-text">Unable to load audio</span>
+          </div>
+        </div>
+      </div>
+      
+      ${infoHTML}
     </div>
   </div>
 `;
@@ -930,7 +940,9 @@
      * @private
      */
     bindEvents() {
-      this.playBtn.addEventListener("click", () => this.togglePlay());
+      if (this.playBtn) {
+        this.playBtn.addEventListener("click", () => this.togglePlay());
+      }
       this.audio.addEventListener("loadstart", () => this.setLoading(true));
       this.audio.addEventListener("loadedmetadata", () => this.onMetadataLoaded());
       this.audio.addEventListener("canplay", () => this.setLoading(false));
@@ -1195,11 +1207,13 @@
     onPlay() {
       if (this.isDestroying) return;
       this.isPlaying = true;
-      this.playBtn.classList.add("playing");
-      const playIcon = this.playBtn.querySelector(".waveform-icon-play");
-      const pauseIcon = this.playBtn.querySelector(".waveform-icon-pause");
-      if (playIcon) playIcon.style.display = "none";
-      if (pauseIcon) pauseIcon.style.display = "flex";
+      if (this.playBtn) {
+        this.playBtn.classList.add("playing");
+        const playIcon = this.playBtn.querySelector(".waveform-icon-play");
+        const pauseIcon = this.playBtn.querySelector(".waveform-icon-pause");
+        if (playIcon) playIcon.style.display = "none";
+        if (pauseIcon) pauseIcon.style.display = "flex";
+      }
       this.startSmoothUpdate();
       this.container.dispatchEvent(new CustomEvent("waveformplayer:play", {
         bubbles: true,
@@ -1216,11 +1230,13 @@
     onPause() {
       if (this.isDestroying) return;
       this.isPlaying = false;
-      this.playBtn.classList.remove("playing");
-      const playIcon = this.playBtn.querySelector(".waveform-icon-play");
-      const pauseIcon = this.playBtn.querySelector(".waveform-icon-pause");
-      if (playIcon) playIcon.style.display = "flex";
-      if (pauseIcon) pauseIcon.style.display = "none";
+      if (this.playBtn) {
+        this.playBtn.classList.remove("playing");
+        const playIcon = this.playBtn.querySelector(".waveform-icon-play");
+        const pauseIcon = this.playBtn.querySelector(".waveform-icon-pause");
+        if (playIcon) playIcon.style.display = "flex";
+        if (pauseIcon) pauseIcon.style.display = "none";
+      }
       this.stopSmoothUpdate();
       this.container.dispatchEvent(new CustomEvent("waveformplayer:pause", {
         bubbles: true,

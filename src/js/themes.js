@@ -153,6 +153,8 @@ export const DEFAULT_OPTIONS = {
 
     // Features
     autoplay: false,
+    showControls: true,
+    showInfo: true,
     showTime: true,
     showHoverTime: false,
     showBPM: false,

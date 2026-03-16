@@ -44,6 +44,8 @@ export function parseDataAttributes(element) {
 
     // Feature flags
     if (element.dataset.autoplay) options.autoplay = element.dataset.autoplay === 'true';
+    if (element.dataset.showControls !== undefined) options.showControls = element.dataset.showControls === 'true';
+    if (element.dataset.showInfo !== undefined) options.showInfo = element.dataset.showInfo === 'true';
     if (element.dataset.showTime) options.showTime = element.dataset.showTime === 'true';
     if (element.dataset.showHoverTime) options.showHoverTime = element.dataset.showHoverTime === 'true';
     if (element.dataset.showBpm) options.showBPM = element.dataset.showBpm === 'true';
