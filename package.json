@@ -1,6 +1,6 @@
 {
   "name": "@arraypress/waveform-player",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Lightweight, customizable audio player with waveform visualization",
   "main": "dist/waveform-player.js",
   "module": "dist/waveform-player.esm.js",
