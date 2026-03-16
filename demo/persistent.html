@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persistent Player - WaveformPlayer</title>
+
+    <meta name="description" content="Seamless audio playback with a fixed bottom player and queue management">
+
+    <!-- External Dependencies -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+
+    <!-- Favorite Icon -->
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+
+    <!-- WaveformPlayer -->
+    <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css">
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/persistent.css">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+    <div class="nav-container">
+        <a href="index.html" class="nav-logo">
+            <img src="assets/img/logo.svg" alt="WaveformPlayer Logo" class="logo-icon" width="36" height="36">
+            <span>WaveformPlayer</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="examples.html">Examples</a>
+            <a href="builder.html">Builder</a>
+            <a href="docs.html">Docs</a>
+            <a href="addons.html">Add-ons</a>
+            <a href="https://github.com/arraypress/waveform-player" class="nav-cta">
+                <i class="ti ti-brand-github"></i> GitHub
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1>Persistent Player</h1>
+        <p>Seamless playback with a fixed bottom player and queue</p>
+    </div>
+</section>
+
+<!-- Intro -->
+<section class="persistent-hero">
+    <div class="container">
+        <p>Click any track to start playing. The bottom player stays fixed while you browse. Tracks are added to a queue automatically — open it to manage what plays next, replay tracks, or clear the list.</p>
+    </div>
+</section>
+
+<!-- Browse Section -->
+<section class="browse-layout">
+    <div class="container">
+
+        <!-- Featured Track -->
+        <div class="featured-track" data-track="wings">
+            <div class="featured-art">
+                <i class="ti ti-headphones"></i>
+            </div>
+            <div class="featured-info">
+                <span class="label">Featured</span>
+                <h3>Midnight Wings</h3>
+                <p>Ambient Dreams · A dreamy ambient piece with lush textures</p>
+            </div>
+        </div>
+
+        <!-- Recently Played -->
+        <div class="browse-section">
+            <div class="browse-section-header">
+                <h2>Recently Played</h2>
+                <span>6 tracks</span>
+            </div>
+            <div class="track-grid">
+                <div class="track-card" data-track="desire">
+                    <div class="track-card-art">
+                        <i class="ti ti-music icon-default"></i>
+                        <i class="ti ti-player-play icon-play"></i>
+                        <i class="ti ti-player-pause icon-pause"></i>
+                    </div>
+                    <div class="track-card-info">
+                        <div class="track-card-title">Electric Desire</div>
+                        <div class="track-card-artist">Synthwave Nights</div>
+                    </div>
+                    <span class="track-card-duration">0:10</span>
+                    <div class="now-playing-bars">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                </div>
+
+                <div class="track-card" data-track="lovely">
+                    <div class="track-card-art">
+                        <i class="ti ti-music icon-default"></i>
+                        <i class="ti ti-player-play icon-play"></i>
+                        <i class="ti ti-player-pause icon-pause"></i>
+                    </div>
+                    <div class="track-card-info">
+                        <div class="track-card-title">Lovely Moments</div>
+                        <div class="track-card-artist">Chill Vibes</div>
+                    </div>
+                    <span class="track-card-duration">0:10</span>
+                    <div class="now-playing-bars">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                </div>
+
+                <div class="track-card" data-track="icarus">
+                    <div class="track-card-art">
+                        <i class="ti ti-music icon-default"></i>
+                        <i class="ti ti-player-play icon-play"></i>
+                        <i class="ti ti-player-pause icon-pause"></i>
+                    </div>
+                    <div class="track-card-info">
+                        <div class="track-card-title">Icarus Rising</div>
+                        <div class="track-card-artist">Epic Journey</div>
+                    </div>
+                    <span class="track-card-duration">0:10</span>
+                    <div class="now-playing-bars">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                </div>
+
+                <div class="track-card" data-track="pieces">
+                    <div class="track-card-art">
+                        <i class="ti ti-music icon-default"></i>
+                        <i class="ti ti-player-play icon-play"></i>
+                        <i class="ti ti-player-pause icon-pause"></i>
+                    </div>
+                    <div class="track-card-info">
+                        <div class="track-card-title">Pieces of You</div>
+                        <div class="track-card-artist">Late Night Sessions</div>
+                    </div>
+                    <span class="track-card-duration">0:10</span>
+                    <div class="now-playing-bars">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                </div>
+
+                <div class="track-card" data-track="small-moments">
+                    <div class="track-card-art">
+                        <i class="ti ti-music icon-default"></i>
+                        <i class="ti ti-player-play icon-play"></i>
+                        <i class="ti ti-player-pause icon-pause"></i>
+                    </div>
+                    <div class="track-card-info">
+                        <div class="track-card-title">Small Moments</div>
+                        <div class="track-card-artist">Acoustic Tales</div>
+                    </div>
+                    <span class="track-card-duration">0:10</span>
+                    <div class="now-playing-bars">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                </div>
+
+                <div class="track-card" data-track="luminous">
+                    <div class="track-card-art">
+                        <i class="ti ti-music icon-default"></i>
+                        <i class="ti ti-player-play icon-play"></i>
+                        <i class="ti ti-player-pause icon-pause"></i>
+                    </div>
+                    <div class="track-card-info">
+                        <div class="track-card-title">Luminous</div>
+                        <div class="track-card-artist">Deep Focus</div>
+                    </div>
+                    <span class="track-card-duration">0:10</span>
+                    <div class="now-playing-bars">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Discover -->
+        <div class="browse-section">
+            <div class="browse-section-header">
+                <h2>Discover</h2>
+                <span>4 tracks</span>
+            </div>
+            <div class="track-grid">
+                <div class="track-card" data-track="nocturne">
+                    <div class="track-card-art">
+                        <i class="ti ti-music icon-default"></i>
+                        <i class="ti ti-player-play icon-play"></i>
+                        <i class="ti ti-player-pause icon-pause"></i>
+                    </div>
+                    <div class="track-card-info">
+                        <div class="track-card-title">Nocturne</div>
+                        <div class="track-card-artist">Piano Moods</div>
+                    </div>
+                    <span class="track-card-duration">0:10</span>
+                    <div class="now-playing-bars">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                </div>
+
+                <div class="track-card" data-track="sine">
+                    <div class="track-card-art">
+                        <i class="ti ti-music icon-default"></i>
+                        <i class="ti ti-player-play icon-play"></i>
+                        <i class="ti ti-player-pause icon-pause"></i>
+                    </div>
+                    <div class="track-card-info">
+                        <div class="track-card-title">Sine Wave</div>
+                        <div class="track-card-artist">Electronic Lab</div>
+                    </div>
+                    <span class="track-card-duration">0:10</span>
+                    <div class="now-playing-bars">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                </div>
+
+                <div class="track-card" data-track="got-me-thinking">
+                    <div class="track-card-art">
+                        <i class="ti ti-music icon-default"></i>
+                        <i class="ti ti-player-play icon-play"></i>
+                        <i class="ti ti-player-pause icon-pause"></i>
+                    </div>
+                    <div class="track-card-info">
+                        <div class="track-card-title">Got Me Thinking</div>
+                        <div class="track-card-artist">Lo-Fi Beats</div>
+                    </div>
+                    <span class="track-card-duration">0:10</span>
+                    <div class="now-playing-bars">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                </div>
+
+                <div class="track-card" data-track="wings">
+                    <div class="track-card-art">
+                        <i class="ti ti-music icon-default"></i>
+                        <i class="ti ti-player-play icon-play"></i>
+                        <i class="ti ti-player-pause icon-pause"></i>
+                    </div>
+                    <div class="track-card-info">
+                        <div class="track-card-title">Midnight Wings</div>
+                        <div class="track-card-artist">Ambient Dreams</div>
+                    </div>
+                    <span class="track-card-duration">0:10</span>
+                    <div class="now-playing-bars">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="how-it-works">
+            <h3><i class="ti ti-code"></i> How It Works</h3>
+            <p>The bottom player uses a single <code>WaveformPlayer</code> instance with <code>showControls: false</code> and <code>showInfo: false</code> for a waveform-only display. When you click a track, it calls <code>loadTrack()</code> to seamlessly switch audio without destroying the player.</p>
+            <p>External controls (play/pause, prev/next) call the player's API methods like <code>togglePlay()</code>, while the waveform remains fully interactive for seeking. The queue is managed in plain JavaScript — tracks are added as you click them, and you can reorder your listening from the queue panel.</p>
+            <p>This pattern works great for music apps, podcast platforms, beat stores, or any site where you want uninterrupted playback while users browse content.</p>
+        </div>
+
+    </div>
+</section>
+
+<!-- Queue Panel -->
+<div id="queue-panel" class="queue-panel">
+    <div class="queue-header">
+        <h4>
+            <i class="ti ti-playlist"></i>
+            Queue
+            <span class="queue-count" id="queue-count">0</span>
+        </h4>
+        <div class="queue-header-actions">
+            <button class="queue-header-btn" onclick="clearHistory()">Clear History</button>
+            <button class="queue-header-btn" onclick="clearQueue()">Clear All</button>
+        </div>
+    </div>
+    <div class="queue-body" id="queue-body">
+        <div class="queue-empty">
+            <i class="ti ti-playlist"></i>
+            <p>Queue is empty<br>Click a track to start listening</p>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Persistent Player -->
+<div id="bottom-player" class="bottom-player">
+    <div class="bottom-player-inner">
+        <!-- Controls on LEFT -->
+        <div class="bottom-player-controls">
+            <button class="bp-btn" onclick="playPrevTrack()" title="Previous">
+                <i class="ti ti-player-skip-back"></i>
+            </button>
+            <button class="bp-btn bp-btn-play" id="bp-play-btn" onclick="toggleBottomPlay()" title="Play/Pause">
+                <i class="ti ti-player-play"></i>
+            </button>
+            <button class="bp-btn" onclick="playNextTrack()" title="Next">
+                <i class="ti ti-player-skip-forward"></i>
+            </button>
+        </div>
+
+        <!-- Track info -->
+        <div class="bottom-player-track">
+            <div class="bottom-player-art">
+                <i class="ti ti-music"></i>
+            </div>
+            <div class="bottom-player-text">
+                <div class="bottom-player-title" id="bp-title">No track selected</div>
+                <div class="bottom-player-artist" id="bp-artist">—</div>
+            </div>
+        </div>
+
+        <!-- Waveform -->
+        <div class="bottom-player-waveform">
+            <div id="bottom-waveform"></div>
+        </div>
+
+        <!-- Queue toggle on RIGHT -->
+        <div class="bottom-player-extra">
+            <button class="bp-btn bp-btn-queue" id="bp-queue-btn" onclick="toggleQueue()" title="Queue">
+                <i class="ti ti-playlist"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer" style="padding-bottom: 6rem;">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Product</h4>
+                <ul>
+                    <li><a href="examples.html">Examples</a></li>
+                    <li><a href="builder.html">Builder</a></li>
+                    <li><a href="docs.html">Documentation</a></li>
+                    <li><a href="addons.html">Add-ons</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="docs.html#api">API Reference</a></li>
+                    <li><a href="docs.html#config">Configuration</a></li>
+                    <li><a href="docs.html#frameworks">Framework Guides</a></li>
+                    <li><a href="https://github.com/arraypress/waveform-player/issues">Support</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Community</h4>
+                <ul>
+                    <li><a href="https://github.com/arraypress/waveform-player">GitHub</a></li>
+                    <li><a href="https://npmjs.com/package/@arraypress/waveform-player">NPM</a></li>
+                    <li><a href="https://twitter.com/arraypress">Twitter</a></li>
+                    <li><a href="https://github.com/arraypress/waveform-player/discussions">Discussions</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Made with ♥ by <a href="https://github.com/arraypress">ArrayPress</a> · Version 1.2.2</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js"></script>
+<script src="assets/js/common.js"></script>
+<script src="assets/js/persistent.js"></script>
+
+</body>
+</html>
