@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.2] - 2026-03-17
+
+### Bug Fixes
+
+- Fixed waveform canvas not filling available width when embedded in flex containers (e.g. persistent bottom bars). `resizeCanvas()` now reads width from the container div instead of the canvas element.
+
 All notable changes to this project will be documented in this file.
 
 ## [1.3.1] - 2026-03-17
