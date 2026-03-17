@@ -658,10 +658,12 @@ export class WaveformPlayer {
      * @private
      */
     renderMarkers() {
-        if (!this.options.showMarkers || !this.options.markers?.length || !this.markersContainer) return;
+        if (!this.markersContainer) return;
 
-        // Clear existing markers
+        // Always clear existing markers first
         this.markersContainer.innerHTML = '';
+
+        if (!this.options.showMarkers || !this.options.markers?.length) return;
 
         // Don't render if audio duration isn't available yet
         if (!this.audio || !this.audio.duration || this.audio.duration === 0) {
