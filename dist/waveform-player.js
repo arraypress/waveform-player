@@ -1132,8 +1132,9 @@
      * @private
      */
     renderMarkers() {
-      if (!this.options.showMarkers || !this.options.markers?.length || !this.markersContainer) return;
+      if (!this.markersContainer) return;
       this.markersContainer.innerHTML = "";
+      if (!this.options.showMarkers || !this.options.markers?.length) return;
       if (!this.audio || !this.audio.duration || this.audio.duration === 0) {
         return;
       }
