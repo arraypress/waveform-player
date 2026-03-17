@@ -586,10 +586,8 @@ export class WaveformPlayer {
             this.artworkEl.src = options.artwork;
         }
 
-        // Clear markers if new markers provided
-        if (options.markers) {
-            this.options.markers = options.markers;
-        }
+        // Clear or update markers
+        this.options.markers = options.markers || [];
 
         // Load the new track
         await this.load(url);
