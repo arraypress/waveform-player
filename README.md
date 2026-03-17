@@ -18,74 +18,19 @@ A lightweight, customizable audio player with waveform visualization. Under 8KB 
 - **Real Waveforms** - Actual audio analysis, not fake waves
 - **No Dependencies** - No jQuery, no bloat, pure vanilla JS
 - **Works Everywhere** - WordPress, Shopify, React, Vue, or plain HTML
-- **Ecosystem** - Optional playlist and analytics addons available
+- **Ecosystem** - Optional [WaveformBar](https://github.com/arraypress/waveform-bar) persistent player addon available
 
-## What's New in 1.3.1
+## What's New
 
-### 🐛 Bug Fix
+For detailed release notes, see the [Changelog](CHANGELOG.md).
 
-- Fixed uncaught `NotAllowedError` when `loadTrack()` triggers autoplay before user interaction (e.g. on session restore)
+### Recent Changes (v1.3.x)
 
-## What's New in 1.3.0
-
-### 🎛️ Show/Hide Controls & Info
-
-You can now hide the play/pause button and info bar independently, making it easy to build custom UIs around the waveform.
-```html
-<!-- Waveform only — no button, no info -->
-<div data-waveform-player
-     data-url="song.mp3"
-     data-show-controls="false"
-     data-show-info="false">
-</div>
-```
-
-- `showControls` — toggle the play/pause button (default: `true`)
-- `showInfo` — toggle the title, subtitle, time, BPM, and speed controls (default: `true`)
-- Waveform automatically fills the full width when controls are hidden
-
-Thanks to [@mulhoon](https://github.com/mulhoon) for suggesting this feature.
-
-## What's New in 1.2.2
-
-### 🐛 Bug Fix
-
-- `play()` now returns the Promise from `HTMLMediaElement.play()`, allowing callers to handle errors like `AbortError`
-
-Thanks to [@scruffian](https://github.com/scruffian) for the contribution.
-
-## What's New in 1.2.1
-
-### 🐛 Bug Fixes
-
-- Fixed null reference error when `destroy()` is called during resize events
-- Cleaned up window resize listener on destroy to prevent memory leaks
-- Added destruction guards to all event handlers to prevent race conditions
-- Added `bubbles: true` to all custom events for better framework integration
-
-Thanks to [@scruffian](https://github.com/scruffian) for contributing these fixes.
-
-## What's New in 1.2.0
-
-### 🎨 Automatic Theme Detection
-
-WaveformPlayer now automatically adapts to your website's color scheme - no configuration needed!
-
-**Features:**
-
-- Detects light/dark themes automatically
-- Checks background brightness, theme classes, and system preferences
-- Works seamlessly on WordPress, Shopify, and all platforms
-- Override with explicit `data-color-preset="light"` or `"dark"` if needed
-
-**How it works:**
-
-1. Checks for explicit theme classes (`.dark-mode`, `.light-mode`, etc.)
-2. Analyzes background brightness
-3. Respects system color preferences (`prefers-color-scheme`)
-4. Falls back to sensible defaults
-
-[View live examples →](https://waveformplayer.com/modes/dark.html)
+- Fixed markers from previous track persisting when loading a new track
+- Removed inline canvas height for reliable width sizing in flex containers
+- Fixed waveform canvas reading width from container instead of canvas element
+- Fixed uncaught `NotAllowedError` on autoplay
+- Added `showControls` and `showInfo` options for waveform-only display
 
 ## Quick Start
 
@@ -104,14 +49,12 @@ npm install @arraypress/waveform-player
 
 ### CDN
 ```html
-
 <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css">
 <script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.min.js"></script>
 ```
 
 ### Download
 ```html
-
 <link rel="stylesheet" href="waveform-player.css">
 <script src="waveform-player.js"></script>
 ```
@@ -132,14 +75,34 @@ npm install @arraypress/waveform-player
 - ⏩ **Speed Control** - Adjustable playback rate for podcasts/audiobooks
 - 📍 **Chapter Markers** - Add clickable markers for navigation
 - 🔄 **Dynamic Loading** - Load new tracks without page refresh
+- 🎨 **Auto Theme Detection** - Adapts to light/dark themes automatically
 
 ## Ecosystem
+
+### WaveformBar (Optional Addon)
+
+A persistent bottom-bar audio player with queue, favorites, cart, volume popup, DJ mode with markers, and cross-page session persistence:
+
+```html
+<div data-wb-play
+     data-url="song.mp3"
+     data-title="My Track"
+     data-artist="Artist"
+     data-bpm="128"
+     data-key="Am">
+</div>
+
+<script>
+WaveformBar.init();
+</script>
+```
+
+[Learn more →](https://github.com/arraypress/waveform-bar)
 
 ### WaveformPlaylist (Optional Addon)
 
 Add playlist and chapter support with zero JavaScript:
 ```html
-
 <div data-waveform-playlist data-continuous="true">
     <div data-track data-url="song1.mp3" data-title="Track 1">
         <div data-chapter data-time="0:00">Intro</div>
@@ -183,7 +146,6 @@ WaveformTracker.init({
 
 ### HTML (Zero JavaScript)
 ```html
-
 <div data-waveform-player
      data-url="audio.mp3"
      data-title="My Song"
@@ -191,6 +153,16 @@ WaveformTracker.init({
      data-waveform-style="mirror"
      data-show-playback-speed="true"
      data-markers='[{"time": 30, "label": "Chorus"}]'>
+</div>
+```
+
+### Waveform Only (Custom UI)
+```html
+<!-- Hide built-in controls for custom UI integration -->
+<div data-waveform-player
+     data-url="audio.mp3"
+     data-show-controls="false"
+     data-show-info="false">
 </div>
 ```
 
@@ -246,6 +218,7 @@ Choose from 6 built-in styles:
 | `subtitle`           | string  | `''`                      | Track subtitle                                          |
 | `artwork`            | string  | `''`                      | Album artwork URL                                       |
 | `markers`            | array   | `[]`                      | Chapter markers array                                   |
+| `waveform`           | array   | `null`                    | Pre-generated waveform data                             |
 | `enableMediaSession` | boolean | `true`                    | Enable system media controls                            |
 
 ## API Methods
@@ -266,7 +239,11 @@ player.setVolume(0.8);       // 80% volume
 player.setPlaybackRate(1.5); // 1.5x speed
 
 // Dynamic loading
-await player.loadTrack('new-song.mp3', 'New Title', 'New Artist');
+await player.loadTrack('new-song.mp3', 'New Title', 'New Artist', {
+    markers: [{time: 30, label: 'Chorus'}],
+    artwork: 'cover.jpg',
+    waveform: [0.2, 0.5, 0.8, 0.3]  // Optional pre-generated data
+});
 
 // Destroy
 player.destroy();
@@ -357,24 +334,23 @@ function AudioPlayer({url}) {
 
 ### Vue
 ```vue
-
 <template>
   <div ref="player"></div>
 </template>
 
 <script>
-  import WaveformPlayer from '@arraypress/waveform-player';
+import WaveformPlayer from '@arraypress/waveform-player';
 
-  export default {
+export default {
     mounted() {
-      this.player = new WaveformPlayer(this.$refs.player, {
-        url: this.audioUrl
-      });
+        this.player = new WaveformPlayer(this.$refs.player, {
+            url: this.audioUrl
+        });
     },
     beforeDestroy() {
-      this.player?.destroy();
+        this.player?.destroy();
     }
-  }
+}
 </script>
 ```
 
@@ -398,8 +374,6 @@ See the [live demo](https://waveformplayer.com) for:
 - Keyboard navigation
 - Speed controls
 - Chapter markers
-- Playlist support
-- Analytics tracking
 
 ## Development
 ```bash

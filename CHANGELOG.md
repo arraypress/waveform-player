@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.4] - 2026-03-17
+
+### Bug Fixes
+
+- Fixed markers from previous track persisting when loading a new track without markers via `loadTrack()`
+
 ## [1.3.3] - 2026-03-17
 
 ### Bug Fixes
