@@ -1074,9 +1074,7 @@
       if (options.artwork && this.artworkEl) {
         this.artworkEl.src = options.artwork;
       }
-      if (options.markers) {
-        this.options.markers = options.markers;
-      }
+      this.options.markers = options.markers || [];
       await this.load(url);
       this.play().catch(() => {
       });
