@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2026-03-22
+
+### New Features
+
+- **JSON Waveform Loading** — `data-waveform` now accepts a URL to a JSON file ending in `.json`
+  - Fetches the file and reads peaks from the response (supports `[...]` array or `{ peaks: [...] }` object)
+  - Falls back gracefully if fetch fails (player generates waveform from audio as before)
+  - No changes to constructor, `load()`, or `loadTrack()` — fully backwards compatible
+
+### Usage
+```html
+<!-- JSON file instead of inline peaks -->
+<div data-waveform-player data-url="song.mp3" data-waveform="waveforms/song.json"></div>
+
+<!-- WaveformBar — same attribute -->
+<div data-wb-play data-url="song.mp3" data-wb-waveform="waveforms/song.json"></div>
+
+<!-- Inline peaks still work exactly as before -->
+<div data-waveform-player data-url="song.mp3" data-waveform="[0.2, 0.37, 0.41, ...]"></div>
+```
+
 ## [1.4.1] - 2026-03-22
 
 ### Reverted

@@ -571,8 +571,6 @@
   var DEFAULT_OPTIONS = {
     // Core settings
     url: "",
-    config: null,
-    // URL to JSON config file (loads title, peaks, meta, etc.)
     height: 60,
     samples: 200,
     preload: "metadata",
@@ -678,77 +676,13 @@
       this.hasError = false;
       this.updateTimer = null;
       this.resizeObserver = null;
-      this.meta = {};
-      if (this.options.config) {
-        this.id = this.container.id || generateId("pending-" + Math.random());
-        _WaveformPlayer.instances.set(this.id, this);
-        _WaveformPlayer._fetchConfig(this.options.config).then((config) => {
-          if (config) {
-            const configOptions = {};
-            if (config.url) configOptions.url = config.url;
-            if (config.title) configOptions.title = config.title;
-            if (config.subtitle) configOptions.subtitle = config.subtitle;
-            if (config.artwork) configOptions.artwork = config.artwork;
-            if (config.album) configOptions.album = config.album;
-            if (config.samples) configOptions.samples = config.samples;
-            if (config.markers) configOptions.markers = config.markers;
-            if (config.peaks) configOptions.waveform = config.peaks;
-            if (config.meta) this.meta = config.meta;
-            this.options = mergeOptions(DEFAULT_OPTIONS, configOptions, dataOptions, options);
-            const preset2 = getColorPreset(this.options.colorPreset);
-            for (const [key, value] of Object.entries(preset2)) {
-              if (this.options[key] === null || this.options[key] === void 0) {
-                this.options[key] = value;
-              }
-            }
-          }
-          if (!this.container.id && this.options.url) {
-            _WaveformPlayer.instances.delete(this.id);
-            this.id = generateId(this.options.url);
-            _WaveformPlayer.instances.set(this.id, this);
-          }
-          this.init();
-          this._dispatchReady();
-        });
-      } else {
-        this.id = this.container.id || generateId(this.options.url);
-        _WaveformPlayer.instances.set(this.id, this);
-        this.init();
-        this._dispatchReady();
-      }
-    }
-    /**
-     * Fetch a JSON config file and return its data
-     * Does NOT modify player options — caller decides what to use
-     * @param {string} configUrl - URL to JSON config file
-     * @returns {Promise<Object|null>} Parsed config or null on failure
-     * @static
-     */
-    static async _fetchConfig(configUrl) {
-      try {
-        _WaveformPlayer._configCache = _WaveformPlayer._configCache || {};
-        if (_WaveformPlayer._configCache[configUrl]) {
-          return _WaveformPlayer._configCache[configUrl];
-        }
-        const response = await fetch(configUrl);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const config = await response.json();
-        _WaveformPlayer._configCache[configUrl] = config;
-        return config;
-      } catch (error) {
-        console.warn("WaveformPlayer: Failed to load config:", configUrl, error);
-        return null;
-      }
-    }
-    /**
-     * Dispatch ready event
-     * @private
-     */
-    _dispatchReady() {
+      this.id = this.container.id || generateId(this.options.url);
+      _WaveformPlayer.instances.set(this.id, this);
+      this.init();
       setTimeout(() => {
         this.container.dispatchEvent(new CustomEvent("waveformplayer:ready", {
           bubbles: true,
-          detail: { player: this, url: this.options.url, meta: this.meta }
+          detail: { player: this, url: this.options.url }
         }));
       }, 100);
     }
@@ -1140,21 +1074,27 @@
       if (options.artwork && this.artworkEl) {
         this.artworkEl.src = options.artwork;
       }
-      if (options.markers) {
-        this.options.markers = options.markers;
-      }
+      this.options.markers = options.markers || [];
       await this.load(url);
-      this.play();
+      this.play().catch(() => {
+      });
     }
     // ============================================
     // Visualization
     // ============================================
     /**
-     * Set waveform data from inline data or array
-     * @param {string|Array} data - Waveform peaks as array, JSON string, or CSV string
+     * Set waveform data
      * @private
      */
     setWaveformData(data) {
+      if (typeof data === "string" && data.trim().endsWith(".json")) {
+        fetch(data.trim()).then((r) => r.json()).then((json) => {
+          this.waveformData = Array.isArray(json) ? json : json.peaks || [];
+          this.drawWaveform();
+        }).catch(() => {
+        });
+        return;
+      }
       if (typeof data === "string") {
         try {
           const parsed = JSON.parse(data);
@@ -1189,10 +1129,9 @@
         return;
       }
       const dpr = window.devicePixelRatio || 1;
-      const rect = this.canvas.getBoundingClientRect();
+      const rect = this.canvas.parentElement.getBoundingClientRect();
       this.canvas.width = rect.width * dpr;
       this.canvas.height = this.options.height * dpr;
-      this.canvas.style.height = this.options.height + "px";
       this.canvas.parentElement.style.height = this.options.height + "px";
       this.drawWaveform();
     }
@@ -1201,8 +1140,9 @@
      * @private
      */
     renderMarkers() {
-      if (!this.options.showMarkers || !this.options.markers?.length || !this.markersContainer) return;
+      if (!this.markersContainer) return;
       this.markersContainer.innerHTML = "";
+      if (!this.options.showMarkers || !this.options.markers?.length) return;
       if (!this.audio || !this.audio.duration || this.audio.duration === 0) {
         return;
       }
@@ -1592,14 +1532,6 @@
         console.error("Failed to generate waveform:", error);
         throw error;
       }
-    }
-    /**
-     * Load a config JSON file (public API for bar/external consumers)
-     * @param {string} configUrl - URL to JSON config file
-     * @returns {Promise<Object|null>} Parsed config or null on failure
-     */
-    static async loadConfig(configUrl) {
-      return _WaveformPlayer._fetchConfig(configUrl);
     }
   };
 

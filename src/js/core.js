@@ -605,6 +605,18 @@ export class WaveformPlayer {
      * @private
      */
     setWaveformData(data) {
+        // URL to JSON file — fetch peaks
+        if (typeof data === 'string' && data.trim().endsWith('.json')) {
+            fetch(data.trim())
+                .then(r => r.json())
+                .then(json => {
+                    this.waveformData = Array.isArray(json) ? json : (json.peaks || []);
+                    this.drawWaveform();
+                })
+                .catch(() => {});
+            return;
+        }
+
         if (typeof data === 'string') {
             try {
                 const parsed = JSON.parse(data);
