@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaveformBar — Light Mode</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css">
+    <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-bar@latest/dist/waveform-bar.css">
+    <link rel="stylesheet" href="assets/css/waveform-bar-icons.css">
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            color: #1a1a1a;
+            padding-bottom: 100px;
+        }
+        .light-nav {
+            background: white;
+            border-bottom: 1px solid #e5e5e5;
+            padding: 1rem 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        .light-nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .light-nav a { color: #666; text-decoration: none; font-weight: 500; }
+        .light-nav a:hover { color: #7c3aed; }
+        .light-nav .logo { font-weight: 700; color: #1a1a1a; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .light-nav .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+        .light-header {
+            background: white;
+            border-bottom: 1px solid #e5e5e5;
+            padding: 6rem 0 2.5rem;
+            text-align: center;
+            margin-top: 56px;
+        }
+        .light-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .light-header p { color: #888; font-size: 1.1rem; margin-top: 0.5rem; }
+        .light-header .links { margin-top: 1rem; }
+        .light-header .links a { color: #7c3aed; margin: 0 0.5rem; }
+        .section { margin: 2rem 0; }
+        .section h2 { font-size: 1.3rem; margin-bottom: 1rem; }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.25rem;
+        }
+        .card {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .card:hover { border-color: #7c3aed; box-shadow: 0 4px 20px rgba(124, 58, 237, 0.1); }
+        .card.wb-playing { border-color: #7c3aed; background: rgba(124, 58, 237, 0.02); }
+        .card-img { aspect-ratio: 1; overflow: hidden; position: relative; }
+        .card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .card:hover .card-img img { transform: scale(1.05); }
+        .card-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .card:hover .card-overlay, .card.wb-playing .card-overlay { opacity: 1; }
+        .card-overlay .wb-icon-swap {
+            width: 48px; height: 48px;
+            background: #7c3aed;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 1.3rem;
+        }
+        .card-body { padding: 0.75rem 1rem 1rem; }
+        .card-title { font-weight: 600; font-size: 0.9rem; }
+        .card-artist { font-size: 0.8rem; color: #888; }
+        .card-tags { display: flex; gap: 0.4rem; margin-top: 0.5rem; align-items: center; }
+        .tag { padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.65rem; font-weight: 600; }
+        .tag-bpm { background: rgba(124, 58, 237, 0.1); color: #7c3aed; }
+        .tag-key { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
+        .card-price { font-weight: 700; font-size: 0.8rem; margin-left: auto; }
+        .wb-eq-bars span { background: #7c3aed; }
+        .light-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 0.85rem;
+        }
+        .light-table th {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 2px solid #e5e5e5;
+            font-weight: 600;
+            color: #888;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+        .light-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #f0f0f0; }
+        .light-table tr { cursor: pointer; transition: background 0.15s; }
+        .light-table tr:hover { background: rgba(124, 58, 237, 0.03); }
+        .light-table tr.wb-playing { background: rgba(124, 58, 237, 0.06); }
+        .light-table tr.wb-playing .tname { color: #7c3aed; font-weight: 600; }
+        .info-box {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .info-box h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+        .info-box h3 i { color: #7c3aed; }
+        .info-box p { color: #666; font-size: 0.85rem; line-height: 1.6; }
+        .info-box a { color: #7c3aed; }
+        @media (max-width: 768px) {
+            .card-grid { grid-template-columns: repeat(2, 1fr); }
+            .light-nav .nav-links { display: none; }
+        }
+        @media (max-width: 480px) {
+            .card-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="light-nav">
+    <div class="light-nav-inner">
+        <a href="index.html" class="logo"><img src="assets/img/logo.svg" width="28" height="28" alt="Logo"> WaveformPlayer</a>
+        <div class="nav-links">
+            <a href="bar.html">← Dark Mode</a>
+            <a href="bar-product.html">Product Page</a>
+        </div>
+    </div>
+</div>
+
+<div class="light-header">
+    <div class="container">
+        <h1>Light Mode</h1>
+        <p>WaveformBar auto-detects the light background — no config needed</p>
+        <div class="links">
+            <a href="bar.html">← Dark Mode</a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="section">
+        <h2>Samples</h2>
+        <div class="card-grid" id="light-grid"></div>
+    </div>
+
+    <div class="section">
+        <h2>Sample Table</h2>
+        <table class="light-table">
+            <thead><tr><th></th><th>Name</th><th>Pack</th><th>BPM</th><th>Key</th></tr></thead>
+            <tbody>
+            <tr data-wb-play data-url="assets/audio/pluck-luminous.mp3" data-title="Pluck Luminous" data-artist="Pack Vol. 2" data-bpm="100" data-key="Bb" data-artwork="assets/img/store-covers/cover-07.webp">
+                <td><span class="wb-eq-bars"><span></span><span></span><span></span><span></span></span></td>
+                <td class="tname wb-accent-current">Pluck Luminous</td><td>Pack Vol. 2</td><td>100</td><td>Bb</td>
+            </tr>
+            <tr data-wb-play data-url="assets/audio/pluck-sine.mp3" data-title="Pluck Sine" data-artist="Pack Vol. 1" data-bpm="130" data-key="Eb" data-artwork="assets/img/store-covers/cover-08.webp">
+                <td><span class="wb-eq-bars"><span></span><span></span><span></span><span></span></span></td>
+                <td class="tname wb-accent-current">Pluck Sine</td><td>Pack Vol. 1</td><td>130</td><td>Eb</td>
+            </tr>
+            <tr data-wb-play data-url="assets/audio/pluck-small-moments.mp3" data-title="Small Moments" data-artist="Pack Vol. 3" data-bpm="85" data-key="G" data-artwork="assets/img/store-covers/cover-09.webp">
+                <td><span class="wb-eq-bars"><span></span><span></span><span></span><span></span></span></td>
+                <td class="tname wb-accent-current">Small Moments</td><td>Pack Vol. 3</td><td>85</td><td>G</td>
+            </tr>
+            <tr data-wb-play data-url="assets/audio/pluck-got-me-thinking.mp3" data-title="Got Me Thinking" data-artist="Pack Vol. 1" data-bpm="88" data-key="Cm" data-artwork="assets/img/store-covers/cover-10.webp">
+                <td><span class="wb-eq-bars"><span></span><span></span><span></span><span></span></span></td>
+                <td class="tname wb-accent-current">Got Me Thinking</td><td>Pack Vol. 1</td><td>88</td><td>Cm</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="info-box">
+        <h3><i class="ti ti-palette"></i> Auto Theme Detection</h3>
+        <p>The bar detected this page's <code>#f5f5f5</code> background and switched to light mode automatically. No <code>theme: 'light'</code> config needed. Go <a href="bar.html">back to the dark store</a> — it adapts there too.</p>
+    </div>
+</div>
+
+<script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js"></script>
+<script src="https://unpkg.com/@arraypress/waveform-bar@latest/dist/waveform-bar.js"></script>
+<script>
+    const tracks = [
+        {file:'pluck-desire',title:'Electric Desire',artist:'Synthwave Nights',bpm:'128',key:'Am',price:'$29.99',cover:'01'},
+        {file:'pluck-lovely',title:'Lovely Moments',artist:'Chill Vibes',bpm:'90',key:'C',price:'$19.99',cover:'02'},
+        {file:'pluck-icarus',title:'Icarus Rising',artist:'Epic Journey',bpm:'140',key:'Em',price:'$34.99',cover:'03'},
+        {file:'pluck-pieces-of-you',title:'Pieces of You',artist:'Late Night',bpm:'110',key:'Gm',price:'$24.99',cover:'04'},
+        {file:'pluck-wings',title:'Wings',artist:'Skybound',bpm:'120',key:'D',price:'$22.99',cover:'05'},
+        {file:'pluck-nocturne',title:'Nocturne',artist:'Midnight Piano',bpm:'72',key:'F',price:'$17.99',cover:'06'},
+        {file:'keys-house-piano',title:'House Piano',artist:'Keys Pack',bpm:'124',key:'Am',price:'$15.99',cover:'11'},
+        {file:'pad-seacrest',title:'Seacrest',artist:'Pad Collection',bpm:'100',key:'Dm',price:'$12.99',cover:'12'},
+    ];
+
+    const grid = document.getElementById('light-grid');
+    tracks.forEach(t => {
+        grid.innerHTML += `
+    <div class="card wb-card-highlight" data-wb-play
+         data-url="assets/audio/${t.file}.mp3"
+         data-title="${t.title}" data-artist="${t.artist}"
+         data-bpm="${t.bpm}" data-key="${t.key}"
+         data-artwork="assets/img/store-covers/cover-${t.cover}.webp">
+        <div class="card-img">
+            <img src="assets/img/store-covers/cover-${t.cover}.webp" alt="${t.title}">
+            <div class="card-overlay"><span class="wb-icon-swap"><span class="wb-show-play"><span class="wbi wbi-play"></span></span><span class="wb-show-pause"><span class="wbi wbi-pause"></span></span></span></div>
+        </div>
+        <div class="card-body">
+            <div class="card-title wb-accent-current">${t.title}</div>
+            <div class="card-artist">${t.artist}</div>
+            <div class="card-tags">
+                <span class="tag tag-bpm">${t.bpm} BPM</span>
+                <span class="tag tag-key">${t.key}</span>
+                <span class="card-price">${t.price}</span>
+            </div>
+        </div>
+    </div>`;
+    });
+
+    WaveformBar.init({
+        configPath: 'assets/waveforms/',
+        waveformStyle: 'mirror',
+        waveformHeight: 32,
+        barWidth: 2,
+        barSpacing: 0,
+        showMeta: true
+    });
+</script>
+</body>
+</html>

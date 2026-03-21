@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaveformBar — Sample Store Demo</title>
+    <meta name="description" content="WaveformBar - Persistent bottom audio player with queue, favorites, cart, and session persistence.">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+
+
+    <link rel="stylesheet" href="../dist/waveform-player.css">
+
+    <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-bar@1.0.0/dist/waveform-bar.css">
+<!--    <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-bar@latest/dist/waveform-bar-icons.css">-->
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/bar.css">
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+</head>
+<body>
+
+<nav class="nav">
+    <div class="nav-container">
+        <a href="index.html" class="nav-logo">
+            <img src="assets/img/logo.svg" alt="WaveformPlayer Logo" class="logo-icon" width="36" height="36">
+            <span>WaveformPlayer</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="examples.html">Examples</a>
+            <a href="builder.html">Builder</a>
+            <a href="docs.html">Docs</a>
+            <a href="addons.html">Add-ons</a>
+            <a href="bar.html" class="nav-link-active">Bar</a>
+            <a href="https://github.com/arraypress/waveform-bar" class="nav-cta"><i class="ti ti-brand-github"></i> GitHub</a>
+        </div>
+    </div>
+</nav>
+
+<section class="page-header">
+    <div class="container">
+        <h1>WaveformBar</h1>
+        <p>Persistent bottom player with queue, favorites, cart, DJ mode, repeat, and cross-page persistence</p>
+        <div class="bar-hero-badges">
+            <span class="bar-badge"><i class="ti ti-weight"></i> ~6KB</span>
+            <span class="bar-badge"><i class="ti ti-code"></i> Zero Config</span>
+            <span class="bar-badge"><i class="ti ti-refresh"></i> Session Persist</span>
+            <span class="bar-badge"><i class="ti ti-palette"></i> Auto Theme</span>
+        </div>
+        <div class="bar-hero-links">
+            <a href="bar-light.html">View Light Mode</a>
+            <span>·</span>
+            <a href="bar-product.html">Product Page Demo</a>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+
+    <div class="bar-tabs">
+        <button class="bar-tab active" data-panel="panel-store"><i class="ti ti-shopping-bag"></i> Sample Store</button>
+        <button class="bar-tab" data-panel="panel-table"><i class="ti ti-table"></i> Sample Table</button>
+        <button class="bar-tab" data-panel="panel-djmix"><i class="ti ti-headphones"></i> DJ Mix</button>
+        <button class="bar-tab" data-panel="panel-api"><i class="ti ti-code"></i> JS API</button>
+    </div>
+
+    <!-- ============================================================
+         SAMPLE STORE
+         ============================================================ -->
+    <div id="panel-store" class="bar-panel active">
+        <div class="bar-section">
+            <h2>Sample Store <span class="section-badge">Favorites + Cart</span></h2>
+            <p>Click artwork to play. Use the <i class="ti ti-heart"></i> and <i class="ti ti-shopping-cart"></i> buttons. State syncs via <code>.wb-favorited</code> and <code>.wb-in-cart</code> classes. First two are server-side pre-favorited. Click a title to visit the product page — playback continues.</p>
+
+            <div class="store-grid" id="store-grid"></div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         SAMPLE TABLE
+         ============================================================ -->
+    <div id="panel-table" class="bar-panel">
+        <div class="bar-section">
+            <h2>Sample Library <span class="section-badge">Table Layout</span></h2>
+            <p>Click any row to play. Equalizer bars animate on the active track. Hearts show favorite state.</p>
+            <table class="sample-table" id="sample-table">
+                <thead><tr><th></th><th></th><th>Name</th><th>Artist</th><th>BPM</th><th>Key</th></tr></thead>
+                <tbody id="sample-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         DJ MIX
+         ============================================================ -->
+    <div id="panel-djmix" class="bar-panel">
+        <div class="bar-section">
+            <h2>DJ Mix <span class="section-badge">Markers + DJ Mode</span></h2>
+            <p>A mix with time markers. The bar updates the track title, artist, and metadata at each marker boundary. Click any track below or any marker on the waveform to jump.</p>
+
+            <div class="mix-card"
+                 data-wb-play
+                 data-url="assets/audio/drum-loop.mp3"
+                 data-id="djmix-001"
+                 data-title="Demo Mix"
+                 data-artist="Various Artists"
+                 data-artwork="assets/img/store-covers/cover-24.webp"
+                 data-wb-markers='[
+                     {"time":0,"label":"Opener","title":"Opening Track","artist":"DJ Demo","bpm":"128","key":"Am"},
+                     {"time":3,"label":"Drop","title":"The Drop","artist":"Bass Machine","bpm":"140","key":"Dm"},
+                     {"time":6,"label":"Breakdown","title":"Midnight Breakdown","artist":"Chill Master","bpm":"110","key":"C"},
+                     {"time":9,"label":"Finale","title":"Grand Finale","artist":"Orchestra X","bpm":"150","key":"Em"}
+                 ]'>
+                <div class="mix-art"><img src="assets/img/store-covers/cover-24.webp" alt="Demo Mix"></div>
+                <div class="mix-info">
+                    <div class="mix-title">Demo Mix — 4 Tracks</div>
+                    <div class="mix-subtitle">Click to play. Watch the bar update at each transition.</div>
+                </div>
+            </div>
+
+            <div class="dj-tracklist">
+                <h3><i class="ti ti-list-numbers"></i> Tracklist <span style="font-weight:400;opacity:0.5;font-size:0.75rem;">Click to jump</span></h3>
+                <div class="dj-tracks">
+                    <button class="dj-track-btn" onclick="WaveformBar.seekToMarkerByLabel('Opener')"><span class="dj-time">0:00</span> DJ Demo — Opening Track</button>
+                    <button class="dj-track-btn" onclick="WaveformBar.seekToMarkerByLabel('Drop')"><span class="dj-time">0:03</span> Bass Machine — The Drop</button>
+                    <button class="dj-track-btn" onclick="WaveformBar.seekToMarkerByLabel('Breakdown')"><span class="dj-time">0:06</span> Chill Master — Midnight Breakdown</button>
+                    <button class="dj-track-btn" onclick="WaveformBar.seekToMarkerByLabel('Finale')"><span class="dj-time">0:09</span> Orchestra X — Grand Finale</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         JS API
+         ============================================================ -->
+    <div id="panel-api" class="bar-panel">
+        <div class="bar-section">
+            <h2>JavaScript API</h2>
+            <p>Control everything programmatically.</p>
+
+            <div class="api-grid">
+                <button class="api-btn" onclick="WaveformBar.play({url:'assets/audio/pluck-desire.mp3',title:'API Track',artist:'Programmatic',bpm:'128',key:'Am',artwork:'assets/img/store-covers/cover-01.webp'})"><i class="ti ti-player-play"></i> Play</button>
+                <button class="api-btn" onclick="WaveformBar.togglePlay()"><i class="ti ti-player-pause"></i> Toggle</button>
+                <button class="api-btn" onclick="WaveformBar.next()"><i class="ti ti-player-skip-forward"></i> Next</button>
+                <button class="api-btn" onclick="WaveformBar.previous()"><i class="ti ti-player-skip-back"></i> Previous</button>
+                <button class="api-btn" onclick="WaveformBar.setVolume(0.5)"><i class="ti ti-volume-2"></i> Vol 50%</button>
+                <button class="api-btn" onclick="WaveformBar.toggleMute()"><i class="ti ti-volume-off"></i> Mute</button>
+                <button class="api-btn" onclick="WaveformBar.cycleRepeat()"><i class="ti ti-repeat"></i> Repeat</button>
+                <button class="api-btn" onclick="WaveformBar.toggleFavorite()"><i class="ti ti-heart"></i> Favorite</button>
+                <button class="api-btn" onclick="WaveformBar.addToCart()"><i class="ti ti-shopping-cart"></i> Cart</button>
+                <button class="api-btn" onclick="WaveformBar.clearQueue()"><i class="ti ti-trash"></i> Clear</button>
+            </div>
+
+            <pre class="code-block" style="margin-top:2rem"><code>WaveformBar.play({ url: 'song.mp3', title: 'Track', artist: 'Artist' });
+WaveformBar.addToQueue({ url: 'next.mp3', title: 'Up Next' });
+WaveformBar.cycleRepeat();           // off → all → one → off
+WaveformBar.toggleFavorite();
+WaveformBar.seekToMarkerByLabel('Chorus');
+const track = WaveformBar.getCurrentTrack();</code></pre>
+        </div>
+    </div>
+
+    <!-- Info -->
+    <div class="bar-section" style="margin-top:2rem">
+        <div class="info-cards">
+            <div class="info-card">
+                <h3><i class="ti ti-refresh"></i> Persistence</h3>
+                <p>Play a track, then refresh or visit the <a href="bar-product.html">product page</a>. The bar restores your queue, position, and state.</p>
+            </div>
+            <div class="info-card">
+                <h3><i class="ti ti-heart"></i> Server State</h3>
+                <p>First two cards have <code>data-wb-favorited="true"</code> simulating server-side favorites.</p>
+            </div>
+            <div class="info-card">
+                <h3><i class="ti ti-sun"></i> Light Mode</h3>
+                <p>The bar auto-detects theme. See it in action on the <a href="bar-light.html">light mode page</a>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Install CTA -->
+    <div class="bar-section" style="margin:3rem 0">
+        <div class="install-cta">
+            <h2>Get Started</h2>
+            <pre class="code-block"><code>&lt;script src="https://unpkg.com/@arraypress/waveform-bar@latest/dist/waveform-bar.js"&gt;&lt;/script&gt;
+&lt;button data-wb-play data-url="song.mp3" data-title="My Song"&gt;▶ Play&lt;/button&gt;
+&lt;script&gt;WaveformBar.init();&lt;/script&gt;</code></pre>
+            <div class="buttons" style="margin-top:1.5rem">
+                <a href="https://github.com/arraypress/waveform-bar" class="btn btn-primary"><i class="ti ti-brand-github"></i> GitHub</a>
+                <a href="https://npmjs.com/package/@arraypress/waveform-bar" class="btn btn-secondary"><i class="ti ti-package"></i> NPM</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section"><h4>Product</h4><ul><li><a href="examples.html">Examples</a></li><li><a href="builder.html">Builder</a></li><li><a href="docs.html">Docs</a></li><li><a href="addons.html">Add-ons</a></li></ul></div>
+            <div class="footer-section"><h4>Ecosystem</h4><ul><li><a href="https://github.com/arraypress/waveform-player">WaveformPlayer</a></li><li><a href="https://github.com/arraypress/waveform-bar">WaveformBar</a></li><li><a href="https://github.com/arraypress/waveform-gen">WaveformGen</a></li></ul></div>
+            <div class="footer-section"><h4>Community</h4><ul><li><a href="https://github.com/arraypress">GitHub</a></li><li><a href="https://npmjs.com/org/arraypress">NPM</a></li></ul></div>
+        </div>
+        <div class="footer-bottom"><p>Made with ♥ by <a href="https://github.com/arraypress">ArrayPress</a></p></div>
+    </div>
+</footer>
+
+<!--<script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js"></script>-->
+<script src="../dist/waveform-player.js"></script>
+<!--<script src="https://unpkg.com/@arraypress/waveform-bar@latest/dist/waveform-bar.js"></script>-->
+
+<!--<script src="https://unpkg.com/@arraypress/waveform-player@1.3.5/dist/waveform-player.js"></script>-->
+<script src="https://unpkg.com/@arraypress/waveform-bar@1.0.0/dist/waveform-bar.js"></script>
+<script src="assets/js/common.js"></script>
+<script src="assets/js/bar.js"></script>
+</body>
+</html>

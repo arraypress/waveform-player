@@ -121,7 +121,6 @@ export function getColorPreset(presetName) {
 export const DEFAULT_OPTIONS = {
     // Core settings
     url: '',
-    config: null,   // URL to JSON config file (loads title, peaks, meta, etc.)
     height: 60,
     samples: 200,
     preload: 'metadata',

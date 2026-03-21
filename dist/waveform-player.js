@@ -682,7 +682,26 @@
       if (this.options.config) {
         this.id = this.container.id || generateId("pending-" + Math.random());
         _WaveformPlayer.instances.set(this.id, this);
-        this._loadConfig(this.options.config, dataOptions, options).then(() => {
+        _WaveformPlayer._fetchConfig(this.options.config).then((config) => {
+          if (config) {
+            const configOptions = {};
+            if (config.url) configOptions.url = config.url;
+            if (config.title) configOptions.title = config.title;
+            if (config.subtitle) configOptions.subtitle = config.subtitle;
+            if (config.artwork) configOptions.artwork = config.artwork;
+            if (config.album) configOptions.album = config.album;
+            if (config.samples) configOptions.samples = config.samples;
+            if (config.markers) configOptions.markers = config.markers;
+            if (config.peaks) configOptions.waveform = config.peaks;
+            if (config.meta) this.meta = config.meta;
+            this.options = mergeOptions(DEFAULT_OPTIONS, configOptions, dataOptions, options);
+            const preset2 = getColorPreset(this.options.colorPreset);
+            for (const [key, value] of Object.entries(preset2)) {
+              if (this.options[key] === null || this.options[key] === void 0) {
+                this.options[key] = value;
+              }
+            }
+          }
           if (!this.container.id && this.options.url) {
             _WaveformPlayer.instances.delete(this.id);
             this.id = generateId(this.options.url);
@@ -699,44 +718,26 @@
       }
     }
     /**
-     * Load external JSON config file
-     * Config values are base — data attributes and JS options override them
+     * Fetch a JSON config file and return its data
+     * Does NOT modify player options — caller decides what to use
      * @param {string} configUrl - URL to JSON config file
-     * @param {Object} dataOptions - Parsed data attributes (for override check)
-     * @param {Object} jsOptions - JS constructor options (for override check)
-     * @private
+     * @returns {Promise<Object|null>} Parsed config or null on failure
+     * @static
      */
-    async _loadConfig(configUrl, dataOptions = {}, jsOptions = {}) {
+    static async _fetchConfig(configUrl) {
       try {
         _WaveformPlayer._configCache = _WaveformPlayer._configCache || {};
-        let config;
         if (_WaveformPlayer._configCache[configUrl]) {
-          config = _WaveformPlayer._configCache[configUrl];
-        } else {
-          const response = await fetch(configUrl);
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          config = await response.json();
-          _WaveformPlayer._configCache[configUrl] = config;
+          return _WaveformPlayer._configCache[configUrl];
         }
-        const configOptions = {};
-        if (config.url) configOptions.url = config.url;
-        if (config.title) configOptions.title = config.title;
-        if (config.subtitle) configOptions.subtitle = config.subtitle;
-        if (config.artwork) configOptions.artwork = config.artwork;
-        if (config.album) configOptions.album = config.album;
-        if (config.samples) configOptions.samples = config.samples;
-        if (config.markers) configOptions.markers = config.markers;
-        if (config.peaks) configOptions.waveform = config.peaks;
-        if (config.meta) this.meta = config.meta;
-        this.options = mergeOptions(DEFAULT_OPTIONS, configOptions, dataOptions, jsOptions);
-        const preset = getColorPreset(this.options.colorPreset);
-        for (const [key, value] of Object.entries(preset)) {
-          if (this.options[key] === null || this.options[key] === void 0) {
-            this.options[key] = value;
-          }
-        }
+        const response = await fetch(configUrl);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const config = await response.json();
+        _WaveformPlayer._configCache[configUrl] = config;
+        return config;
       } catch (error) {
         console.warn("WaveformPlayer: Failed to load config:", configUrl, error);
+        return null;
       }
     }
     /**
@@ -1065,12 +1066,6 @@
         if (this.titleEl) {
           this.titleEl.textContent = title;
         }
-        if (this.options.config && !this.options.waveform) {
-          await this._loadConfig(this.options.config);
-          if (this.options.title && this.titleEl) {
-            this.titleEl.textContent = this.options.title;
-          }
-        }
         if (this.options.waveform) {
           this.setWaveformData(this.options.waveform);
         } else {
@@ -1111,12 +1106,6 @@
       if (this.isPlaying) {
         this.pause();
       }
-      if (options.config) {
-        await this._loadConfig(options.config);
-        if (!url && this.options.url) url = this.options.url;
-        if (title) this.options.title = title;
-        if (subtitle) this.options.subtitle = subtitle;
-      }
       this.audio.src = "";
       this.audio.load();
       this.hasError = false;
@@ -1131,9 +1120,8 @@
       }
       this.progress = 0;
       this.waveformData = [];
-      const trackUrl = url || this.options.url;
       this.options = mergeOptions(this.options, {
-        url: trackUrl,
+        url,
         title: title || this.options.title,
         subtitle: subtitle || this.options.subtitle,
         ...options
@@ -1155,7 +1143,7 @@
       if (options.markers) {
         this.options.markers = options.markers;
       }
-      await this.load(trackUrl);
+      await this.load(url);
       this.play();
     }
     // ============================================
@@ -1606,20 +1594,12 @@
       }
     }
     /**
-     * Load a config JSON file (useful for bar/external consumers)
+     * Load a config JSON file (public API for bar/external consumers)
      * @param {string} configUrl - URL to JSON config file
-     * @returns {Promise<Object>} Parsed config with { title, subtitle, artwork, samples, peaks, markers, meta }
+     * @returns {Promise<Object|null>} Parsed config or null on failure
      */
     static async loadConfig(configUrl) {
-      _WaveformPlayer._configCache = _WaveformPlayer._configCache || {};
-      if (_WaveformPlayer._configCache[configUrl]) {
-        return _WaveformPlayer._configCache[configUrl];
-      }
-      const response = await fetch(configUrl);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const config = await response.json();
-      _WaveformPlayer._configCache[configUrl] = config;
-      return config;
+      return _WaveformPlayer._fetchConfig(configUrl);
     }
   };
 

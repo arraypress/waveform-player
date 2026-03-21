@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Detail — WaveformBar Demo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css">
+    <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-bar@latest/dist/waveform-bar.css">
+    <link rel="stylesheet" href="assets/css/waveform-bar-icons.css">
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/bar.css">
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+</head>
+<body>
+
+<nav class="nav">
+    <div class="nav-container">
+        <a href="index.html" class="nav-logo">
+            <img src="assets/img/logo.svg" alt="WaveformPlayer Logo" class="logo-icon" width="36" height="36">
+            <span>WaveformPlayer</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="examples.html">Examples</a>
+            <a href="builder.html">Builder</a>
+            <a href="docs.html">Docs</a>
+            <a href="addons.html">Add-ons</a>
+            <a href="bar.html" class="nav-link-active">Bar</a>
+            <a href="https://github.com/arraypress/waveform-bar" class="nav-cta"><i class="ti ti-brand-github"></i> GitHub</a>
+        </div>
+    </div>
+</nav>
+
+<section class="page-header" style="padding: 5rem 0 2rem;">
+    <div class="container">
+        <a href="bar.html" class="back-link"><i class="ti ti-arrow-left"></i> Back to Store</a>
+    </div>
+</section>
+
+<div class="container">
+    <div class="product-layout">
+        <div class="product-art">
+            <img src="assets/img/store-covers/cover-01.webp" alt="Sample Pack" id="product-img">
+        </div>
+        <div class="product-info">
+            <h1 class="product-title" id="product-title">Sample Pack</h1>
+            <p class="product-artist" id="product-artist">Various Artists</p>
+
+            <div class="product-meta-row">
+                <span class="store-tag store-tag-bpm">128 BPM</span>
+                <span class="store-tag store-tag-key">Am</span>
+                <span class="product-price">$29.99</span>
+            </div>
+
+            <p class="product-desc">This is a demo product page showing how WaveformBar persists across page navigations. If you played a track on the <a href="bar.html">store page</a>, the bar is still playing here — same queue, same position, same volume.</p>
+
+            <div class="product-actions">
+                <button class="btn btn-primary btn-large" data-wb-play
+                        data-url="assets/audio/pluck-desire.mp3"
+                        data-title="Electric Desire"
+                        data-artist="Synthwave Nights"
+                        data-bpm="128" data-key="Am"
+                        data-artwork="assets/img/store-covers/cover-01.webp">
+                    <span class="wbi wbi-play"></span> Play Preview
+                </button>
+                <button class="btn btn-secondary btn-large"
+                        data-wb-queue
+                        data-url="assets/audio/pluck-desire.mp3"
+                        data-title="Electric Desire"
+                        data-artist="Synthwave Nights">
+                    <span class="wbi wbi-queue"></span> Add to Queue
+                </button>
+            </div>
+
+            <div class="product-features">
+                <div class="product-feature">
+                    <i class="ti ti-file-music"></i>
+                    <div>
+                        <strong>WAV + MP3</strong>
+                        <span>High quality stems included</span>
+                    </div>
+                </div>
+                <div class="product-feature">
+                    <i class="ti ti-license"></i>
+                    <div>
+                        <strong>Royalty Free</strong>
+                        <span>Use in commercial projects</span>
+                    </div>
+                </div>
+                <div class="product-feature">
+                    <i class="ti ti-download"></i>
+                    <div>
+                        <strong>Instant Download</strong>
+                        <span>Access immediately after purchase</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- More from this artist -->
+    <div class="bar-section" style="margin-top: 3rem;">
+        <h2>More Samples</h2>
+        <p>These are different tracks on a different page — the bar still keeps your queue from the store.</p>
+
+        <div class="store-grid">
+            <div class="store-card wb-card-highlight"
+                 data-wb-play
+                 data-url="assets/audio/pad-reach.mp3"
+                 data-title="Reach"
+                 data-artist="Pad Collection"
+                 data-bpm="95" data-key="Dm"
+                 data-artwork="assets/img/store-covers/cover-17.webp"
+                 data-link="bar-product.html">
+                <div class="store-art">
+                    <img src="assets/img/store-covers/cover-17.webp" alt="Reach">
+                    <div class="store-play-overlay"><span class="wb-icon-swap"><span class="wb-show-play"><span class="wbi wbi-play"></span></span><span class="wb-show-pause"><span class="wbi wbi-pause"></span></span></span></div>
+                </div>
+                <div class="store-body">
+                    <div class="store-title wb-accent-current">Reach</div>
+                    <div class="store-artist">Pad Collection</div>
+                    <div class="store-meta"><span class="store-tag store-tag-bpm">95 BPM</span><span class="store-tag store-tag-key">Dm</span><span class="store-price">$14.99</span></div>
+                </div>
+            </div>
+
+            <div class="store-card wb-card-highlight"
+                 data-wb-play
+                 data-url="assets/audio/lead-red-woods.mp3"
+                 data-title="Red Woods"
+                 data-artist="Lead Pack"
+                 data-bpm="118" data-key="G"
+                 data-artwork="assets/img/store-covers/cover-18.webp"
+                 data-link="bar-product.html">
+                <div class="store-art">
+                    <img src="assets/img/store-covers/cover-18.webp" alt="Red Woods">
+                    <div class="store-play-overlay"><span class="wb-icon-swap"><span class="wb-show-play"><span class="wbi wbi-play"></span></span><span class="wb-show-pause"><span class="wbi wbi-pause"></span></span></span></div>
+                </div>
+                <div class="store-body">
+                    <div class="store-title wb-accent-current">Red Woods</div>
+                    <div class="store-artist">Lead Pack</div>
+                    <div class="store-meta"><span class="store-tag store-tag-bpm">118 BPM</span><span class="store-tag store-tag-key">G</span><span class="store-price">$19.99</span></div>
+                </div>
+            </div>
+
+            <div class="store-card wb-card-highlight"
+                 data-wb-play
+                 data-url="assets/audio/choir-colorize.mp3"
+                 data-title="Colorize"
+                 data-artist="Choir Pack"
+                 data-bpm="100" data-key="C"
+                 data-artwork="assets/img/store-covers/cover-19.webp"
+                 data-link="bar-product.html">
+                <div class="store-art">
+                    <img src="assets/img/store-covers/cover-19.webp" alt="Colorize">
+                    <div class="store-play-overlay"><span class="wb-icon-swap"><span class="wb-show-play"><span class="wbi wbi-play"></span></span><span class="wb-show-pause"><span class="wbi wbi-pause"></span></span></span></div>
+                </div>
+                <div class="store-body">
+                    <div class="store-title wb-accent-current">Colorize</div>
+                    <div class="store-artist">Choir Pack</div>
+                    <div class="store-meta"><span class="store-tag store-tag-bpm">100 BPM</span><span class="store-tag store-tag-key">C</span><span class="store-price">$17.99</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bar-section" style="margin: 3rem 0;">
+        <div class="info-card" style="text-align:center; padding:2rem;">
+            <h3><i class="ti ti-refresh"></i> Cross-Page Persistence</h3>
+            <p>Notice the player bar kept playing when you navigated here from the store. Go <a href="bar.html">back to the store</a> — it'll still be playing. This is WaveformBar's session persistence in action.</p>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-bottom"><p>Made with ♥ by <a href="https://github.com/arraypress">ArrayPress</a></p></div>
+    </div>
+</footer>
+
+<script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.js"></script>
+<script src="https://unpkg.com/@arraypress/waveform-bar@latest/dist/waveform-bar.js"></script>
+<script src="assets/js/common.js"></script>
+<script>
+    WaveformBar.init({
+        configPath: 'assets/waveforms/',
+        waveformStyle: 'mirror',
+        waveformHeight: 32,
+        barWidth: 2,
+        barSpacing: 0,
+        showMeta: true,
+        markerColor: 'rgba(168, 85, 247, 0.4)',
+        actions: { favorite: { endpoint: '#' }, cart: { endpoint: '#' } }
+    });
+</script>
+</body>
+</html>

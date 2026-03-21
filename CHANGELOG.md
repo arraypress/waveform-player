@@ -2,33 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.4.0] - 2026-03-22
+## [1.4.1] - 2026-03-22
+
+### Reverted
+
+- Reverted JSON config file feature (`data-config`) introduced in 1.4.0 due to breaking changes with WaveformBar
+  integration. The feature caused layout and sizing issues when the player was used inside WaveformBar. Will be
+  revisited in a future release with proper integration testing.
+
+## [1.4.0] - 2026-03-22 [YANKED]
 
 ### New Features
 
 - **JSON Config Files** — Load track configuration from external JSON files via `data-config` attribute
-  - Single attribute setup: `<div data-waveform-player data-config="waveforms/track.json"></div>`
-  - JSON supports `url`, `title`, `subtitle`, `artwork`, `album`, `samples`, `peaks`, `markers`, and `meta`
-  - Priority order: JSON config (base) → data attributes (override) → JS options (override)
-  - Config files are cached in memory — subsequent loads of the same file are instant
-  - Works with `loadTrack()` via `options.config` for dynamic track loading
-  - `meta` object passes through for use by extensions (e.g. WaveformBar reads `meta.bpm`, `meta.key`)
+    - Single attribute setup: `<div data-waveform-player data-config="waveforms/track.json"></div>`
+    - JSON supports `url`, `title`, `subtitle`, `artwork`, `album`, `samples`, `peaks`, `markers`, and `meta`
+    - Priority order: JSON config (base) → data attributes (override) → JS options (override)
+    - Config files are cached in memory — subsequent loads of the same file are instant
+    - Works with `loadTrack()` via `options.config` for dynamic track loading
+    - `meta` object passes through for use by extensions (e.g. WaveformBar reads `meta.bpm`, `meta.key`)
 
 ### JSON Config Format
 
 ```json
 {
-    "url": "audio/track.mp3",
-    "title": "Track Title",
-    "subtitle": "Artist Name",
-    "artwork": "covers/artwork.webp",
-    "samples": 200,
-    "peaks": [0.2, 0.37, 0.41, ...],
-    "markers": [],
-    "meta": {
-        "bpm": "128",
-        "key": "Am"
-    }
+  "url": "audio/track.mp3",
+  "title": "Track Title",
+  "subtitle": "Artist Name",
+  "artwork": "covers/artwork.webp",
+  "samples": 200,
+  "peaks": [
+    0.2,
+    0.37,
+    0.41,
+    ...
+  ],
+  "markers": [],
+  "meta": {
+    "bpm": "128",
+    "key": "Am"
+  }
 }
 ```
 
@@ -54,19 +67,22 @@ npx @arraypress/waveform-gen ./audio/*.mp3 --output ./waveforms/
 
 ### Bug Fixes
 
-- Removed inline `style.height` on canvas element that prevented it from filling available width in flex containers. Container div still controls height.
+- Removed inline `style.height` on canvas element that prevented it from filling available width in flex containers.
+  Container div still controls height.
 
 ## [1.3.2] - 2026-03-17
 
 ### Bug Fixes
 
-- Fixed waveform canvas not filling available width when embedded in flex containers (e.g. persistent bottom bars). `resizeCanvas()` now reads width from the container div instead of the canvas element.
+- Fixed waveform canvas not filling available width when embedded in flex containers (e.g. persistent bottom bars).
+  `resizeCanvas()` now reads width from the container div instead of the canvas element.
 
 ## [1.3.1] - 2026-03-17
 
 ### Bug Fixes
 
-- Fixed uncaught `NotAllowedError` when `loadTrack()` triggers autoplay before user interaction (e.g. on session restore). The `play()` promise returned since v1.2.2 was not being caught internally.
+- Fixed uncaught `NotAllowedError` when `loadTrack()` triggers autoplay before user interaction (e.g. on session
+  restore). The `play()` promise returned since v1.2.2 was not being caught internally.
 
 ## [1.3.0] - 2026-03-16
 
@@ -78,6 +94,7 @@ npx @arraypress/waveform-gen ./audio/*.mp3 --output ./waveforms/
 - Waveform automatically fills the full width when controls are hidden
 
 ### Usage
+
 ```html
 <!-- Waveform only, no button or info -->
 <div data-waveform-player
@@ -111,10 +128,10 @@ Thanks to [@scruffian](https://github.com/scruffian) for contributing these fixe
 ### Features
 
 - **Automatic Theme Detection** - Player now automatically adapts to your website's color scheme
-  - Detects light/dark themes automatically
-  - Checks background brightness, theme classes, and system preferences
-  - Works seamlessly on WordPress, Shopify, and all platforms
-  - Override with explicit `data-color-preset="light"` or `"dark"` if needed
+    - Detects light/dark themes automatically
+    - Checks background brightness, theme classes, and system preferences
+    - Works seamlessly on WordPress, Shopify, and all platforms
+    - Override with explicit `data-color-preset="light"` or `"dark"` if needed
 
 ## [1.1.0] - 2025-09-15
 
