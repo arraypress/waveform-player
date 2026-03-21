@@ -571,6 +571,8 @@
   var DEFAULT_OPTIONS = {
     // Core settings
     url: "",
+    config: null,
+    // URL to JSON config file (loads title, peaks, meta, etc.)
     height: 60,
     samples: 200,
     preload: "metadata",
@@ -676,13 +678,76 @@
       this.hasError = false;
       this.updateTimer = null;
       this.resizeObserver = null;
-      this.id = this.container.id || generateId(this.options.url);
-      _WaveformPlayer.instances.set(this.id, this);
-      this.init();
+      this.meta = {};
+      if (this.options.config) {
+        this.id = this.container.id || generateId("pending-" + Math.random());
+        _WaveformPlayer.instances.set(this.id, this);
+        this._loadConfig(this.options.config, dataOptions, options).then(() => {
+          if (!this.container.id && this.options.url) {
+            _WaveformPlayer.instances.delete(this.id);
+            this.id = generateId(this.options.url);
+            _WaveformPlayer.instances.set(this.id, this);
+          }
+          this.init();
+          this._dispatchReady();
+        });
+      } else {
+        this.id = this.container.id || generateId(this.options.url);
+        _WaveformPlayer.instances.set(this.id, this);
+        this.init();
+        this._dispatchReady();
+      }
+    }
+    /**
+     * Load external JSON config file
+     * Config values are base — data attributes and JS options override them
+     * @param {string} configUrl - URL to JSON config file
+     * @param {Object} dataOptions - Parsed data attributes (for override check)
+     * @param {Object} jsOptions - JS constructor options (for override check)
+     * @private
+     */
+    async _loadConfig(configUrl, dataOptions = {}, jsOptions = {}) {
+      try {
+        _WaveformPlayer._configCache = _WaveformPlayer._configCache || {};
+        let config;
+        if (_WaveformPlayer._configCache[configUrl]) {
+          config = _WaveformPlayer._configCache[configUrl];
+        } else {
+          const response = await fetch(configUrl);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          config = await response.json();
+          _WaveformPlayer._configCache[configUrl] = config;
+        }
+        const configOptions = {};
+        if (config.url) configOptions.url = config.url;
+        if (config.title) configOptions.title = config.title;
+        if (config.subtitle) configOptions.subtitle = config.subtitle;
+        if (config.artwork) configOptions.artwork = config.artwork;
+        if (config.album) configOptions.album = config.album;
+        if (config.samples) configOptions.samples = config.samples;
+        if (config.markers) configOptions.markers = config.markers;
+        if (config.peaks) configOptions.waveform = config.peaks;
+        if (config.meta) this.meta = config.meta;
+        this.options = mergeOptions(DEFAULT_OPTIONS, configOptions, dataOptions, jsOptions);
+        const preset = getColorPreset(this.options.colorPreset);
+        for (const [key, value] of Object.entries(preset)) {
+          if (this.options[key] === null || this.options[key] === void 0) {
+            this.options[key] = value;
+          }
+        }
+      } catch (error) {
+        console.warn("WaveformPlayer: Failed to load config:", configUrl, error);
+      }
+    }
+    /**
+     * Dispatch ready event
+     * @private
+     */
+    _dispatchReady() {
       setTimeout(() => {
         this.container.dispatchEvent(new CustomEvent("waveformplayer:ready", {
           bubbles: true,
-          detail: { player: this, url: this.options.url }
+          detail: { player: this, url: this.options.url, meta: this.meta }
         }));
       }, 100);
     }
@@ -1000,6 +1065,12 @@
         if (this.titleEl) {
           this.titleEl.textContent = title;
         }
+        if (this.options.config && !this.options.waveform) {
+          await this._loadConfig(this.options.config);
+          if (this.options.title && this.titleEl) {
+            this.titleEl.textContent = this.options.title;
+          }
+        }
         if (this.options.waveform) {
           this.setWaveformData(this.options.waveform);
         } else {
@@ -1040,6 +1111,12 @@
       if (this.isPlaying) {
         this.pause();
       }
+      if (options.config) {
+        await this._loadConfig(options.config);
+        if (!url && this.options.url) url = this.options.url;
+        if (title) this.options.title = title;
+        if (subtitle) this.options.subtitle = subtitle;
+      }
       this.audio.src = "";
       this.audio.load();
       this.hasError = false;
@@ -1054,8 +1131,9 @@
       }
       this.progress = 0;
       this.waveformData = [];
+      const trackUrl = url || this.options.url;
       this.options = mergeOptions(this.options, {
-        url,
+        url: trackUrl,
         title: title || this.options.title,
         subtitle: subtitle || this.options.subtitle,
         ...options
@@ -1074,16 +1152,18 @@
       if (options.artwork && this.artworkEl) {
         this.artworkEl.src = options.artwork;
       }
-      this.options.markers = options.markers || [];
-      await this.load(url);
-      this.play().catch(() => {
-      });
+      if (options.markers) {
+        this.options.markers = options.markers;
+      }
+      await this.load(trackUrl);
+      this.play();
     }
     // ============================================
     // Visualization
     // ============================================
     /**
-     * Set waveform data
+     * Set waveform data from inline data or array
+     * @param {string|Array} data - Waveform peaks as array, JSON string, or CSV string
      * @private
      */
     setWaveformData(data) {
@@ -1121,9 +1201,10 @@
         return;
       }
       const dpr = window.devicePixelRatio || 1;
-      const rect = this.canvas.parentElement.getBoundingClientRect();
+      const rect = this.canvas.getBoundingClientRect();
       this.canvas.width = rect.width * dpr;
       this.canvas.height = this.options.height * dpr;
+      this.canvas.style.height = this.options.height + "px";
       this.canvas.parentElement.style.height = this.options.height + "px";
       this.drawWaveform();
     }
@@ -1132,9 +1213,8 @@
      * @private
      */
     renderMarkers() {
-      if (!this.markersContainer) return;
+      if (!this.options.showMarkers || !this.options.markers?.length || !this.markersContainer) return;
       this.markersContainer.innerHTML = "";
-      if (!this.options.showMarkers || !this.options.markers?.length) return;
       if (!this.audio || !this.audio.duration || this.audio.duration === 0) {
         return;
       }
@@ -1524,6 +1604,22 @@
         console.error("Failed to generate waveform:", error);
         throw error;
       }
+    }
+    /**
+     * Load a config JSON file (useful for bar/external consumers)
+     * @param {string} configUrl - URL to JSON config file
+     * @returns {Promise<Object>} Parsed config with { title, subtitle, artwork, samples, peaks, markers, meta }
+     */
+    static async loadConfig(configUrl) {
+      _WaveformPlayer._configCache = _WaveformPlayer._configCache || {};
+      if (_WaveformPlayer._configCache[configUrl]) {
+        return _WaveformPlayer._configCache[configUrl];
+      }
+      const response = await fetch(configUrl);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const config = await response.json();
+      _WaveformPlayer._configCache[configUrl] = config;
+      return config;
     }
   };
 

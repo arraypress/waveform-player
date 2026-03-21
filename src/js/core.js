@@ -80,21 +80,95 @@ export class WaveformPlayer {
         this.hasError = false;
         this.updateTimer = null;
         this.resizeObserver = null;
+        this.meta = {};
 
-        // Generate unique ID
-        this.id = this.container.id || generateId(this.options.url);
+        // If config URL provided, fetch it then initialize
+        if (this.options.config) {
+            // Temporary ID until config loads
+            this.id = this.container.id || generateId('pending-' + Math.random());
+            WaveformPlayer.instances.set(this.id, this);
 
-        // Add to instances
-        WaveformPlayer.instances.set(this.id, this);
+            this._loadConfig(this.options.config, dataOptions, options).then(() => {
+                // Update ID now that we have the real URL
+                if (!this.container.id && this.options.url) {
+                    WaveformPlayer.instances.delete(this.id);
+                    this.id = generateId(this.options.url);
+                    WaveformPlayer.instances.set(this.id, this);
+                }
+                this.init();
+                this._dispatchReady();
+            });
+        } else {
+            this.id = this.container.id || generateId(this.options.url);
+            WaveformPlayer.instances.set(this.id, this);
+            this.init();
+            this._dispatchReady();
+        }
+    }
 
-        // Initialize
-        this.init();
+    /**
+     * Load external JSON config file
+     * Config values are base — data attributes and JS options override them
+     * @param {string} configUrl - URL to JSON config file
+     * @param {Object} dataOptions - Parsed data attributes (for override check)
+     * @param {Object} jsOptions - JS constructor options (for override check)
+     * @private
+     */
+    async _loadConfig(configUrl, dataOptions = {}, jsOptions = {}) {
+        try {
+            // Check cache
+            WaveformPlayer._configCache = WaveformPlayer._configCache || {};
+            let config;
 
-        // Dispatch ready event after initialization
+            if (WaveformPlayer._configCache[configUrl]) {
+                config = WaveformPlayer._configCache[configUrl];
+            } else {
+                const response = await fetch(configUrl);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                config = await response.json();
+                WaveformPlayer._configCache[configUrl] = config;
+            }
+
+            // Map config fields to player options (config is the base layer)
+            const configOptions = {};
+            if (config.url) configOptions.url = config.url;
+            if (config.title) configOptions.title = config.title;
+            if (config.subtitle) configOptions.subtitle = config.subtitle;
+            if (config.artwork) configOptions.artwork = config.artwork;
+            if (config.album) configOptions.album = config.album;
+            if (config.samples) configOptions.samples = config.samples;
+            if (config.markers) configOptions.markers = config.markers;
+
+            // peaks → waveform option
+            if (config.peaks) configOptions.waveform = config.peaks;
+
+            // Store meta for pass-through (bar, events, etc.)
+            if (config.meta) this.meta = config.meta;
+
+            // Re-merge: defaults < config < data attributes < JS options
+            this.options = mergeOptions(DEFAULT_OPTIONS, configOptions, dataOptions, jsOptions);
+
+            // Re-apply color preset after merge
+            const preset = getColorPreset(this.options.colorPreset);
+            for (const [key, value] of Object.entries(preset)) {
+                if (this.options[key] === null || this.options[key] === undefined) {
+                    this.options[key] = value;
+                }
+            }
+        } catch (error) {
+            console.warn('WaveformPlayer: Failed to load config:', configUrl, error);
+        }
+    }
+
+    /**
+     * Dispatch ready event
+     * @private
+     */
+    _dispatchReady() {
         setTimeout(() => {
             this.container.dispatchEvent(new CustomEvent('waveformplayer:ready', {
                 bubbles: true,
-                detail: {player: this, url: this.options.url}
+                detail: {player: this, url: this.options.url, meta: this.meta}
             }));
         }, 100);
     }
@@ -488,11 +562,20 @@ export class WaveformPlayer {
                 this.titleEl.textContent = title;
             }
 
+            // If config is set but hasn't been loaded yet, fetch it now
+            if (this.options.config && !this.options.waveform) {
+                await this._loadConfig(this.options.config);
+                // Update title if config provided one and none was set explicitly
+                if (this.options.title && this.titleEl) {
+                    this.titleEl.textContent = this.options.title;
+                }
+            }
+
             // Load or generate waveform
             if (this.options.waveform) {
                 this.setWaveformData(this.options.waveform);
             } else {
-                // Generate waveform
+                // Generate waveform from audio
                 try {
                     const result = await generateWaveform(url, this.options.samples, this.options.showBPM);
                     this.waveformData = result.peaks;
@@ -538,6 +621,16 @@ export class WaveformPlayer {
             this.pause();
         }
 
+        // If a config URL is provided, load it first
+        if (options.config) {
+            await this._loadConfig(options.config);
+            // Config may have set title, subtitle, url, waveform, etc.
+            // Explicit params still override
+            if (!url && this.options.url) url = this.options.url;
+            if (title) this.options.title = title;
+            if (subtitle) this.options.subtitle = subtitle;
+        }
+
         // Reset audio element completely
         this.audio.src = '';
         this.audio.load();
@@ -559,8 +652,9 @@ export class WaveformPlayer {
         this.waveformData = [];
 
         // Update options (including preload if specified)
+        const trackUrl = url || this.options.url;
         this.options = mergeOptions(this.options, {
-            url,
+            url: trackUrl,
             title: title || this.options.title,
             subtitle: subtitle || this.options.subtitle,
             ...options
@@ -586,14 +680,16 @@ export class WaveformPlayer {
             this.artworkEl.src = options.artwork;
         }
 
-        // Clear or update markers
-        this.options.markers = options.markers || [];
+        // Clear markers if new markers provided
+        if (options.markers) {
+            this.options.markers = options.markers;
+        }
 
         // Load the new track
-        await this.load(url);
+        await this.load(trackUrl);
 
         // Auto-play the new track
-        this.play().catch(() => {});
+        this.play();
     }
 
     // ============================================
@@ -601,7 +697,8 @@ export class WaveformPlayer {
     // ============================================
 
     /**
-     * Set waveform data
+     * Set waveform data from inline data or array
+     * @param {string|Array} data - Waveform peaks as array, JSON string, or CSV string
      * @private
      */
     setWaveformData(data) {
@@ -644,10 +741,11 @@ export class WaveformPlayer {
         }
 
         const dpr = window.devicePixelRatio || 1;
-        const rect = this.canvas.parentElement.getBoundingClientRect();
+        const rect = this.canvas.getBoundingClientRect();
 
         this.canvas.width = rect.width * dpr;
         this.canvas.height = this.options.height * dpr;
+        this.canvas.style.height = this.options.height + 'px';
         this.canvas.parentElement.style.height = this.options.height + 'px';
 
         this.drawWaveform();
@@ -658,12 +756,10 @@ export class WaveformPlayer {
      * @private
      */
     renderMarkers() {
-        if (!this.markersContainer) return;
+        if (!this.options.showMarkers || !this.options.markers?.length || !this.markersContainer) return;
 
-        // Always clear existing markers first
+        // Clear existing markers
         this.markersContainer.innerHTML = '';
-
-        if (!this.options.showMarkers || !this.options.markers?.length) return;
 
         // Don't render if audio duration isn't available yet
         if (!this.audio || !this.audio.duration || this.audio.duration === 0) {
@@ -1163,6 +1259,24 @@ export class WaveformPlayer {
             console.error('Failed to generate waveform:', error);
             throw error;
         }
+    }
+
+    /**
+     * Load a config JSON file (useful for bar/external consumers)
+     * @param {string} configUrl - URL to JSON config file
+     * @returns {Promise<Object>} Parsed config with { title, subtitle, artwork, samples, peaks, markers, meta }
+     */
+    static async loadConfig(configUrl) {
+        WaveformPlayer._configCache = WaveformPlayer._configCache || {};
+        if (WaveformPlayer._configCache[configUrl]) {
+            return WaveformPlayer._configCache[configUrl];
+        }
+
+        const response = await fetch(configUrl);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const config = await response.json();
+        WaveformPlayer._configCache[configUrl] = config;
+        return config;
     }
 
 }

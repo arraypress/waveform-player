@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2026-03-22
+
+### New Features
+
+- **JSON Config Files** — Load track configuration from external JSON files via `data-config` attribute
+  - Single attribute setup: `<div data-waveform-player data-config="waveforms/track.json"></div>`
+  - JSON supports `url`, `title`, `subtitle`, `artwork`, `album`, `samples`, `peaks`, `markers`, and `meta`
+  - Priority order: JSON config (base) → data attributes (override) → JS options (override)
+  - Config files are cached in memory — subsequent loads of the same file are instant
+  - Works with `loadTrack()` via `options.config` for dynamic track loading
+  - `meta` object passes through for use by extensions (e.g. WaveformBar reads `meta.bpm`, `meta.key`)
+
+### JSON Config Format
+
+```json
+{
+    "url": "audio/track.mp3",
+    "title": "Track Title",
+    "subtitle": "Artist Name",
+    "artwork": "covers/artwork.webp",
+    "samples": 200,
+    "peaks": [0.2, 0.37, 0.41, ...],
+    "markers": [],
+    "meta": {
+        "bpm": "128",
+        "key": "Am"
+    }
+}
+```
+
+Generate config files with [@arraypress/waveform-gen](https://github.com/arraypress/waveform-gen):
+
+```bash
+npx @arraypress/waveform-gen ./audio/*.mp3 --output ./waveforms/
+```
+
 ## [1.3.5] - 2026-03-17
 
 ### Bug Fixes
