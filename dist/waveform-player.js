@@ -364,14 +364,17 @@
   var DRAWING_STYLES = {
     "bars": drawBars,
     // Classic vertical bars
+    "bar": drawBars,
     "mirror": drawMirror,
     // SoundCloud-style symmetrical
     "line": drawLine,
     // Smooth oscilloscope wave
     "blocks": drawBlocks,
     // LED meter segmented
+    "block": drawBlocks,
     "dots": drawDots,
     // Circular points
+    "dot": drawDots,
     "seekbar": drawSeekbar
     // Simple progress bar (no waveform)
   };
