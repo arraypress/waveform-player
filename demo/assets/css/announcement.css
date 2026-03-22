@@ -1,0 +1,37 @@
+/* ========================================
+   ADD-ONS PAGE SPECIFIC STYLES
+   ======================================== */
+
+.announcement-bar {
+    width: 100%;
+    background: var(--accent);
+    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+    padding: 1rem;
+    font-size: 0.78rem;
+    z-index: 1001;
+}
+
+.announcement-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    color: white;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.announcement-badge {
+    background: white;
+    color: var(--accent);
+    padding: 0.1rem 0.5rem;
+    border-radius: 50px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.announcement-arrow {
+    font-weight: 600;
+}
