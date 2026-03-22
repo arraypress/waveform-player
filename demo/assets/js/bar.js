@@ -27,7 +27,7 @@ const TRACKS = [
 ];
 
 function storeCard(t, i) {
-    var id = 'track-' + String(i + 1).padStart(3, '0');
+    const id = 'track-' + String(i + 1).padStart(3, '0');
     return '<div class="store-card wb-card-highlight" data-wb-play'
         + ' data-url="assets/audio/' + t.file + '.mp3"'
         + ' data-id="' + id + '"'
@@ -93,10 +93,10 @@ function tableRow(t, i) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    var grid = document.getElementById('store-grid');
+    const grid = document.getElementById('store-grid');
     if (grid) grid.innerHTML = TRACKS.map(storeCard).join('');
 
-    var tbody = document.getElementById('sample-tbody');
+    const tbody = document.getElementById('sample-tbody');
     if (tbody) tbody.innerHTML = TRACKS.map(tableRow).join('');
 
     // Tabs
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Init WaveformBar
     WaveformBar.init({
-        waveformStyle: 'seekbar',
+        waveformStyle: 'mirror',
         waveformHeight: 32,
         barWidth: 2,
         barSpacing: 2,

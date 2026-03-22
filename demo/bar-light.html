@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
     <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css">
     <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-bar@latest/dist/waveform-bar.css">
-    <link rel="stylesheet" href="assets/css/waveform-bar-icons.css">
+    <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-bar@latest/dist/waveform-bar-icons.css">
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -94,6 +94,10 @@
             display: flex; align-items: center; justify-content: center;
             color: white; font-size: 1.3rem;
         }
+        .card-overlay .wb-show-play { display: flex; }
+        .card-overlay .wb-show-pause { display: none; }
+        .wb-playing .card-overlay .wb-show-play { display: none; }
+        .wb-playing .card-overlay .wb-show-pause { display: flex; }
         .card-body { padding: 0.75rem 1rem 1rem; }
         .card-title { font-weight: 600; font-size: 0.9rem; }
         .card-artist { font-size: 0.8rem; color: #888; }
@@ -180,19 +184,19 @@
         <table class="light-table">
             <thead><tr><th></th><th>Name</th><th>Pack</th><th>BPM</th><th>Key</th></tr></thead>
             <tbody>
-            <tr data-wb-play data-url="assets/audio/pluck-luminous.mp3" data-title="Pluck Luminous" data-artist="Pack Vol. 2" data-bpm="100" data-key="Bb" data-artwork="assets/img/store-covers/cover-07.webp">
+            <tr data-wb-play data-url="assets/audio/pluck-luminous.mp3" data-title="Pluck Luminous" data-artist="Pack Vol. 2" data-bpm="100" data-key="Bb" data-artwork="assets/img/store-covers/cover-07.webp" data-wb-waveform="assets/waveforms/pluck-luminous.json">
                 <td><span class="wb-eq-bars"><span></span><span></span><span></span><span></span></span></td>
                 <td class="tname wb-accent-current">Pluck Luminous</td><td>Pack Vol. 2</td><td>100</td><td>Bb</td>
             </tr>
-            <tr data-wb-play data-url="assets/audio/pluck-sine.mp3" data-title="Pluck Sine" data-artist="Pack Vol. 1" data-bpm="130" data-key="Eb" data-artwork="assets/img/store-covers/cover-08.webp">
+            <tr data-wb-play data-url="assets/audio/pluck-sine.mp3" data-title="Pluck Sine" data-artist="Pack Vol. 1" data-bpm="130" data-key="Eb" data-artwork="assets/img/store-covers/cover-08.webp" data-wb-waveform="assets/waveforms/pluck-sine.json">
                 <td><span class="wb-eq-bars"><span></span><span></span><span></span><span></span></span></td>
                 <td class="tname wb-accent-current">Pluck Sine</td><td>Pack Vol. 1</td><td>130</td><td>Eb</td>
             </tr>
-            <tr data-wb-play data-url="assets/audio/pluck-small-moments.mp3" data-title="Small Moments" data-artist="Pack Vol. 3" data-bpm="85" data-key="G" data-artwork="assets/img/store-covers/cover-09.webp">
+            <tr data-wb-play data-url="assets/audio/pluck-small-moments.mp3" data-title="Small Moments" data-artist="Pack Vol. 3" data-bpm="85" data-key="G" data-artwork="assets/img/store-covers/cover-09.webp" data-wb-waveform="assets/waveforms/pluck-small-moments.json">
                 <td><span class="wb-eq-bars"><span></span><span></span><span></span><span></span></span></td>
                 <td class="tname wb-accent-current">Small Moments</td><td>Pack Vol. 3</td><td>85</td><td>G</td>
             </tr>
-            <tr data-wb-play data-url="assets/audio/pluck-got-me-thinking.mp3" data-title="Got Me Thinking" data-artist="Pack Vol. 1" data-bpm="88" data-key="Cm" data-artwork="assets/img/store-covers/cover-10.webp">
+            <tr data-wb-play data-url="assets/audio/pluck-got-me-thinking.mp3" data-title="Got Me Thinking" data-artist="Pack Vol. 1" data-bpm="88" data-key="Cm" data-artwork="assets/img/store-covers/cover-10.webp" data-wb-waveform="assets/waveforms/pluck-got-me-thinking.json">
                 <td><span class="wb-eq-bars"><span></span><span></span><span></span><span></span></span></td>
                 <td class="tname wb-accent-current">Got Me Thinking</td><td>Pack Vol. 1</td><td>88</td><td>Cm</td>
             </tr>
@@ -227,7 +231,8 @@
          data-url="assets/audio/${t.file}.mp3"
          data-title="${t.title}" data-artist="${t.artist}"
          data-bpm="${t.bpm}" data-key="${t.key}"
-         data-artwork="assets/img/store-covers/cover-${t.cover}.webp">
+         data-artwork="assets/img/store-covers/cover-${t.cover}.webp"
+         data-wb-waveform="assets/waveforms/${t.file}.json">
         <div class="card-img">
             <img src="assets/img/store-covers/cover-${t.cover}.webp" alt="${t.title}">
             <div class="card-overlay"><span class="wb-icon-swap"><span class="wb-show-play"><span class="wbi wbi-play"></span></span><span class="wb-show-pause"><span class="wbi wbi-pause"></span></span></span></div>
@@ -245,7 +250,6 @@
     });
 
     WaveformBar.init({
-        configPath: 'assets/waveforms/',
         waveformStyle: 'mirror',
         waveformHeight: 32,
         barWidth: 2,

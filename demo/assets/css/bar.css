@@ -2,9 +2,14 @@
    WAVEFORM BAR DEMO
    ======================================== */
 
-body { padding-bottom: 100px; }
+body {
+    padding-bottom: 100px;
+}
 
-/* Hero badges */
+/* ========================================
+   HERO
+   ======================================== */
+
 .bar-hero-badges {
     display: flex;
     gap: 0.75rem;
@@ -40,10 +45,19 @@ body { padding-bottom: 100px; }
     font-size: 0.9rem;
 }
 
-.bar-hero-links a:hover { text-decoration: underline; }
-.bar-hero-links span { color: var(--text-muted); opacity: 0.3; }
+.bar-hero-links a:hover {
+    text-decoration: underline;
+}
 
-/* Tabs */
+.bar-hero-links span {
+    color: var(--text-muted);
+    opacity: 0.3;
+}
+
+/* ========================================
+   TABS
+   ======================================== */
+
 .bar-tabs {
     display: flex;
     gap: 0;
@@ -68,14 +82,35 @@ body { padding-bottom: 100px; }
     font-family: inherit;
 }
 
-.bar-tab i { font-size: 1rem; }
-.bar-tab:hover { color: var(--text); }
-.bar-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.bar-tab i {
+    font-size: 1rem;
+}
 
-.bar-panel { display: none; }
-.bar-panel.active { display: block; }
+.bar-tab:hover {
+    color: var(--text);
+}
 
-.bar-section { margin-bottom: 2rem; }
+.bar-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.bar-panel {
+    display: none;
+}
+
+.bar-panel.active {
+    display: block;
+}
+
+/* ========================================
+   SECTIONS
+   ======================================== */
+
+.bar-section {
+    margin-bottom: 2rem;
+}
+
 .bar-section h2 {
     font-size: 1.4rem;
     margin-bottom: 0.5rem;
@@ -83,12 +118,14 @@ body { padding-bottom: 100px; }
     align-items: center;
     gap: 0.75rem;
 }
+
 .bar-section > p {
     color: var(--text-muted);
     margin-bottom: 1.5rem;
     line-height: 1.6;
     font-size: 0.9rem;
 }
+
 .bar-section > p code {
     background: rgba(168, 85, 247, 0.1);
     color: var(--accent-light);
@@ -126,6 +163,7 @@ body { padding-bottom: 100px; }
     background: rgba(168, 85, 247, 0.03);
 }
 
+/* Card artwork */
 .store-art {
     position: relative;
     aspect-ratio: 1;
@@ -139,8 +177,11 @@ body { padding-bottom: 100px; }
     transition: transform 0.4s;
 }
 
-.store-card:hover .store-art img { transform: scale(1.05); }
+.store-card:hover .store-art img {
+    transform: scale(1.05);
+}
 
+/* Play overlay */
 .store-play-overlay {
     position: absolute;
     inset: 0;
@@ -153,7 +194,9 @@ body { padding-bottom: 100px; }
 }
 
 .store-card:hover .store-play-overlay,
-.store-card.wb-playing .store-play-overlay { opacity: 1; }
+.store-card.wb-playing .store-play-overlay {
+    opacity: 1;
+}
 
 .store-play-overlay .wb-icon-swap {
     width: 52px;
@@ -168,22 +211,31 @@ body { padding-bottom: 100px; }
     transition: transform 0.2s;
 }
 
-.store-play-overlay .wb-icon-swap:hover { transform: scale(1.1); }
-
-/* Reset inner spans */
-.store-play-overlay .wb-icon-swap .wb-show-play,
-.store-play-overlay .wb-icon-swap .wb-show-pause {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: auto;
-    height: auto;
-    border-radius: 0;
-    background: none;
-    border: none;
+.store-play-overlay .wb-icon-swap:hover {
+    transform: scale(1.1);
 }
 
-.store-body { padding: 0.75rem 1rem 1rem; }
+/* Play/pause icon toggle */
+.store-play-overlay .wb-show-play {
+    display: flex;
+}
+
+.store-play-overlay .wb-show-pause {
+    display: none;
+}
+
+.wb-playing .store-play-overlay .wb-show-play {
+    display: none;
+}
+
+.wb-playing .store-play-overlay .wb-show-pause {
+    display: flex;
+}
+
+/* Card body */
+.store-body {
+    padding: 0.75rem 1rem 1rem;
+}
 
 .store-title-link {
     display: block;
@@ -195,7 +247,9 @@ body { padding-bottom: 100px; }
     transition: color 0.15s;
 }
 
-.store-title-link:hover { color: var(--accent); }
+.store-title-link:hover {
+    color: var(--accent);
+}
 
 .store-artist {
     font-size: 0.8rem;
@@ -203,6 +257,7 @@ body { padding-bottom: 100px; }
     margin-bottom: 0.6rem;
 }
 
+/* Card meta tags */
 .store-meta {
     display: flex;
     align-items: center;
@@ -219,10 +274,23 @@ body { padding-bottom: 100px; }
     letter-spacing: 0.03em;
 }
 
-.store-tag-bpm { color: var(--accent); background: rgba(168, 85, 247, 0.1); }
-.store-tag-key { color: #4ade80; background: rgba(74, 222, 128, 0.1); }
-.store-price { font-weight: 700; font-size: 0.85rem; margin-left: auto; }
+.store-tag-bpm {
+    color: var(--accent);
+    background: rgba(168, 85, 247, 0.1);
+}
 
+.store-tag-key {
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.1);
+}
+
+.store-price {
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-left: auto;
+}
+
+/* Card action buttons */
 .store-actions {
     display: flex;
     gap: 0.35rem;
@@ -244,15 +312,18 @@ body { padding-bottom: 100px; }
     font-family: inherit;
 }
 
-.store-btn:hover { border-color: var(--accent); color: var(--accent); }
+.store-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
 
-/* Fav button states */
-.store-btn-fav .wb-show-if-fav { color: #ef4444; }
-.store-btn-fav .wb-show-if-fav i { color: #ef4444; }
+.store-btn-fav .wb-show-if-fav {
+    color: #ef4444;
+}
 
-/* Cart button states */
-.store-btn-cart .wb-show-if-cart { color: #4ade80; }
-.store-btn-cart .wb-show-if-cart i { color: #4ade80; }
+.store-btn-cart .wb-show-if-cart {
+    color: #4ade80;
+}
 
 /* ========================================
    SAMPLE TABLE
@@ -285,15 +356,38 @@ body { padding-bottom: 100px; }
     transition: background 0.15s;
 }
 
-.sample-table tbody tr:hover { background: rgba(168, 85, 247, 0.04); }
-.sample-table tbody tr.wb-playing { background: rgba(168, 85, 247, 0.08); }
-.sample-table tbody tr.wb-playing .sample-name { color: var(--accent); font-weight: 600; }
+.sample-table tbody tr:hover {
+    background: rgba(168, 85, 247, 0.04);
+}
 
-.sample-artist { color: var(--text-muted); }
+.sample-table tbody tr.wb-playing {
+    background: rgba(168, 85, 247, 0.08);
+}
 
-.fav-cell { width: 20px; }
-.fav-indicator { opacity: 0.1; color: var(--text-muted); font-size: 0.8rem; transition: all 0.2s; }
-.wb-favorited .fav-indicator { opacity: 1; color: #ef4444; }
+.sample-table tbody tr.wb-playing .sample-name {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.sample-artist {
+    color: var(--text-muted);
+}
+
+.fav-cell {
+    width: 20px;
+}
+
+.fav-indicator {
+    opacity: 0.1;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.wb-favorited .fav-indicator {
+    opacity: 1;
+    color: #ef4444;
+}
 
 /* ========================================
    DJ MIX
@@ -311,7 +405,9 @@ body { padding-bottom: 100px; }
     transition: all 0.2s;
 }
 
-.mix-card:hover { border-color: var(--accent); }
+.mix-card:hover {
+    border-color: var(--accent);
+}
 
 .mix-art {
     width: 72px;
@@ -321,11 +417,27 @@ body { padding-bottom: 100px; }
     flex-shrink: 0;
 }
 
-.mix-art img { width: 100%; height: 100%; object-fit: cover; }
-.mix-title { font-weight: 600; font-size: 1.05rem; }
-.mix-subtitle { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.2rem; }
+.mix-art img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 
-.dj-tracklist { margin-top: 1.25rem; }
+.mix-title {
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+.mix-subtitle {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
+}
+
+.dj-tracklist {
+    margin-top: 1.25rem;
+}
+
 .dj-tracklist h3 {
     font-size: 0.95rem;
     margin-bottom: 0.5rem;
@@ -334,7 +446,9 @@ body { padding-bottom: 100px; }
     gap: 0.5rem;
 }
 
-.dj-tracklist h3 i { color: var(--accent); }
+.dj-tracklist h3 i {
+    color: var(--accent);
+}
 
 .dj-tracks {
     display: grid;
@@ -373,7 +487,7 @@ body { padding-bottom: 100px; }
 }
 
 /* ========================================
-   API
+   JS API
    ======================================== */
 
 .api-grid {
@@ -397,8 +511,16 @@ body { padding-bottom: 100px; }
     font-family: inherit;
 }
 
-.api-btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
-.api-btn i { font-size: 1rem; color: var(--accent); }
+.api-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.api-btn i {
+    font-size: 1rem;
+    color: var(--accent);
+}
 
 /* ========================================
    INFO CARDS
@@ -425,10 +547,25 @@ body { padding-bottom: 100px; }
     margin-bottom: 0.4rem;
 }
 
-.info-card h3 i { color: var(--accent); }
-.info-card p { color: var(--text-muted); font-size: 0.8rem; line-height: 1.6; }
-.info-card a { color: var(--accent); text-decoration: none; }
-.info-card a:hover { text-decoration: underline; }
+.info-card h3 i {
+    color: var(--accent);
+}
+
+.info-card p {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.6;
+}
+
+.info-card a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.info-card a:hover {
+    text-decoration: underline;
+}
+
 .info-card code {
     background: rgba(168, 85, 247, 0.1);
     color: var(--accent-light);
@@ -449,7 +586,10 @@ body { padding-bottom: 100px; }
     border-radius: 16px;
 }
 
-.install-cta h2 { margin-bottom: 1.25rem; font-size: 1.6rem; }
+.install-cta h2 {
+    margin-bottom: 1.25rem;
+    font-size: 1.6rem;
+}
 
 /* ========================================
    PRODUCT PAGE
@@ -466,7 +606,9 @@ body { padding-bottom: 100px; }
     transition: gap 0.2s;
 }
 
-.back-link:hover { gap: 0.75rem; }
+.back-link:hover {
+    gap: 0.75rem;
+}
 
 .product-layout {
     display: grid;
@@ -516,8 +658,14 @@ body { padding-bottom: 100px; }
     margin-bottom: 1.5rem;
 }
 
-.product-desc a { color: var(--accent); text-decoration: none; }
-.product-desc a:hover { text-decoration: underline; }
+.product-desc a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.product-desc a:hover {
+    text-decoration: underline;
+}
 
 .product-actions {
     display: flex;
@@ -547,35 +695,14 @@ body { padding-bottom: 100px; }
     flex-shrink: 0;
 }
 
-.product-feature strong { display: block; font-size: 0.9rem; }
-.product-feature span { color: var(--text-muted); font-size: 0.8rem; }
-
-.store-play-overlay .wb-icon-swap .wb-show-play,
-.store-play-overlay .wb-icon-swap .wb-show-pause {
-    align-items: center;
-    justify-content: center;
-    width: auto;
-    height: auto;
-    border-radius: 0;
-    background: none;
-    border: none;
-    font-size: 1.4rem;
+.product-feature strong {
+    display: block;
+    font-size: 0.9rem;
 }
 
-.store-play-overlay .wb-icon-swap .wb-show-play {
-    display: flex;
-}
-
-.store-play-overlay .wb-icon-swap .wb-show-pause {
-    display: none;
-}
-
-.store-play-overlay .wb-icon-swap.wb-playing .wb-show-play {
-    display: none;
-}
-
-.store-play-overlay .wb-icon-swap.wb-playing .wb-show-pause {
-    display: flex;
+.product-feature span {
+    color: var(--text-muted);
+    font-size: 0.8rem;
 }
 
 /* ========================================
@@ -583,21 +710,54 @@ body { padding-bottom: 100px; }
    ======================================== */
 
 @media (max-width: 1024px) {
-    .store-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+    .store-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
 }
 
 @media (max-width: 768px) {
-    .store-grid { grid-template-columns: repeat(2, 1fr); }
-    .dj-tracks { grid-template-columns: 1fr; }
-    .api-grid { grid-template-columns: repeat(2, 1fr); }
-    .bar-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .bar-tab { white-space: nowrap; }
-    .mix-card { flex-direction: column; text-align: center; }
-    .product-layout { grid-template-columns: 1fr; gap: 2rem; }
-    .product-actions { flex-direction: column; }
-    .sample-table .sample-artist { display: none; }
+    .store-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dj-tracks {
+        grid-template-columns: 1fr;
+    }
+
+    .api-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .bar-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .bar-tab {
+        white-space: nowrap;
+    }
+
+    .mix-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .product-layout {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .product-actions {
+        flex-direction: column;
+    }
+
+    .sample-table .sample-artist {
+        display: none;
+    }
 }
 
 @media (max-width: 480px) {
-    .store-grid { grid-template-columns: 1fr; }
+    .store-grid {
+        grid-template-columns: 1fr;
+    }
 }

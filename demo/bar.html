@@ -23,11 +23,11 @@
         </a>
         <div class="nav-links">
             <a href="index.html">Home</a>
+            <a href="bar.html">Bar</a>
             <a href="examples.html">Examples</a>
             <a href="builder.html">Builder</a>
             <a href="docs.html">Docs</a>
             <a href="addons.html">Add-ons</a>
-            <a href="bar.html" class="nav-link-active">Bar</a>
             <a href="https://github.com/arraypress/waveform-bar" class="nav-cta"><i class="ti ti-brand-github"></i> GitHub</a>
         </div>
     </div>
@@ -91,36 +91,42 @@
          ============================================================ -->
     <div id="panel-djmix" class="bar-panel">
         <div class="bar-section">
-            <h2>DJ Mix <span class="section-badge">Markers + DJ Mode</span></h2>
-            <p>A mix with time markers. The bar updates the track title, artist, and metadata at each marker boundary. Click any track below or any marker on the waveform to jump.</p>
+            <h2>Track Sections <span class="section-badge">Markers + Navigation</span></h2>
+            <p>A track with section markers. The bar updates the displayed info at each marker boundary. Click any section below or any marker on the waveform to jump.</p>
 
             <div class="mix-card"
                  data-wb-play
-                 data-url="assets/audio/drum-loop.mp3"
+                 data-url="assets/audio/little-paris.mp3"
+                 data-wb-waveform="assets/waveforms/little-paris.json"
                  data-id="djmix-001"
-                 data-title="Demo Mix"
-                 data-artist="Various Artists"
+                 data-title="Little Paris"
+                 data-artist="Acoustic Session"
                  data-artwork="assets/img/store-covers/cover-24.webp"
+                 data-link="/bar-product"
                  data-wb-markers='[
-                     {"time":0,"label":"Opener","title":"Opening Track","artist":"DJ Demo","bpm":"128","key":"Am"},
-                     {"time":3,"label":"Drop","title":"The Drop","artist":"Bass Machine","bpm":"140","key":"Dm"},
-                     {"time":6,"label":"Breakdown","title":"Midnight Breakdown","artist":"Chill Master","bpm":"110","key":"C"},
-                     {"time":9,"label":"Finale","title":"Grand Finale","artist":"Orchestra X","bpm":"150","key":"Em"}
-                 ]'>
-                <div class="mix-art"><img src="assets/img/store-covers/cover-24.webp" alt="Demo Mix"></div>
+         {"time":0,"label":"Intro","title":"Little Paris","artist":"Acoustic Session","bpm":"116","key":"G"},
+         {"time":10,"label":"Verse 1","title":"Little Paris — Verse 1","artist":"Acoustic Session","bpm":"116","key":"G"},
+         {"time":30,"label":"Verse 2","title":"Little Paris — Verse 2","artist":"Acoustic Session","bpm":"116","key":"G"},
+         {"time":50,"label":"Bridge","title":"Little Paris — Bridge","artist":"Acoustic Session","bpm":"116","key":"Em"},
+         {"time":70,"label":"Chorus","title":"Little Paris — Chorus","artist":"Acoustic Session","bpm":"116","key":"G"},
+         {"time":90,"label":"Outro","title":"Little Paris — Outro","artist":"Acoustic Session","bpm":"116","key":"G"}
+     ]'>
+                <div class="mix-art"><img src="assets/img/store-covers/cover-24.webp" alt="Little Paris"></div>
                 <div class="mix-info">
-                    <div class="mix-title">Demo Mix — 4 Tracks</div>
-                    <div class="mix-subtitle">Click to play. Watch the bar update at each transition.</div>
+                    <div class="mix-title">Little Paris — 6 Sections</div>
+                    <div class="mix-subtitle">Acoustic session with section markers. Click to play, watch the bar update at each transition.</div>
                 </div>
             </div>
 
             <div class="dj-tracklist">
-                <h3><i class="ti ti-list-numbers"></i> Tracklist <span style="font-weight:400;opacity:0.5;font-size:0.75rem;">Click to jump</span></h3>
+                <h3><i class="ti ti-list-numbers"></i> Sections <span style="font-weight:400;opacity:0.5;font-size:0.75rem;">Click to jump</span></h3>
                 <div class="dj-tracks">
-                    <button class="dj-track-btn" onclick="WaveformBar.seekToMarkerByLabel('Opener')"><span class="dj-time">0:00</span> DJ Demo — Opening Track</button>
-                    <button class="dj-track-btn" onclick="WaveformBar.seekToMarkerByLabel('Drop')"><span class="dj-time">0:03</span> Bass Machine — The Drop</button>
-                    <button class="dj-track-btn" onclick="WaveformBar.seekToMarkerByLabel('Breakdown')"><span class="dj-time">0:06</span> Chill Master — Midnight Breakdown</button>
-                    <button class="dj-track-btn" onclick="WaveformBar.seekToMarkerByLabel('Finale')"><span class="dj-time">0:09</span> Orchestra X — Grand Finale</button>
+                    <button class="dj-track-btn" onclick="WaveformBar.seekToMarkerByLabel('Intro')"><span class="dj-time">0:00</span> Intro</button>
+                    <button class="dj-track-btn" onclick="WaveformBar.seekToMarkerByLabel('Verse 1')"><span class="dj-time">0:10</span> Verse 1</button>
+                    <button class="dj-track-btn" onclick="WaveformBar.seekToMarkerByLabel('Verse 2')"><span class="dj-time">0:30</span> Verse 2</button>
+                    <button class="dj-track-btn" onclick="WaveformBar.seekToMarkerByLabel('Bridge')"><span class="dj-time">0:50</span> Bridge</button>
+                    <button class="dj-track-btn" onclick="WaveformBar.seekToMarkerByLabel('Chorus')"><span class="dj-time">1:10</span> Chorus</button>
+                    <button class="dj-track-btn" onclick="WaveformBar.seekToMarkerByLabel('Outro')"><span class="dj-time">1:30</span> Outro</button>
                 </div>
             </div>
         </div>
@@ -189,14 +195,52 @@ const track = WaveformBar.getCurrentTrack();</code></pre>
     </div>
 </div>
 
+<!-- ============================================
+     FOOTER
+     ============================================ -->
 <footer class="footer">
     <div class="container">
         <div class="footer-content">
-            <div class="footer-section"><h4>Product</h4><ul><li><a href="examples.html">Examples</a></li><li><a href="builder.html">Builder</a></li><li><a href="docs.html">Docs</a></li><li><a href="addons.html">Add-ons</a></li></ul></div>
-            <div class="footer-section"><h4>Ecosystem</h4><ul><li><a href="https://github.com/arraypress/waveform-player">WaveformPlayer</a></li><li><a href="https://github.com/arraypress/waveform-bar">WaveformBar</a></li><li><a href="https://github.com/arraypress/waveform-gen">WaveformGen</a></li></ul></div>
-            <div class="footer-section"><h4>Community</h4><ul><li><a href="https://github.com/arraypress">GitHub</a></li><li><a href="https://npmjs.com/org/arraypress">NPM</a></li></ul></div>
+            <div class="footer-section">
+                <h4>Product</h4>
+                <ul>
+                    <li><a href="bar.html">Bar</a></li>
+                    <li><a href="examples.html">Examples</a></li>
+                    <li><a href="builder.html">Builder</a></li>
+                    <li><a href="docs.html">Documentation</a></li>
+                    <li><a href="addons.html">Add-ons</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="docs.html#api">API Reference</a></li>
+                    <li><a href="docs.html#config">Configuration</a></li>
+                    <li><a href="docs.html#frameworks">Framework Guides</a></li>
+                    <li><a href="https://github.com/arraypress/waveform-player/issues">Support</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Community</h4>
+                <ul>
+                    <li><a href="https://github.com/arraypress/waveform-player">GitHub</a></li>
+                    <li><a href="https://npmjs.com/package/@arraypress/waveform-player">NPM</a></li>
+                    <li><a href="https://twitter.com/arraypress">Twitter</a></li>
+                    <li><a href="https://github.com/arraypress/waveform-player/discussions">Discussions</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="https://github.com/arraypress/waveform-player/blob/main/LICENSE">MIT License</a></li>
+                    <li><a href="https://github.com/arraypress">ArrayPress</a></li>
+                </ul>
+            </div>
         </div>
-        <div class="footer-bottom"><p>Made with ♥ by <a href="https://github.com/arraypress">ArrayPress</a></p></div>
+        <div class="footer-bottom">
+            <p>Made with ♥ by <a href="https://github.com/arraypress">ArrayPress</a></p>
+            <p>Version 1.5.2</p>
+        </div>
     </div>
 </footer>
 
