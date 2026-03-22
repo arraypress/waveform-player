@@ -550,6 +550,34 @@ body { padding-bottom: 100px; }
 .product-feature strong { display: block; font-size: 0.9rem; }
 .product-feature span { color: var(--text-muted); font-size: 0.8rem; }
 
+.store-play-overlay .wb-icon-swap .wb-show-play,
+.store-play-overlay .wb-icon-swap .wb-show-pause {
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+}
+
+.store-play-overlay .wb-icon-swap .wb-show-play {
+    display: flex;
+}
+
+.store-play-overlay .wb-icon-swap .wb-show-pause {
+    display: none;
+}
+
+.store-play-overlay .wb-icon-swap.wb-playing .wb-show-play {
+    display: none;
+}
+
+.store-play-overlay .wb-icon-swap.wb-playing .wb-show-pause {
+    display: flex;
+}
+
 /* ========================================
    RESPONSIVE
    ======================================== */

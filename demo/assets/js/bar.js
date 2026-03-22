@@ -1,4 +1,4 @@
-// Track data — no waveform data needed, loaded via configPath JSON files
+// Track data — waveforms loaded from JSON files via data-wb-waveform="waveforms/file.json"
 const TRACKS = [
     { file: 'pluck-desire', title: 'Electric Desire', artist: 'Synthwave Nights', bpm: '128', key: 'Am', price: '$29.99', cover: '01', fav: true },
     { file: 'pluck-lovely', title: 'Lovely Moments', artist: 'Chill Vibes', bpm: '90', key: 'C', price: '$19.99', cover: '02', fav: true },
@@ -36,6 +36,7 @@ function storeCard(t, i) {
         + ' data-bpm="' + t.bpm + '"'
         + ' data-key="' + t.key + '"'
         + ' data-artwork="assets/img/store-covers/cover-' + t.cover + '.webp"'
+        + ' data-wb-waveform="assets/waveforms/' + t.file + '.json"'
         + (t.fav ? ' data-wb-favorited="true"' : '')
         + ' data-link="bar-product.html">'
         + '<div class="store-art">'
@@ -80,7 +81,8 @@ function tableRow(t, i) {
         + ' data-artist="' + t.artist + '"'
         + ' data-bpm="' + t.bpm + '"'
         + ' data-key="' + t.key + '"'
-        + ' data-artwork="assets/img/store-covers/cover-' + t.cover + '.webp">'
+        + ' data-artwork="assets/img/store-covers/cover-' + t.cover + '.webp"'
+        + ' data-wb-waveform="assets/waveforms/' + t.file + '.json">'
         + '<td><span class="wb-eq-bars"><span></span><span></span><span></span><span></span></span></td>'
         + '<td class="fav-cell"><span class="wbi wbi-heart fav-indicator"></span></td>'
         + '<td class="sample-name wb-accent-current">' + t.title + '</td>'
@@ -90,38 +92,29 @@ function tableRow(t, i) {
         + '</tr>';
 }
 
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', function() {
     var grid = document.getElementById('store-grid');
     if (grid) grid.innerHTML = TRACKS.map(storeCard).join('');
 
     var tbody = document.getElementById('sample-tbody');
     if (tbody) tbody.innerHTML = TRACKS.map(tableRow).join('');
 
-    // Fetch waveform data from JSON configs and set as data attributes
-    await Promise.all(
-        Array.from(document.querySelectorAll('[data-wb-play]')).map(async el => {
-            const url = el.dataset.url;
-            if (!url) return;
-            const jsonFile = url.split('/').pop().replace(/\.[^.]+$/, '.json');
-            try {
-                const res = await fetch('assets/waveforms/' + jsonFile);
-                const config = await res.json();
-                if (config.peaks) {
-                    el.setAttribute('data-wb-waveform', JSON.stringify(config.peaks));
-                }
-            } catch (e) {}
-        })
-    );
-
     // Tabs
     document.querySelectorAll('.bar-tab').forEach(function(tab) {
-        // ... same tab code ...
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.bar-tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.bar-panel').forEach(function(p) { p.classList.remove('active'); });
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.panel).classList.add('active');
+        });
     });
 
-    // Init WaveformBar — no configPath, waveforms already on data attributes
+    // Init WaveformBar
     WaveformBar.init({
-        waveformStyle: 'mirror',
-        barSpacing: 0,
+        waveformStyle: 'seekbar',
+        waveformHeight: 32,
+        barWidth: 2,
+        barSpacing: 2,
         showMeta: true,
         markerColor: 'rgba(168, 85, 247, 0.4)',
         actions: { favorite: { endpoint: '#' }, cart: { endpoint: '#' } }
