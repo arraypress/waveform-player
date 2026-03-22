@@ -605,12 +605,16 @@ export class WaveformPlayer {
      * @private
      */
     setWaveformData(data) {
-        // URL to JSON file — fetch peaks
+        // URL to JSON file — fetch peaks and maybe markers
         if (typeof data === 'string' && data.trim().endsWith('.json')) {
             fetch(data.trim())
                 .then(r => r.json())
                 .then(json => {
                     this.waveformData = Array.isArray(json) ? json : (json.peaks || []);
+                    if (json.markers && !this.options.markers?.length) {
+                        this.options.markers = json.markers;
+                        this.renderMarkers();
+                    }
                     this.drawWaveform();
                 })
                 .catch(() => {});

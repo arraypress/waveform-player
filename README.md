@@ -2,7 +2,8 @@
 
 A lightweight, customizable audio player with waveform visualization. Under 8KB gzipped.
 
-**[Live Demo](https://waveformplayer.com)** | **[Documentation](https://waveformplayer.com/#docs)** | **[NPM Package](https://www.npmjs.com/package/@arraypress/waveform-player)**
+**[Live Demo](https://waveformplayer.com)** | **[Documentation](https://waveformplayer.com/#docs)** | *
+*[NPM Package](https://www.npmjs.com/package/@arraypress/waveform-player)**
 
 ![Version](https://img.shields.io/npm/v/@arraypress/waveform-player)
 ![Size](https://img.shields.io/bundlephobia/minzip/@arraypress/waveform-player)
@@ -24,17 +25,10 @@ A lightweight, customizable audio player with waveform visualization. Under 8KB 
 
 For detailed release notes, see the [Changelog](CHANGELOG.md).
 
-### Recent Changes (v1.3.x)
-
-- Fixed markers from previous track persisting when loading a new track
-- Removed inline canvas height for reliable width sizing in flex containers
-- Fixed waveform canvas reading width from container instead of canvas element
-- Fixed uncaught `NotAllowedError` on autoplay
-- Added `showControls` and `showInfo` options for waveform-only display
-
 ## Quick Start
 
 Simplest possible usage:
+
 ```html
 <!-- Just this. That's it. -->
 <div data-waveform-player data-url="song.mp3"></div>
@@ -43,18 +37,23 @@ Simplest possible usage:
 ## Installation
 
 ### NPM
+
 ```bash
 npm install @arraypress/waveform-player
 ```
 
 ### CDN
+
 ```html
+
 <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css">
 <script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.min.js"></script>
 ```
 
 ### Download
+
 ```html
+
 <link rel="stylesheet" href="waveform-player.css">
 <script src="waveform-player.js"></script>
 ```
@@ -81,9 +80,11 @@ npm install @arraypress/waveform-player
 
 ### WaveformBar (Optional Addon)
 
-A persistent bottom-bar audio player with queue, favorites, cart, volume popup, DJ mode with markers, and cross-page session persistence:
+A persistent bottom-bar audio player with queue, favorites, cart, volume popup, DJ mode with markers, and cross-page
+session persistence:
 
 ```html
+
 <div data-wb-play
      data-url="song.mp3"
      data-title="My Track"
@@ -93,7 +94,7 @@ A persistent bottom-bar audio player with queue, favorites, cart, volume popup, 
 </div>
 
 <script>
-WaveformBar.init();
+    WaveformBar.init();
 </script>
 ```
 
@@ -102,7 +103,9 @@ WaveformBar.init();
 ### WaveformPlaylist (Optional Addon)
 
 Add playlist and chapter support with zero JavaScript:
+
 ```html
+
 <div data-waveform-playlist data-continuous="true">
     <div data-track data-url="song1.mp3" data-title="Track 1">
         <div data-chapter data-time="0:00">Intro</div>
@@ -117,6 +120,7 @@ Add playlist and chapter support with zero JavaScript:
 ### WaveformTracker (Optional Addon)
 
 Track meaningful audio engagement:
+
 ```javascript
 WaveformTracker.init({
     endpoint: '/api/analytics',
@@ -145,7 +149,9 @@ WaveformTracker.init({
 ## Usage
 
 ### HTML (Zero JavaScript)
+
 ```html
+
 <div data-waveform-player
      data-url="audio.mp3"
      data-title="My Song"
@@ -157,6 +163,7 @@ WaveformTracker.init({
 ```
 
 ### Waveform Only (Custom UI)
+
 ```html
 <!-- Hide built-in controls for custom UI integration -->
 <div data-waveform-player
@@ -167,6 +174,7 @@ WaveformTracker.init({
 ```
 
 ### JavaScript API
+
 ```javascript
 import WaveformPlayer from '@arraypress/waveform-player';
 
@@ -222,6 +230,7 @@ Choose from 6 built-in styles:
 | `enableMediaSession` | boolean | `true`                    | Enable system media controls                            |
 
 ## API Methods
+
 ```javascript
 // Control playback
 player.play();
@@ -250,6 +259,7 @@ player.destroy();
 ```
 
 ## Events
+
 ```javascript
 new WaveformPlayer('#player', {
     url: 'audio.mp3',
@@ -278,6 +288,7 @@ When a player is focused (click on it):
 ### Pre-generated Waveforms
 
 For better performance, generate waveform data server-side:
+
 ```javascript
 // Generate waveform data once
 const waveformData = await WaveformPlayer.generateWaveformData('audio.mp3');
@@ -290,6 +301,7 @@ new WaveformPlayer('#player', {
 ```
 
 ### Multiple Players
+
 ```javascript
 // Get all instances
 const players = WaveformPlayer.getAllInstances();
@@ -302,6 +314,7 @@ WaveformPlayer.destroyAll();
 ```
 
 ### Custom Styling
+
 ```css
 .waveform-player {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -316,6 +329,7 @@ WaveformPlayer.destroyAll();
 ## Framework Integration
 
 ### React
+
 ```jsx
 import {useEffect, useRef} from 'react';
 import WaveformPlayer from '@arraypress/waveform-player';
@@ -333,24 +347,26 @@ function AudioPlayer({url}) {
 ```
 
 ### Vue
+
 ```vue
+
 <template>
   <div ref="player"></div>
 </template>
 
 <script>
-import WaveformPlayer from '@arraypress/waveform-player';
+  import WaveformPlayer from '@arraypress/waveform-player';
 
-export default {
+  export default {
     mounted() {
-        this.player = new WaveformPlayer(this.$refs.player, {
-            url: this.audioUrl
-        });
+      this.player = new WaveformPlayer(this.$refs.player, {
+        url: this.audioUrl
+      });
     },
     beforeDestroy() {
-        this.player?.destroy();
+      this.player?.destroy();
     }
-}
+  }
 </script>
 ```
 
@@ -376,6 +392,7 @@ See the [live demo](https://waveformplayer.com) for:
 - Chapter markers
 
 ## Development
+
 ```bash
 # Install dependencies
 npm install

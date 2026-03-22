@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.2] - 2026-03-22
+
+### Added
+
+- JSON waveform files can now include `markers` — automatically loaded if no markers are set via data attributes
+
+## [1.5.1] - 2026-03-22
+
+### Added
+
+- Drawing style aliases: `bar`, `block`, `dot` now accepted alongside `bars`, `blocks`, `dots` for `waveformStyle`
+
 ## [1.5.0] - 2026-03-22
 
 ### New Features
