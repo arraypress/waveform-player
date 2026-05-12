@@ -253,8 +253,18 @@ export class WaveformPlayer {
     /**
      * Create audio element
      * @private
+     *
+     * No-op in `audioMode: 'external'` — the player has no audio of its
+     * own; an external controller (e.g. WaveformBar) owns playback and
+     * pushes state in via setPlayingState() / setProgress(). The
+     * `this.audio` field stays null in that mode; downstream code must
+     * null-check it.
      */
     createAudio() {
+        if (this.options.audioMode === 'external') {
+            this.audio = null;
+            return;
+        }
         this.audio = new Audio();
         this.audio.preload = this.options.preload || 'metadata';
         this.audio.crossOrigin = 'anonymous';
@@ -269,8 +279,12 @@ export class WaveformPlayer {
      * @private
      */
     initPlaybackSpeed() {
-        // Set initial playback rate if specified
-        if (this.options.playbackRate && this.options.playbackRate !== 1) {
+        // External mode has no <audio> element, so the speed control
+        // doesn't apply locally — the external controller (e.g.
+        // WaveformBar) owns playback rate. Skip the audio init but
+        // still bind the speed control UI in case the controller
+        // wants to mirror rate changes via events later.
+        if (this.audio && this.options.playbackRate && this.options.playbackRate !== 1) {
             this.audio.playbackRate = this.options.playbackRate;
         }
 
@@ -336,30 +350,37 @@ export class WaveformPlayer {
             this.container.focus();
         });
 
-        // Keyboard events
+        // Keyboard events. In external mode `this.audio` is null, so
+        // seek/volume/mute keys are no-ops (the external controller
+        // owns those). Space (togglePlay) still works because togglePlay
+        // routes through the request-play/pause events.
         this.container.addEventListener('keydown', (e) => {
             if (document.activeElement !== this.container) return;
 
             const key = e.key;
-            const currentTime = this.audio.currentTime;
+            const hasAudio = !!this.audio;
+            const currentTime = hasAudio ? this.audio.currentTime : 0;
 
             // Handle number keys 0-9 for seeking
-            if (key >= '0' && key <= '9') {
+            if (hasAudio && key >= '0' && key <= '9') {
                 e.preventDefault();
                 this.seekToPercent(parseInt(key) / 10);
                 return;
             }
 
-            // Handle other keys
+            // Handle other keys. Space always works (dispatches
+            // request-play in external mode); audio-bound keys only
+            // when we own the <audio> element.
             const actions = {
                 ' ': () => this.togglePlay(),
-                'ArrowLeft': () => this.seekTo(Math.max(0, currentTime - 5)),
-                'ArrowRight': () => this.seekTo(Math.min(this.audio.duration, currentTime + 5)),
-                'ArrowUp': () => this.setVolume(Math.min(1, this.audio.volume + 0.1)),
-                'ArrowDown': () => this.setVolume(Math.max(0, this.audio.volume - 0.1)),
-                'm': () => this.audio.muted = !this.audio.muted,
-                'M': () => this.audio.muted = !this.audio.muted
             };
+            if (hasAudio) {
+                actions['ArrowLeft']  = () => this.seekTo(Math.max(0, currentTime - 5));
+                actions['ArrowRight'] = () => this.seekTo(Math.min(this.audio.duration, currentTime + 5));
+                actions['ArrowUp']    = () => this.setVolume(Math.min(1, this.audio.volume + 0.1));
+                actions['ArrowDown']  = () => this.setVolume(Math.max(0, this.audio.volume - 0.1));
+                actions['m'] = actions['M'] = () => this.audio.muted = !this.audio.muted;
+            }
 
             if (actions[key]) {
                 e.preventDefault();
@@ -374,6 +395,10 @@ export class WaveformPlayer {
      */
     initMediaSession() {
         if (!('mediaSession' in navigator) || !this.options.enableMediaSession) return;
+        // Skip Media Session in external mode — the controller (e.g.
+        // WaveformBar) owns audio playback and registers its own Media
+        // Session handlers; ours would conflict with its.
+        if (!this.audio) return;
 
         // Set metadata
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -410,21 +435,30 @@ export class WaveformPlayer {
      * @private
      */
     bindEvents() {
-        // Play button (only if controls are shown)
+        // Play button (only if controls are shown). In external mode
+        // togglePlay() dispatches the request-play/pause events so the
+        // controller can decide what to do; the click still goes through
+        // here.
         if (this.playBtn) {
             this.playBtn.addEventListener('click', () => this.togglePlay());
         }
 
-        // Audio events
-        this.audio.addEventListener('loadstart', () => this.setLoading(true));
-        this.audio.addEventListener('loadedmetadata', () => this.onMetadataLoaded());
-        this.audio.addEventListener('canplay', () => this.setLoading(false));
-        this.audio.addEventListener('play', () => this.onPlay());
-        this.audio.addEventListener('pause', () => this.onPause());
-        this.audio.addEventListener('ended', () => this.onEnded());
-        this.audio.addEventListener('error', (e) => this.onError(e));
+        // Audio events — only when we own an <audio> element. External
+        // mode receives state via setPlayingState() / setProgress() from
+        // the controller, so we have nothing to listen to here.
+        if (this.audio) {
+            this.audio.addEventListener('loadstart', () => this.setLoading(true));
+            this.audio.addEventListener('loadedmetadata', () => this.onMetadataLoaded());
+            this.audio.addEventListener('canplay', () => this.setLoading(false));
+            this.audio.addEventListener('play', () => this.onPlay());
+            this.audio.addEventListener('pause', () => this.onPause());
+            this.audio.addEventListener('ended', () => this.onEnded());
+            this.audio.addEventListener('error', (e) => this.onError(e));
+        }
 
-        // Canvas interactions
+        // Canvas interactions — seek-on-click. In external mode the
+        // canvas click dispatches a `waveformplayer:request-seek` event
+        // so the controller can position its own audio element.
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
 
         // Window resize - store handler for cleanup
@@ -463,24 +497,31 @@ export class WaveformPlayer {
             this.progress = 0;
             this.hasError = false;
 
-            // Set audio source
-            this.audio.src = url;
+            // In external mode we don't own an <audio> element — skip
+            // src assignment + metadata-wait, but still generate the
+            // waveform peaks so the canvas can render the visualization.
+            // Duration / current time come from the external controller
+            // via setProgress().
+            if (this.audio) {
+                // Set audio source
+                this.audio.src = url;
 
-            // Wait for metadata to load
-            await new Promise((resolve, reject) => {
-                const metadataHandler = () => {
-                    this.audio.removeEventListener('loadedmetadata', metadataHandler);
-                    this.audio.removeEventListener('error', errorHandler);
-                    resolve();
-                };
-                const errorHandler = (e) => {
-                    this.audio.removeEventListener('loadedmetadata', metadataHandler);
-                    this.audio.removeEventListener('error', errorHandler);
-                    reject(e);
-                };
-                this.audio.addEventListener('loadedmetadata', metadataHandler);
-                this.audio.addEventListener('error', errorHandler);
-            });
+                // Wait for metadata to load
+                await new Promise((resolve, reject) => {
+                    const metadataHandler = () => {
+                        this.audio.removeEventListener('loadedmetadata', metadataHandler);
+                        this.audio.removeEventListener('error', errorHandler);
+                        resolve();
+                    };
+                    const errorHandler = (e) => {
+                        this.audio.removeEventListener('loadedmetadata', metadataHandler);
+                        this.audio.removeEventListener('error', errorHandler);
+                        reject(e);
+                    };
+                    this.audio.addEventListener('loadedmetadata', metadataHandler);
+                    this.audio.addEventListener('error', errorHandler);
+                });
+            }
 
             // Set title
             const title = this.options.title || extractTitleFromUrl(url);
@@ -538,9 +579,11 @@ export class WaveformPlayer {
             this.pause();
         }
 
-        // Reset audio element completely
-        this.audio.src = '';
-        this.audio.load();
+        // Reset audio element completely (only when we own one)
+        if (this.audio) {
+            this.audio.src = '';
+            this.audio.load();
+        }
 
         // Clear any errors
         this.hasError = false;
@@ -567,7 +610,7 @@ export class WaveformPlayer {
         });
 
         // Apply preload setting if it was changed
-        if (options.preload) {
+        if (options.preload && this.audio) {
             this.audio.preload = options.preload;
         }
 
@@ -731,12 +774,31 @@ export class WaveformPlayer {
      * @private
      */
     handleCanvasClick(event) {
-        if (!this.audio.duration) return;
-
+        // In external mode the player has no audio of its own —
+        // dispatch a cancelable `waveformplayer:request-seek` event
+        // with the target percentage so the controller can seek its
+        // own audio. Locally we just update the visual progress so
+        // the canvas paints the new position immediately (the
+        // controller's progress event will reconcile shortly after).
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const targetPercent = Math.max(0, Math.min(1, x / rect.width));
 
+        if (this.options.audioMode === 'external') {
+            const evt = new CustomEvent('waveformplayer:request-seek', {
+                bubbles: true,
+                cancelable: true,
+                detail: { ...this._buildTrackDetail(), percent: targetPercent }
+            });
+            this.container.dispatchEvent(evt);
+            if (!evt.defaultPrevented) {
+                this.progress = targetPercent;
+                this.drawWaveform?.();
+            }
+            return;
+        }
+
+        if (!this.audio || !this.audio.duration) return;
         this.seekToPercent(targetPercent);
     }
 
@@ -901,7 +963,10 @@ export class WaveformPlayer {
         this.stopSmoothUpdate();
 
         const update = () => {
-            if (this.isPlaying && this.audio.duration) {
+            // In external mode the canvas redraws are driven by
+            // setProgress() pushes from the controller — no internal
+            // RAF needed. Self-mode keeps the smooth-update loop.
+            if (this.isPlaying && this.audio && this.audio.duration) {
                 this.updateProgress();
                 this.updateTimer = requestAnimationFrame(update);
             }
@@ -926,7 +991,9 @@ export class WaveformPlayer {
      * @private
      */
     updateProgress() {
-        if (!this.audio.duration) return;
+        // Self-mode only — external mode receives progress via
+        // setProgress() from the controller and never calls this.
+        if (!this.audio || !this.audio.duration) return;
 
         const newProgress = this.audio.currentTime / this.audio.duration;
 
@@ -992,8 +1059,20 @@ export class WaveformPlayer {
     // ============================================
 
     /**
-     * Play audio
-     * @return {Promise} The promise returned by HTMLMediaElement.play()
+     * Play audio.
+     *
+     * In `audioMode: 'self'` (default): calls the underlying <audio>
+     * element's play(). Returns the promise from HTMLMediaElement.play().
+     *
+     * In `audioMode: 'external'`: dispatches a cancelable
+     * `waveformplayer:request-play` event with the track metadata and
+     * does NOT touch any audio element. Returns `undefined`. An external
+     * controller (e.g. WaveformBar) listens for this event and starts
+     * playback on its own audio source, then pushes state back via
+     * setPlayingState() / setProgress(). Calling preventDefault() on
+     * the event lets the controller veto the play (state is unchanged).
+     *
+     * @return {Promise|undefined}
      */
     play() {
         if (this.options.singlePlay && WaveformPlayer.currentlyPlaying &&
@@ -1001,18 +1080,126 @@ export class WaveformPlayer {
             WaveformPlayer.currentlyPlaying.pause();
         }
 
+        if (this.options.audioMode === 'external') {
+            const evt = new CustomEvent('waveformplayer:request-play', {
+                bubbles: true,
+                cancelable: true,
+                detail: this._buildTrackDetail()
+            });
+            this.container.dispatchEvent(evt);
+            // If the controller cancels (preventDefault), don't claim
+            // "currentlyPlaying" — the controller didn't accept the play.
+            if (!evt.defaultPrevented) {
+                WaveformPlayer.currentlyPlaying = this;
+            }
+            return undefined;
+        }
+
         WaveformPlayer.currentlyPlaying = this;
         return this.audio.play();
     }
 
     /**
-     * Pause audio
+     * Pause audio.
+     *
+     * In `audioMode: 'external'`, dispatches `waveformplayer:request-pause`
+     * (cancelable) and does NOT touch any audio element. See play().
      */
     pause() {
         if (WaveformPlayer.currentlyPlaying === this) {
             WaveformPlayer.currentlyPlaying = null;
         }
+        if (this.options.audioMode === 'external') {
+            this.container.dispatchEvent(new CustomEvent('waveformplayer:request-pause', {
+                bubbles: true,
+                cancelable: true,
+                detail: this._buildTrackDetail()
+            }));
+            return;
+        }
         this.audio.pause();
+    }
+
+    /**
+     * Build the track detail object dispatched by request-play /
+     * request-pause events in external audio mode. Mirrors the shape
+     * WaveformBar.play() accepts so a controller can forward it
+     * directly: `WaveformBar.play(event.detail)`.
+     *
+     * @private
+     * @return {{url:string,title:?string,subtitle:?string,artist:?string,artwork:?string,player:WaveformPlayer}}
+     */
+    _buildTrackDetail() {
+        return {
+            url:      this.options.url,
+            title:    this.options.title,
+            subtitle: this.options.subtitle,
+            artist:   this.options.artist,
+            artwork:  this.options.artwork,
+            id:       this.id,
+            player:   this
+        };
+    }
+
+    /**
+     * External-mode state pump: flip the play/pause visual state without
+     * touching audio. Mirrors what onPlay()/onPause() do but skips the
+     * audio-element interactions. Safe to call repeatedly — idempotent.
+     *
+     * @param {boolean} playing
+     */
+    setPlayingState(playing) {
+        const wasPlaying = this.isPlaying;
+        this.isPlaying = !!playing;
+        if (this.playBtn) {
+            this.playBtn.classList.toggle('playing', this.isPlaying);
+            const playIcon  = this.playBtn.querySelector('.waveform-icon-play');
+            const pauseIcon = this.playBtn.querySelector('.waveform-icon-pause');
+            if (playIcon)  playIcon.style.display  = this.isPlaying ? 'none'   : 'flex';
+            if (pauseIcon) pauseIcon.style.display = this.isPlaying ? 'flex'   : 'none';
+        }
+        if (this.isPlaying && !wasPlaying) {
+            this.startSmoothUpdate?.();
+            this.container.dispatchEvent(new CustomEvent('waveformplayer:play', {
+                bubbles: true,
+                detail: {player: this, url: this.options.url}
+            }));
+            if (this.options.onPlay) this.options.onPlay(this);
+        } else if (!this.isPlaying && wasPlaying) {
+            this.stopSmoothUpdate?.();
+            this.container.dispatchEvent(new CustomEvent('waveformplayer:pause', {
+                bubbles: true,
+                detail: {player: this, url: this.options.url}
+            }));
+            if (this.options.onPause) this.options.onPause(this);
+        }
+    }
+
+    /**
+     * External-mode state pump: update the visualization's progress
+     * from an external clock (e.g. WaveformBar's audio element's
+     * timeupdate). Drives the canvas redraw + the time displays.
+     *
+     * @param {number} currentTime  Current playback position in seconds.
+     * @param {number} duration     Total track duration in seconds.
+     */
+    setProgress(currentTime, duration) {
+        if (!duration || duration <= 0) return;
+        this.progress = Math.max(0, Math.min(1, currentTime / duration));
+        // Mirror the existing display update code so callers don't have
+        // to know which DOM elements live where.
+        if (this.currentTimeEl)  this.currentTimeEl.textContent  = formatTime(currentTime);
+        if (this.totalTimeEl && (!this.totalTimeEl.dataset._extSet || this._extDuration !== duration)) {
+            this.totalTimeEl.textContent = formatTime(duration);
+            this.totalTimeEl.dataset._extSet = '1';
+            this._extDuration = duration;
+        }
+        this.drawWaveform?.();
+        this.container.dispatchEvent(new CustomEvent('waveformplayer:timeupdate', {
+            bubbles: true,
+            detail: {player: this, currentTime, duration, progress: this.progress}
+        }));
+        if (this.options.onTimeUpdate) this.options.onTimeUpdate(this, currentTime, duration);
     }
 
     /**

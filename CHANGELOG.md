@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0] - 2026-05-13
+
+### New Features
+
+- **External audio mode** (`audioMode: 'external'`) — turns a WaveformPlayer instance into a visualization-only surface that delegates playback to an external controller (e.g. `@arraypress/waveform-bar`). The player renders the canvas + scrubber + play button as usual, but skips creating its own `<audio>` element. Play / pause / seek interactions dispatch cancelable `waveformplayer:request-play`, `waveformplayer:request-pause`, and `waveformplayer:request-seek` events on the container; the controller listens and routes the action to its own audio source.
+
+  Pair with WaveformBar 1.3+: any `[data-waveform-player][data-audio-mode="external"]` element with a matching URL becomes a synced visual mirror of bar playback (canvas scrubs in real time, play/pause icon reflects bar state).
+
+  ```html
+  <div data-waveform-player
+       data-audio-mode="external"
+       data-url="song.mp3"
+       data-waveform-style="bars"></div>
+  ```
+
+  ```js
+  new WaveformPlayer(el, { audioMode: 'external' });
+  ```
+
+### Added
+
+- `player.setPlayingState(playing)` — external-state pump for the play/pause visual state. Toggles the play/pause icon, starts/stops the smooth-update RAF, dispatches `waveformplayer:play` / `:pause` so existing listeners still fire.
+- `player.setProgress(currentTime, duration)` — external-state pump for the scrubber + canvas + time displays. Drives the visualization from an external clock without touching audio.
+
+### Backward Compatibility
+
+Fully additive. `audioMode` defaults to `'self'` — every existing instance behaves exactly as before. The new event dispatchers and `setPlayingState` / `setProgress` methods only fire in external mode, so they can't disturb self-mode callers.
+
 ## [1.5.2] - 2026-03-22
 
 ### Added

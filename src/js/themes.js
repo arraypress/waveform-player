@@ -125,6 +125,13 @@ export const DEFAULT_OPTIONS = {
     samples: 200,
     preload: 'metadata',
 
+    // Audio mode — 'self' = player owns the <audio> element (default, current
+    // behavior). 'external' = player is a visualization-only surface; no audio
+    // element is created, play() dispatches `waveformplayer:request-play`
+    // instead of calling audio.play(), and setPlayingState/setProgress are
+    // expected to be driven by an external controller (e.g. WaveformBar).
+    audioMode: 'self',
+
     // Playback
     playbackRate: 1,
     showPlaybackSpeed: false,

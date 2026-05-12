@@ -228,6 +228,50 @@ Choose from 6 built-in styles:
 | `markers`            | array   | `[]`                      | Chapter markers array                                   |
 | `waveform`           | array   | `null`                    | Pre-generated waveform data                             |
 | `enableMediaSession` | boolean | `true`                    | Enable system media controls                            |
+| `audioMode`          | string  | `'self'`                  | `'self'` (own `<audio>`) or `'external'` (delegate)     |
+
+### External audio mode
+
+When `audioMode: 'external'` the player skips creating its own `<audio>` element and becomes a visualization-only surface. Play / pause / seek interactions dispatch cancelable events on the container, and an external controller (e.g. [`@arraypress/waveform-bar`](https://github.com/arraypress/waveform-bar) 1.3+) handles audio + pumps state back via `setPlayingState()` / `setProgress()`.
+
+```html
+<!-- The bar discovers this on init, listens for request-play events,
+     and mirrors its own playback progress back into the canvas. -->
+<div data-waveform-player
+     data-audio-mode="external"
+     data-url="song.mp3"
+     data-waveform-style="bars"
+     data-wb-play
+     data-wb-url="song.mp3"
+     data-wb-title="..."></div>
+```
+
+```js
+// Or construct directly:
+const player = new WaveformPlayer(el, { audioMode: 'external' });
+
+// Listen for the play action and route to your own audio source:
+el.addEventListener('waveformplayer:request-play', (e) => {
+    // e.detail = { url, title, subtitle, artist, artwork, id, player }
+    yourAudio.src = e.detail.url;
+    yourAudio.play();
+});
+
+// Drive the visualization from your audio's timeupdate:
+yourAudio.addEventListener('timeupdate', () => {
+    player.setProgress(yourAudio.currentTime, yourAudio.duration);
+});
+yourAudio.addEventListener('play',  () => player.setPlayingState(true));
+yourAudio.addEventListener('pause', () => player.setPlayingState(false));
+```
+
+Events dispatched in external mode (all bubble; all cancelable):
+
+| Event                              | Detail                                              |
+|------------------------------------|-----------------------------------------------------|
+| `waveformplayer:request-play`      | `{ url, title, subtitle, artist, artwork, id, player }` |
+| `waveformplayer:request-pause`     | Same shape as request-play                          |
+| `waveformplayer:request-seek`      | Same shape + `{ percent: 0..1 }`                    |
 
 ## API Methods
 
@@ -246,6 +290,10 @@ player.setVolume(0.8);       // 80% volume
 
 // Speed
 player.setPlaybackRate(1.5); // 1.5x speed
+
+// External-mode state pumps (only useful when audioMode === 'external')
+player.setPlayingState(true);           // toggle play/pause UI state
+player.setProgress(currentTime, duration); // sync canvas + time displays
 
 // Dynamic loading
 await player.loadTrack('new-song.mp3', 'New Title', 'New Artist', {
