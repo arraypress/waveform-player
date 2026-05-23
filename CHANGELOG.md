@@ -2,7 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.7.0] — Unreleased
+## [1.7.1] — Unreleased
+
+### Fixed
+
+- **`package.json` exports field** — added `"type": "module"`, pointed
+  `main` at `dist/waveform-player.esm.js` (was IIFE bundle with no
+  exports), and added a proper `exports` map so SSR / Node consumers
+  can `import { WaveformPlayer } from '@arraypress/waveform-player'`
+  without "does not provide an export named 'WaveformPlayer'" errors.
+
+  Browser direct-script usage via the `unpkg` field or
+  `dist/waveform-player.js?url` imports is unaffected — the IIFE
+  bundle stays on disk for `<script>` tag and Vite asset-URL loading.
+
+## [1.7.0] — 2026-05-23
 
 ### Added
 
