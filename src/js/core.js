@@ -1368,4 +1368,53 @@ export class WaveformPlayer {
         }
     }
 
+    /**
+     * Derive a peaks-JSON URL from an audio URL by swapping the
+     * extension. Strict counterpart to `generateWaveformData()`:
+     * `generateWaveformData` decodes the audio at runtime,
+     * `getPeaksUrl` assumes you generated the peaks at build time
+     * (e.g. with `@arraypress/waveform-gen`) and stored the JSON
+     * alongside the audio file.
+     *
+     * Use the result as the `waveform` option — the player detects
+     * the `.json` suffix, `fetch()`es the file, and skips the Web
+     * Audio decode pass entirely. Big perf win on catalogues with
+     * many tracks (saves ~1-5s decode per file on slow connections).
+     *
+     * Recognised extensions: mp3, wav, ogg, flac, m4a, aac.
+     * Preserves query strings + URL fragments. Returns `undefined`
+     * for unrecognised inputs so callers can pass through
+     * unconditionally:
+     *
+     *     new WaveformPlayer('#el', {
+     *       url: track.audioUrl,
+     *       waveform: WaveformPlayer.getPeaksUrl(track.audioUrl),
+     *     });
+     *
+     * @static
+     * @param {string|undefined|null} audioUrl - Audio file URL.
+     * @returns {string|undefined} Peaks JSON URL, or `undefined`
+     *   when the input is empty / has no recognised audio extension.
+     *
+     * @example
+     * WaveformPlayer.getPeaksUrl('/audio/track.mp3')
+     * // '/audio/track.json'
+     *
+     * WaveformPlayer.getPeaksUrl('/audio/track.wav?v=2')
+     * // '/audio/track.json?v=2'
+     *
+     * WaveformPlayer.getPeaksUrl(undefined)
+     * // undefined
+     */
+    static getPeaksUrl(audioUrl) {
+        if (!audioUrl) return undefined;
+        const swapped = audioUrl.replace(
+            /\.(mp3|wav|ogg|flac|m4a|aac)(\?[^#]*)?(#.*)?$/i,
+            '.json$2$3'
+        );
+        /* Nothing changed → unrecognised extension, return undefined
+         * so callers know to fall back to live decoding. */
+        return swapped === audioUrl ? undefined : swapped;
+    }
+
 }

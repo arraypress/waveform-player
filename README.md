@@ -348,6 +348,17 @@ new WaveformPlayer('#player', {
 });
 ```
 
+**Build-time pipeline:** when you generate peaks ahead of time with [`@arraypress/waveform-gen`](https://github.com/arraypress/waveform-gen) and store the JSON alongside each MP3 (`/audio/track.mp3` ↔ `/audio/track.json`), `WaveformPlayer.getPeaksUrl()` derives the JSON URL by swapping the extension:
+
+```javascript
+new WaveformPlayer('#player', {
+    url: track.audioUrl,
+    waveform: WaveformPlayer.getPeaksUrl(track.audioUrl),
+});
+```
+
+Recognised extensions: `mp3`, `wav`, `ogg`, `flac`, `m4a`, `aac`. Query strings and URL fragments are preserved. Returns `undefined` for unrecognised inputs so the player falls back to live decoding.
+
 ### Multiple Players
 
 ```javascript

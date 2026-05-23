@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0] — Unreleased
+
+### Added
+
+- **`WaveformPlayer.getPeaksUrl(audioUrl)`** — static helper that
+  derives a peaks-JSON URL from an audio URL by swapping the
+  extension (`.mp3 / .wav / .ogg / .flac / .m4a / .aac` → `.json`).
+  Pair with [`@arraypress/waveform-gen`](https://github.com/arraypress/waveform-gen)
+  to pre-generate peaks at build time and skip the Web Audio decode
+  pass at runtime — big perf win on catalogues with many tracks.
+
+  Preserves query strings and URL fragments. Returns `undefined`
+  for empty input or unrecognised extensions so callers can pass
+  through unconditionally:
+
+  ```js
+  new WaveformPlayer('#el', {
+      url: track.audioUrl,
+      waveform: WaveformPlayer.getPeaksUrl(track.audioUrl),
+  });
+  ```
+
 ## [1.6.0] - 2026-05-13
 
 ### New Features
