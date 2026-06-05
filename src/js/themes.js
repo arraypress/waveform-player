@@ -173,6 +173,13 @@ export const DEFAULT_OPTIONS = {
     markers: [],
     showMarkers: true,
 
+    // Accessibility — expose the waveform as a keyboard-operable slider
+    // (role="slider" + ARIA value attributes + arrow/page/home/end seeking).
+    // seekLabel sets the slider's accessible name; when null it falls back
+    // to the track title, then 'Seek'.
+    accessibleSeek: true,
+    seekLabel: null,
+
     // Content
     title: null,
     subtitle: null,

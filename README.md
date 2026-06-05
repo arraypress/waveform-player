@@ -229,6 +229,8 @@ Choose from 6 built-in styles:
 | `waveform`           | array   | `null`                    | Pre-generated waveform data                             |
 | `enableMediaSession` | boolean | `true`                    | Enable system media controls                            |
 | `audioMode`          | string  | `'self'`                  | `'self'` (own `<audio>`) or `'external'` (delegate)     |
+| `accessibleSeek`     | boolean | `true`                    | Expose the waveform as a keyboard-operable ARIA slider  |
+| `seekLabel`          | string  | `null`                    | Accessible name for the seek slider (falls back to title) |
 
 ### External audio mode
 

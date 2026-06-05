@@ -83,6 +83,12 @@
     width: 100%;
 }
 
+/* Keyboard focus ring for the accessible seek slider */
+.waveform-container:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
 .waveform-container canvas {
     display: block;
     width: 100%;
