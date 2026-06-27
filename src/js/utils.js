@@ -32,6 +32,7 @@ export function parseDataAttributes(element) {
     if (element.dataset.preload) {
         options.preload = element.dataset.preload;
     }
+    if (element.dataset.audioMode) options.audioMode = element.dataset.audioMode;
 
     // Waveform style attributes
     if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
@@ -104,6 +105,21 @@ export function parseDataAttributes(element) {
     if (element.dataset.enableMediaSession !== undefined) {
         options.enableMediaSession = element.dataset.enableMediaSession === 'true';
     }
+
+    // Markers visibility
+    if (element.dataset.showMarkers !== undefined) {
+        options.showMarkers = element.dataset.showMarkers === 'true';
+    }
+
+    // Accessibility
+    if (element.dataset.accessibleSeek !== undefined) {
+        options.accessibleSeek = element.dataset.accessibleSeek === 'true';
+    }
+    if (element.dataset.seekLabel) options.seekLabel = element.dataset.seekLabel;
+
+    // Custom icons (raw SVG markup)
+    if (element.dataset.playIcon) options.playIcon = element.dataset.playIcon;
+    if (element.dataset.pauseIcon) options.pauseIcon = element.dataset.pauseIcon;
 
     return options;
 }

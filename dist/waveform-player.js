@@ -17,6 +17,7 @@
     if (element.dataset.preload) {
       options.preload = element.dataset.preload;
     }
+    if (element.dataset.audioMode) options.audioMode = element.dataset.audioMode;
     if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
     if (element.dataset.barWidth) options.barWidth = parseInt(element.dataset.barWidth);
     if (element.dataset.barSpacing) options.barSpacing = parseInt(element.dataset.barSpacing);
@@ -69,6 +70,15 @@
     if (element.dataset.enableMediaSession !== void 0) {
       options.enableMediaSession = element.dataset.enableMediaSession === "true";
     }
+    if (element.dataset.showMarkers !== void 0) {
+      options.showMarkers = element.dataset.showMarkers === "true";
+    }
+    if (element.dataset.accessibleSeek !== void 0) {
+      options.accessibleSeek = element.dataset.accessibleSeek === "true";
+    }
+    if (element.dataset.seekLabel) options.seekLabel = element.dataset.seekLabel;
+    if (element.dataset.playIcon) options.playIcon = element.dataset.playIcon;
+    if (element.dataset.pauseIcon) options.pauseIcon = element.dataset.pauseIcon;
     return options;
   }
   function formatTime(seconds) {
