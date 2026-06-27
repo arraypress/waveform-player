@@ -186,6 +186,19 @@ export function extractTitleFromUrl(url) {
 }
 
 /**
+ * Perceived brightness (0–255) of a CSS colour, via the luminance formula.
+ * Pulls the numeric channels out of an `rgb()`/`rgba()` string.
+ * @param {string} color - CSS colour string, e.g. `"rgb(34, 34, 34)"`.
+ * @returns {number|null} Brightness 0–255, or `null` if it can't be parsed.
+ */
+export function perceivedBrightness(color) {
+    const rgb = typeof color === 'string' ? color.match(/\d+/g) : null;
+    if (!rgb || rgb.length < 3) return null;
+    const [r, g, b] = rgb.map(Number);
+    return (r * 299 + g * 587 + b * 114) / 1000;
+}
+
+/**
  * Merge multiple option objects
  * @param {...Object} sources - Option objects to merge
  * @returns {Object} Merged options

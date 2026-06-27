@@ -134,6 +134,12 @@ function extractTitleFromUrl(url) {
   const name = filename.split(".")[0];
   return name.replace(/[-_]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 }
+function perceivedBrightness(color) {
+  const rgb = typeof color === "string" ? color.match(/\d+/g) : null;
+  if (!rgb || rgb.length < 3) return null;
+  const [r, g, b] = rgb.map(Number);
+  return (r * 299 + g * 587 + b * 114) / 1e3;
+}
 function mergeOptions(...sources) {
   const result = {};
   for (const source of sources) {
@@ -618,15 +624,10 @@ function detectColorScheme() {
   }
   try {
     const bodyBg = getComputedStyle(document.body).backgroundColor;
-    const rgb = bodyBg.match(/\d+/g);
-    if (rgb && rgb.length >= 3) {
-      const [r, g, b] = rgb.map(Number);
-      const brightness = (r * 299 + g * 587 + b * 114) / 1e3;
-      if (brightness > 128) {
-        return "light";
-      } else if (brightness < 128) {
-        return "dark";
-      }
+    const brightness = perceivedBrightness(bodyBg);
+    if (brightness !== null) {
+      if (brightness > 128) return "light";
+      if (brightness < 128) return "dark";
     }
   } catch (e) {
   }

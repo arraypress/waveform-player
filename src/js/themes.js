@@ -3,6 +3,8 @@
  * @description Color presets and default options for WaveformPlayer
  */
 
+import {perceivedBrightness} from './utils.js';
+
 /**
  * Detect appropriate color scheme
  * Priority: 1) Explicit classes, 2) Website background, 3) System preference, 4) Default
@@ -40,20 +42,13 @@ export function detectColorScheme() {
     // 2. Try to detect website's theme from background color
     try {
         const bodyBg = getComputedStyle(document.body).backgroundColor;
+        const brightness = perceivedBrightness(bodyBg);
 
-        // Parse RGB values
-        const rgb = bodyBg.match(/\d+/g);
-        if (rgb && rgb.length >= 3) {
-            const [r, g, b] = rgb.map(Number);
-            // Calculate perceived brightness using luminance formula (0-255)
-            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-
-            // Clear determination: bright background = light theme
-            if (brightness > 128) {
-                return 'light';
-            } else if (brightness < 128) {
-                return 'dark';
-            }
+        // Clear determination: bright background = light theme. Exactly 128
+        // (or unparseable) is ambiguous — fall through to the next method.
+        if (brightness !== null) {
+            if (brightness > 128) return 'light';
+            if (brightness < 128) return 'dark';
         }
     } catch (e) {
         // If background detection fails, continue to next method

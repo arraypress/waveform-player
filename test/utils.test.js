@@ -5,6 +5,7 @@ import {
 	mergeOptions,
 	extractTitleFromUrl,
 	parseDataAttributes,
+	perceivedBrightness,
 } from '../src/js/utils.js';
 
 describe('formatTime', () => {
@@ -111,6 +112,20 @@ describe('parseDataAttributes', () => {
 		const plain = document.createElement('div');
 		plain.dataset.progressColor = '#abcdef';
 		expect(parseDataAttributes(plain).progressColor).toBe('#abcdef');
+	});
+});
+
+describe('perceivedBrightness', () => {
+	it('computes luminance from rgb/rgba strings', () => {
+		expect(perceivedBrightness('rgb(0, 0, 0)')).toBe(0);
+		expect(perceivedBrightness('rgb(255, 255, 255)')).toBe(255);
+		expect(Math.round(perceivedBrightness('rgba(34, 34, 34, 0.5)'))).toBe(34);
+	});
+
+	it('returns null for unparseable input', () => {
+		expect(perceivedBrightness('transparent')).toBe(null);
+		expect(perceivedBrightness('')).toBe(null);
+		expect(perceivedBrightness(null)).toBe(null);
 	});
 });
 
