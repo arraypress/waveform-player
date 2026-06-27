@@ -12,6 +12,12 @@
 
 // Import the main class
 import {WaveformPlayer} from './core.js';
+import {formatTime, extractTitleFromUrl, escapeHtml, isSafeHref} from './utils.js';
+
+// Expose a small set of pure helpers as a single source of truth so consumers
+// (e.g. @arraypress/waveform-bar) can reuse them instead of shipping divergent
+// copies. Attached to the class so it's reachable from the IIFE global too.
+WaveformPlayer.utils = {formatTime, extractTitleFromUrl, escapeHtml, isSafeHref};
 
 /**
  * Whether we're running in a browser (vs. SSR / Node), where `window` and

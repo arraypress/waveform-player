@@ -288,6 +288,8 @@ export declare class WaveformPlayer {
 	setPlaybackRate(rate: number): void;
 	/** Provide pre-computed peaks directly. */
 	setWaveformData(data: WaveformPeaks): void;
+	/** Highlight the marker at `index` (clears the rest); pass `null` to clear all. */
+	setActiveMarker(index: number | null): void;
 	/** External mode: push play/pause state so the visualisation reflects your audio source. */
 	setPlayingState(playing: boolean): void;
 	/** External mode: push the current position so the progress overlay advances. */
@@ -311,6 +313,21 @@ export declare class WaveformPlayer {
 	static getPeaksUrl(audioUrl: string): string;
 	/** Scan the document for `[data-waveform-player]` elements and initialise them. */
 	static init(): void;
+	/**
+	 * Pure helper functions exposed as a single source of truth so consumers
+	 * (e.g. `@arraypress/waveform-bar`) can reuse them instead of shipping
+	 * divergent copies.
+	 */
+	static readonly utils: {
+		/** Format seconds as `M:SS` (or `H:MM:SS` past an hour). */
+		formatTime(seconds: number): string;
+		/** Derive a display title from a URL's filename. */
+		extractTitleFromUrl(url: string): string;
+		/** Escape a value for safe interpolation into HTML. */
+		escapeHtml(str: unknown): string;
+		/** Whether a URL uses a safe (`http`/`https`/relative) scheme. */
+		isSafeHref(url: string): boolean;
+	};
 }
 
 export default WaveformPlayer;

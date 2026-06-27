@@ -1,5 +1,17 @@
 (() => {
   // src/js/utils.js
+  function escapeHtml(str) {
+    return String(str == null ? "" : str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  function isSafeHref(url) {
+    if (typeof url !== "string" || url === "") return false;
+    try {
+      const u = new URL(url, "http://localhost/");
+      return u.protocol === "http:" || u.protocol === "https:";
+    } catch (e) {
+      return false;
+    }
+  }
   function clamp(value, min = 0, max = 1) {
     return Math.max(min, Math.min(value, max));
   }
@@ -1524,6 +1536,18 @@
         this.markersContainer.appendChild(markerEl);
       });
     }
+    /**
+     * Highlight the marker at `index` (toggling an `active` class) and clear
+     * the rest. Pass `null` to clear all. Lets an external controller (e.g. a
+     * DJ bar) reflect the current section without reaching into the player's
+     * private marker DOM.
+     * @param {number|null} index - Marker index to activate, or `null` to clear.
+     */
+    setActiveMarker(index) {
+      if (!this.markersContainer) return;
+      const markers = this.markersContainer.querySelectorAll(".waveform-marker");
+      markers.forEach((el, i) => el.classList.toggle("active", i === index));
+    }
     // ============================================
     // Event Handlers
     // ============================================
@@ -1845,7 +1869,9 @@
         url: this.options.url,
         title: this.options.title,
         subtitle: this.options.subtitle,
-        artist: this.options.artist,
+        // Core has no separate `artist` option; mirror subtitle so the
+        // published event detail is self-consistent for controllers.
+        artist: this.options.artist || this.options.subtitle,
         artwork: this.options.artwork,
         markers: this.options.markers,
         waveform: this.options.waveform,
@@ -1964,8 +1990,9 @@
      * @param {number} volume - Volume from 0 (silent) to 1 (full).
      */
     setVolume(volume) {
-      if (this.audio) {
-        this.audio.volume = clamp(volume);
+      const v = Number(volume);
+      if (this.audio && Number.isFinite(v)) {
+        this.audio.volume = clamp(v);
       }
     }
     /**
@@ -2123,6 +2150,7 @@
   };
 
   // src/js/index.js
+  WaveformPlayer.utils = { formatTime, extractTitleFromUrl, escapeHtml, isSafeHref };
   var isBrowser = () => typeof window !== "undefined" && typeof document !== "undefined";
   function autoInit() {
     if (!isBrowser()) return;

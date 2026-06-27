@@ -201,6 +201,13 @@
     z-index: 20;
 }
 
+/* Active marker — set via player.setActiveMarker(index). */
+.waveform-marker.active {
+    width: 4px;
+    background: currentColor;
+    z-index: 10;
+}
+
 /* Marker tooltip */
 .waveform-marker-tooltip {
     position: absolute;

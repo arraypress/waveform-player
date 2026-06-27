@@ -4,6 +4,39 @@
  */
 
 /**
+ * Escape a string for safe interpolation into HTML, preventing injection when
+ * building markup with template strings. `null`/`undefined` become `''`.
+ * @param {*} str - Value to escape.
+ * @returns {string} HTML-escaped string.
+ */
+export function escapeHtml(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/**
+ * Whether a URL is safe to navigate to (assign to `location.href`): allows only
+ * `http`/`https` and relative URLs, rejecting `javascript:`, `data:`, `blob:`,
+ * `vbscript:` and other script-bearing schemes.
+ * @param {string} url - Candidate URL.
+ * @returns {boolean} True if the URL uses a safe scheme.
+ */
+export function isSafeHref(url) {
+    if (typeof url !== 'string' || url === '') return false;
+    try {
+        // Resolve relative URLs against a dummy http base; only the scheme matters.
+        const u = new URL(url, 'http://localhost/');
+        return u.protocol === 'http:' || u.protocol === 'https:';
+    } catch (e) {
+        return false;
+    }
+}
+
+/**
  * Clamp a number to an inclusive range.
  * @param {number} value - Value to constrain.
  * @param {number} [min=0] - Lower bound.

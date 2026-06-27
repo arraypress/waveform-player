@@ -48,6 +48,18 @@ All notable changes to this project will be documented in this file.
     `src` / `data-src` for `url` (e.g. `<div data-waveform-player data-src="t.mp3"
     data-style="bars">`). The canonical names still work and win if both are set.
 
+- **Controller-support helpers** (so `@arraypress/waveform-bar` and other external
+  controllers stop reaching into internals / shipping divergent copies):
+  - `player.setActiveMarker(index | null)` — highlight the current marker via a
+    core-owned `.waveform-marker.active` class instead of poking the marker DOM.
+  - `WaveformPlayer.utils` — a static bridge exposing `formatTime`,
+    `extractTitleFromUrl`, `escapeHtml`, and `isSafeHref` (allow-lists
+    `http`/`https`/relative URLs; rejects `javascript:`/`data:` script schemes).
+  - `setVolume()` now coerces + guards non-finite input (no more `NaN` reaching
+    `audio.volume`).
+  - The `request-*` event detail's `artist` now falls back to `subtitle`, so the
+    published contract is self-consistent.
+
 ### Fixed (additional)
 
 - Type hygiene in `audio.js`: cast the `webkitAudioContext` fallback (silences

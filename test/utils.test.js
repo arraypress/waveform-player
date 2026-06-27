@@ -8,7 +8,32 @@ import {
 	perceivedBrightness,
 	clamp,
 	parseBoolAttr,
+	escapeHtml,
+	isSafeHref,
 } from '../src/js/utils.js';
+
+describe('escapeHtml', () => {
+	it('escapes HTML metacharacters and null-ish input', () => {
+		expect(escapeHtml('<img src=x onerror=alert(1)>')).toBe('&lt;img src=x onerror=alert(1)&gt;');
+		expect(escapeHtml(`"&'`)).toBe('&quot;&amp;&#39;');
+		expect(escapeHtml(null)).toBe('');
+		expect(escapeHtml(undefined)).toBe('');
+	});
+});
+
+describe('isSafeHref', () => {
+	it('allows http/https/relative, rejects script-bearing schemes', () => {
+		expect(isSafeHref('https://x.com/a')).toBe(true);
+		expect(isSafeHref('http://x.com')).toBe(true);
+		expect(isSafeHref('/relative/path')).toBe(true);
+		expect(isSafeHref('song.mp3')).toBe(true);
+		expect(isSafeHref('javascript:alert(1)')).toBe(false);
+		expect(isSafeHref('data:text/html,<script>alert(1)</script>')).toBe(false);
+		expect(isSafeHref('vbscript:msgbox')).toBe(false);
+		expect(isSafeHref('')).toBe(false);
+		expect(isSafeHref(null)).toBe(false);
+	});
+});
 
 describe('clamp', () => {
 	it('constrains a value to [min, max]', () => {

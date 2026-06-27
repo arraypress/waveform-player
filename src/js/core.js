@@ -1047,6 +1047,19 @@ export class WaveformPlayer {
         });
     }
 
+    /**
+     * Highlight the marker at `index` (toggling an `active` class) and clear
+     * the rest. Pass `null` to clear all. Lets an external controller (e.g. a
+     * DJ bar) reflect the current section without reaching into the player's
+     * private marker DOM.
+     * @param {number|null} index - Marker index to activate, or `null` to clear.
+     */
+    setActiveMarker(index) {
+        if (!this.markersContainer) return;
+        const markers = this.markersContainer.querySelectorAll('.waveform-marker');
+        markers.forEach((el, i) => el.classList.toggle('active', i === index));
+    }
+
     // ============================================
     // Event Handlers
     // ============================================
@@ -1454,7 +1467,9 @@ export class WaveformPlayer {
             url:      this.options.url,
             title:    this.options.title,
             subtitle: this.options.subtitle,
-            artist:   this.options.artist,
+            // Core has no separate `artist` option; mirror subtitle so the
+            // published event detail is self-consistent for controllers.
+            artist:   this.options.artist || this.options.subtitle,
             artwork:  this.options.artwork,
             markers:  this.options.markers,
             waveform: this.options.waveform,
@@ -1591,8 +1606,11 @@ export class WaveformPlayer {
      * @param {number} volume - Volume from 0 (silent) to 1 (full).
      */
     setVolume(volume) {
-        if (this.audio) {
-            this.audio.volume = clamp(volume);
+        // Coerce + guard: a non-finite value (e.g. from a bad config or stale
+        // storage) must not propagate NaN into audio.volume (which throws).
+        const v = Number(volume);
+        if (this.audio && Number.isFinite(v)) {
+            this.audio.volume = clamp(v);
         }
     }
 

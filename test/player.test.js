@@ -174,6 +174,39 @@ describe('lifecycle + external events', () => {
 	});
 });
 
+describe('core additions for controllers (v1.8.0)', () => {
+	it('setVolume ignores non-finite values without throwing', () => {
+		const { player } = track(mount());
+		expect(() => { player.setVolume(NaN); player.setVolume('loud'); player.setVolume(5); }).not.toThrow();
+	});
+
+	it('setActiveMarker toggles the active class on the chosen marker only', () => {
+		const { el, player } = track(mount({
+			markers: [{ time: 10, label: 'A' }, { time: 60, label: 'B' }, { time: 90, label: 'C' }],
+		}));
+		player.setProgress(0, 120); // publish duration so markers render
+		player.renderMarkers();
+		const markers = el.querySelectorAll('.waveform-marker');
+		expect(markers.length).toBe(3);
+
+		player.setActiveMarker(1);
+		expect(markers[1].classList.contains('active')).toBe(true);
+		expect(markers[0].classList.contains('active')).toBe(false);
+		expect(markers[2].classList.contains('active')).toBe(false);
+
+		player.setActiveMarker(null);
+		expect([...markers].some((m) => m.classList.contains('active'))).toBe(false);
+	});
+
+	it('request-play detail mirrors subtitle into artist', () => {
+		const { el, player } = track(mount({ subtitle: 'DJ Foo' }));
+		let detail = null;
+		el.addEventListener('waveformplayer:request-play', (e) => { detail = e.detail; });
+		player.play();
+		expect(detail.artist).toBe('DJ Foo');
+	});
+});
+
 describe('drawing options (barRadius + gradient)', () => {
 	it('renders every style with barRadius + gradient color stops without throwing', () => {
 		for (const waveformStyle of ['bars', 'mirror', 'blocks', 'dots', 'line', 'seekbar']) {
