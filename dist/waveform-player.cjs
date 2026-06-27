@@ -46,19 +46,32 @@ function parseDataAttributes(element) {
     const v = parseBoolAttr(element.dataset[dataKey]);
     if (v !== void 0) options[optKey] = v;
   };
+  const setNum = (optKey, dataKey = optKey, float = false) => {
+    const raw = element.dataset[dataKey];
+    if (raw) options[optKey] = float ? parseFloat(raw) : parseInt(raw, 10);
+  };
+  const setJson = (optKey, dataKey = optKey) => {
+    const raw = element.dataset[dataKey];
+    if (!raw) return;
+    try {
+      options[optKey] = JSON.parse(raw);
+    } catch (e) {
+      console.warn(`Invalid ${dataKey} JSON:`, e);
+    }
+  };
   if (element.dataset.src) options.url = element.dataset.src;
   if (element.dataset.url) options.url = element.dataset.url;
-  if (element.dataset.height) options.height = parseInt(element.dataset.height);
-  if (element.dataset.samples) options.samples = parseInt(element.dataset.samples);
+  setNum("height");
+  setNum("samples");
   if (element.dataset.preload) {
     options.preload = element.dataset.preload;
   }
   if (element.dataset.audioMode) options.audioMode = element.dataset.audioMode;
   if (element.dataset.style) options.waveformStyle = element.dataset.style;
   if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
-  if (element.dataset.barWidth) options.barWidth = parseInt(element.dataset.barWidth);
-  if (element.dataset.barSpacing) options.barSpacing = parseInt(element.dataset.barSpacing);
-  if (element.dataset.barRadius) options.barRadius = parseInt(element.dataset.barRadius);
+  setNum("barWidth");
+  setNum("barSpacing");
+  setNum("barRadius");
   if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
   if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;
   if (element.dataset.waveformColor) options.waveformColor = parseColorValue(element.dataset.waveformColor);
@@ -84,24 +97,10 @@ function parseDataAttributes(element) {
   if (element.dataset.album) options.album = element.dataset.album;
   if (element.dataset.artwork) options.artwork = element.dataset.artwork;
   if (element.dataset.waveform) options.waveform = element.dataset.waveform;
-  if (element.dataset.markers) {
-    try {
-      options.markers = JSON.parse(element.dataset.markers);
-    } catch (e) {
-      console.warn("Invalid markers JSON:", e);
-    }
-  }
-  if (element.dataset.playbackRate) {
-    options.playbackRate = parseFloat(element.dataset.playbackRate);
-  }
+  setJson("markers");
+  setNum("playbackRate", "playbackRate", true);
   setBool("showPlaybackSpeed");
-  if (element.dataset.playbackRates) {
-    try {
-      options.playbackRates = JSON.parse(element.dataset.playbackRates);
-    } catch (e) {
-      console.warn("Invalid playbackRates JSON:", e);
-    }
-  }
+  setJson("playbackRates");
   setBool("enableMediaSession");
   setBool("showMarkers");
   setBool("accessibleSeek");
@@ -233,6 +232,16 @@ function barRadiusPx(options, dpr) {
 function barRadii(options, dpr) {
   const r = barRadiusPx(options, dpr);
   return [r, r, 0, 0];
+}
+function capsulePath(ctx, startX, endX, centerY, barHeight) {
+  const r = barHeight / 2;
+  ctx.beginPath();
+  ctx.moveTo(startX, centerY - r);
+  ctx.lineTo(endX - r, centerY - r);
+  ctx.arc(endX - r, centerY, r, -Math.PI / 2, Math.PI / 2);
+  ctx.lineTo(startX, centerY + r);
+  ctx.arc(startX, centerY, r, Math.PI / 2, -Math.PI / 2);
+  ctx.closePath();
 }
 function drawBars(ctx, canvas, peaks, progress, options) {
   const dpr = window.devicePixelRatio || 1;
@@ -424,26 +433,14 @@ function drawSeekbar(ctx, canvas, peaks, progress, options) {
   const borderRadius = barHeight / 2;
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = options.color || "rgba(255, 255, 255, 0.2)";
-  ctx.beginPath();
-  ctx.moveTo(borderRadius, centerY - barHeight / 2);
-  ctx.lineTo(width - borderRadius, centerY - barHeight / 2);
-  ctx.arc(width - borderRadius, centerY, barHeight / 2, -Math.PI / 2, Math.PI / 2);
-  ctx.lineTo(borderRadius, centerY + barHeight / 2);
-  ctx.arc(borderRadius, centerY, barHeight / 2, Math.PI / 2, -Math.PI / 2);
-  ctx.closePath();
+  capsulePath(ctx, borderRadius, width, centerY, barHeight);
   ctx.fill();
   if (progress > 0) {
     const progressWidth = Math.max(borderRadius * 2, progress * width);
     ctx.shadowBlur = 8;
     ctx.shadowColor = options.progressColor;
     ctx.fillStyle = options.progressColor || "rgba(255, 255, 255, 0.9)";
-    ctx.beginPath();
-    ctx.moveTo(borderRadius, centerY - barHeight / 2);
-    ctx.lineTo(progressWidth - borderRadius, centerY - barHeight / 2);
-    ctx.arc(progressWidth - borderRadius, centerY, barHeight / 2, -Math.PI / 2, Math.PI / 2);
-    ctx.lineTo(borderRadius, centerY + barHeight / 2);
-    ctx.arc(borderRadius, centerY, barHeight / 2, Math.PI / 2, -Math.PI / 2);
-    ctx.closePath();
+    capsulePath(ctx, borderRadius, progressWidth, centerY, barHeight);
     ctx.fill();
     ctx.shadowBlur = 0;
     const handleRadius = 8;
@@ -615,15 +612,14 @@ function normalizePeaks(peaks, targetMax = 0.95) {
 }
 
 // src/js/themes.js
-function detectColorScheme() {
+function hasThemeHint(scheme) {
   const root = document.documentElement;
   const body = document.body;
-  if (root.classList.contains("dark") || root.classList.contains("dark-mode") || root.classList.contains("theme-dark") || root.getAttribute("data-theme") === "dark" || root.getAttribute("data-color-scheme") === "dark" || body.classList.contains("dark") || body.classList.contains("dark-mode") || body.getAttribute("data-theme") === "dark") {
-    return "dark";
-  }
-  if (root.classList.contains("light") || root.classList.contains("light-mode") || root.classList.contains("theme-light") || root.getAttribute("data-theme") === "light" || root.getAttribute("data-color-scheme") === "light" || body.classList.contains("light") || body.classList.contains("light-mode") || body.getAttribute("data-theme") === "light") {
-    return "light";
-  }
+  return root.classList.contains(scheme) || root.classList.contains(`${scheme}-mode`) || root.classList.contains(`theme-${scheme}`) || root.getAttribute("data-theme") === scheme || root.getAttribute("data-color-scheme") === scheme || body.classList.contains(scheme) || body.classList.contains(`${scheme}-mode`) || body.getAttribute("data-theme") === scheme;
+}
+function detectColorScheme() {
+  if (hasThemeHint("dark")) return "dark";
+  if (hasThemeHint("light")) return "light";
   try {
     const bodyBg = getComputedStyle(document.body).backgroundColor;
     const brightness = perceivedBrightness(bodyBg);
@@ -834,6 +830,22 @@ var WaveformPlayer = class _WaveformPlayer {
     const event = new CustomEvent(type, { bubbles: true, cancelable, detail });
     this.container.dispatchEvent(event);
     return event;
+  }
+  /**
+   * External-mode seek request: dispatch a cancelable
+   * `waveformplayer:request-seek` and, unless the controller calls
+   * `preventDefault()`, optimistically advance the local progress overlay so
+   * the canvas repaints at once. Shared by the keyboard slider and canvas click.
+   * @param {number} percent - Target position as a 0..1 fraction.
+   * @private
+   * @fires WaveformPlayer#waveformplayer:request-seek
+   */
+  _requestSeek(percent) {
+    const evt = this._emit("waveformplayer:request-seek", { ...this._buildTrackDetail(), percent }, true);
+    if (!evt.defaultPrevented) {
+      this.progress = percent;
+      this.drawWaveform?.();
+    }
   }
   // ============================================
   // Initialization
@@ -1181,12 +1193,7 @@ var WaveformPlayer = class _WaveformPlayer {
     if (!duration) return;
     const clamped = clamp(seconds, 0, duration);
     if (this.options.audioMode === "external") {
-      const percent = clamped / duration;
-      const evt = this._emit("waveformplayer:request-seek", { ...this._buildTrackDetail(), percent }, true);
-      if (!evt.defaultPrevented) {
-        this.progress = percent;
-        this.drawWaveform?.();
-      }
+      this._requestSeek(clamped / duration);
       this.updateSeekAccessibility();
       return;
     }
@@ -1566,11 +1573,7 @@ var WaveformPlayer = class _WaveformPlayer {
     const x = event.clientX - rect.left;
     const targetPercent = clamp(x / rect.width);
     if (this.options.audioMode === "external") {
-      const evt = this._emit("waveformplayer:request-seek", { ...this._buildTrackDetail(), percent: targetPercent }, true);
-      if (!evt.defaultPrevented) {
-        this.progress = targetPercent;
-        this.drawWaveform?.();
-      }
+      this._requestSeek(targetPercent);
       return;
     }
     if (!this.audio || !this.audio.duration) return;
@@ -2149,8 +2152,9 @@ var WaveformPlayer = class _WaveformPlayer {
 };
 
 // src/js/index.js
+var isBrowser = () => typeof window !== "undefined" && typeof document !== "undefined";
 function autoInit() {
-  if (typeof document === "undefined") return;
+  if (!isBrowser()) return;
   const elements = document.querySelectorAll("[data-waveform-player]");
   elements.forEach((element) => {
     if (element.dataset.waveformInitialized === "true") return;
@@ -2162,7 +2166,7 @@ function autoInit() {
     }
   });
 }
-if (typeof document !== "undefined") {
+if (isBrowser()) {
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", autoInit);
   } else {
@@ -2170,7 +2174,7 @@ if (typeof document !== "undefined") {
   }
 }
 WaveformPlayer.init = autoInit;
-if (typeof window !== "undefined") {
+if (isBrowser()) {
   window.WaveformPlayer = WaveformPlayer;
 }
 var index_default = WaveformPlayer;

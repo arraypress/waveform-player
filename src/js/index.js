@@ -14,6 +14,13 @@
 import {WaveformPlayer} from './core.js';
 
 /**
+ * Whether we're running in a browser (vs. SSR / Node), where `window` and
+ * `document` are available. Guards the auto-init and global-attach steps.
+ * @returns {boolean}
+ */
+const isBrowser = () => typeof window !== 'undefined' && typeof document !== 'undefined';
+
+/**
  * Scan the document for declarative player markup and instantiate one
  * {@link WaveformPlayer} per matching element.
  *
@@ -28,7 +35,7 @@ import {WaveformPlayer} from './core.js';
  * @returns {void}
  */
 function autoInit() {
-    if (typeof document === 'undefined') return;
+    if (!isBrowser()) return;
 
     const elements = document.querySelectorAll('[data-waveform-player]');
 
@@ -46,7 +53,7 @@ function autoInit() {
 
 // Initialize when DOM is ready: defer until DOMContentLoaded if the document is
 // still parsing, otherwise run the scan immediately on import.
-if (typeof document !== 'undefined') {
+if (isBrowser()) {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', autoInit);
     } else {
@@ -67,7 +74,7 @@ WaveformPlayer.init = autoInit;
 
 // For CDN/browser usage: expose the class as a global so it is reachable from a
 // plain <script> tag without an ES module loader.
-if (typeof window !== 'undefined') {
+if (isBrowser()) {
     window.WaveformPlayer = WaveformPlayer;
 }
 

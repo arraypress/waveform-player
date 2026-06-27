@@ -77,6 +77,28 @@ function barRadii(options, dpr) {
 }
 
 /**
+ * Trace a horizontal rounded-capsule (stadium) path from `startX` to `endX`,
+ * ready to fill. The end caps are semicircles of radius `barHeight / 2`.
+ * @private
+ * @param {CanvasRenderingContext2D} ctx - Canvas context.
+ * @param {number} startX - Left edge x (also the left cap centre).
+ * @param {number} endX - Right edge x.
+ * @param {number} centerY - Vertical centre of the capsule.
+ * @param {number} barHeight - Capsule thickness in pixels.
+ * @returns {void}
+ */
+function capsulePath(ctx, startX, endX, centerY, barHeight) {
+    const r = barHeight / 2;
+    ctx.beginPath();
+    ctx.moveTo(startX, centerY - r);
+    ctx.lineTo(endX - r, centerY - r);
+    ctx.arc(endX - r, centerY, r, -Math.PI / 2, Math.PI / 2);
+    ctx.lineTo(startX, centerY + r);
+    ctx.arc(startX, centerY, r, Math.PI / 2, -Math.PI / 2);
+    ctx.closePath();
+}
+
+/**
  * Draw standard bars waveform - classic vertical bars anchored to the baseline.
  * Peaks are resampled to fit the available bar slots, drawn at 90% of canvas
  * height, then the progress portion is repainted in `progressColor` via a
@@ -430,14 +452,8 @@ export function drawSeekbar(ctx, canvas, peaks, progress, options) {
     // Draw background track
     ctx.fillStyle = options.color || 'rgba(255, 255, 255, 0.2)';
 
-    // Create rounded rectangle for background
-    ctx.beginPath();
-    ctx.moveTo(borderRadius, centerY - barHeight / 2);
-    ctx.lineTo(width - borderRadius, centerY - barHeight / 2);
-    ctx.arc(width - borderRadius, centerY, barHeight / 2, -Math.PI / 2, Math.PI / 2);
-    ctx.lineTo(borderRadius, centerY + barHeight / 2);
-    ctx.arc(borderRadius, centerY, barHeight / 2, Math.PI / 2, -Math.PI / 2);
-    ctx.closePath();
+    // Rounded background track
+    capsulePath(ctx, borderRadius, width, centerY, barHeight);
     ctx.fill();
 
     // Draw progress
@@ -450,14 +466,8 @@ export function drawSeekbar(ctx, canvas, peaks, progress, options) {
 
         ctx.fillStyle = options.progressColor || 'rgba(255, 255, 255, 0.9)';
 
-        // Create rounded rectangle for progress
-        ctx.beginPath();
-        ctx.moveTo(borderRadius, centerY - barHeight / 2);
-        ctx.lineTo(progressWidth - borderRadius, centerY - barHeight / 2);
-        ctx.arc(progressWidth - borderRadius, centerY, barHeight / 2, -Math.PI / 2, Math.PI / 2);
-        ctx.lineTo(borderRadius, centerY + barHeight / 2);
-        ctx.arc(borderRadius, centerY, barHeight / 2, Math.PI / 2, -Math.PI / 2);
-        ctx.closePath();
+        // Rounded progress fill
+        capsulePath(ctx, borderRadius, progressWidth, centerY, barHeight);
         ctx.fill();
 
         ctx.shadowBlur = 0;

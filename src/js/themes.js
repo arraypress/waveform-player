@@ -6,6 +6,29 @@
 import {perceivedBrightness} from './utils.js';
 
 /**
+ * Does `<html>` or `<body>` explicitly signal the given colour scheme via a
+ * known class name (`dark`, `dark-mode`, `theme-dark`) or theme attribute
+ * (`data-theme`, and `data-color-scheme` on the root)?
+ * @param {'dark'|'light'} scheme - Scheme to look for.
+ * @returns {boolean} True if the page explicitly hints at `scheme`.
+ * @private
+ */
+function hasThemeHint(scheme) {
+    const root = document.documentElement;
+    const body = document.body;
+    return (
+        root.classList.contains(scheme) ||
+        root.classList.contains(`${scheme}-mode`) ||
+        root.classList.contains(`theme-${scheme}`) ||
+        root.getAttribute('data-theme') === scheme ||
+        root.getAttribute('data-color-scheme') === scheme ||
+        body.classList.contains(scheme) ||
+        body.classList.contains(`${scheme}-mode`) ||
+        body.getAttribute('data-theme') === scheme
+    );
+}
+
+/**
  * Detect the appropriate color scheme for the player from the surrounding page.
  *
  * Resolution order, first match wins:
@@ -21,33 +44,9 @@ import {perceivedBrightness} from './utils.js';
  * @returns {string} The detected scheme, either `'dark'` or `'light'`.
  */
 export function detectColorScheme() {
-    const root = document.documentElement;
-    const body = document.body;
-
-    // 1. Check for explicit theme class names and data attributes FIRST
-    // Check for dark theme indicators
-    if (root.classList.contains('dark') ||
-        root.classList.contains('dark-mode') ||
-        root.classList.contains('theme-dark') ||
-        root.getAttribute('data-theme') === 'dark' ||
-        root.getAttribute('data-color-scheme') === 'dark' ||
-        body.classList.contains('dark') ||
-        body.classList.contains('dark-mode') ||
-        body.getAttribute('data-theme') === 'dark') {
-        return 'dark';
-    }
-
-    // Check for light theme indicators
-    if (root.classList.contains('light') ||
-        root.classList.contains('light-mode') ||
-        root.classList.contains('theme-light') ||
-        root.getAttribute('data-theme') === 'light' ||
-        root.getAttribute('data-color-scheme') === 'light' ||
-        body.classList.contains('light') ||
-        body.classList.contains('light-mode') ||
-        body.getAttribute('data-theme') === 'light') {
-        return 'light';
-    }
+    // 1. Explicit theme class names / data attributes win.
+    if (hasThemeHint('dark')) return 'dark';
+    if (hasThemeHint('light')) return 'light';
 
     // 2. Try to detect website's theme from background color
     try {

@@ -71,12 +71,26 @@ export function parseDataAttributes(element) {
         if (v !== undefined) options[optKey] = v;
     };
 
+    // Read a present (non-empty) numeric attribute as an int (or float).
+    const setNum = (optKey, dataKey = optKey, float = false) => {
+        const raw = element.dataset[dataKey];
+        if (raw) options[optKey] = float ? parseFloat(raw) : parseInt(raw, 10);
+    };
+
+    // Parse a JSON-valued attribute defensively — warn and skip on bad JSON.
+    const setJson = (optKey, dataKey = optKey) => {
+        const raw = element.dataset[dataKey];
+        if (!raw) return;
+        try { options[optKey] = JSON.parse(raw); }
+        catch (e) { console.warn(`Invalid ${dataKey} JSON:`, e); }
+    };
+
     // Core attributes. `data-src` is a shorthand alias for `data-url`;
     // the canonical long form wins if both are set.
     if (element.dataset.src) options.url = element.dataset.src;
     if (element.dataset.url) options.url = element.dataset.url;
-    if (element.dataset.height) options.height = parseInt(element.dataset.height);
-    if (element.dataset.samples) options.samples = parseInt(element.dataset.samples);
+    setNum('height');
+    setNum('samples');
     if (element.dataset.preload) {
         options.preload = element.dataset.preload;
     }
@@ -86,9 +100,9 @@ export function parseDataAttributes(element) {
     // `data-waveform-style`; the canonical long form wins if both are set.
     if (element.dataset.style) options.waveformStyle = element.dataset.style;
     if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
-    if (element.dataset.barWidth) options.barWidth = parseInt(element.dataset.barWidth);
-    if (element.dataset.barSpacing) options.barSpacing = parseInt(element.dataset.barSpacing);
-    if (element.dataset.barRadius) options.barRadius = parseInt(element.dataset.barRadius);
+    setNum('barWidth');
+    setNum('barSpacing');
+    setNum('barRadius');
     if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
 
     // Color preset
@@ -128,26 +142,12 @@ export function parseDataAttributes(element) {
     if (element.dataset.waveform) options.waveform = element.dataset.waveform;
 
     // Markers
-    if (element.dataset.markers) {
-        try {
-            options.markers = JSON.parse(element.dataset.markers);
-        } catch (e) {
-            console.warn('Invalid markers JSON:', e);
-        }
-    }
+    setJson('markers');
 
     // Playback controls
-    if (element.dataset.playbackRate) {
-        options.playbackRate = parseFloat(element.dataset.playbackRate);
-    }
+    setNum('playbackRate', 'playbackRate', true);
     setBool('showPlaybackSpeed');
-    if (element.dataset.playbackRates) {
-        try {
-            options.playbackRates = JSON.parse(element.dataset.playbackRates);
-        } catch (e) {
-            console.warn('Invalid playbackRates JSON:', e);
-        }
-    }
+    setJson('playbackRates');
 
     // Media Session API
     setBool('enableMediaSession');

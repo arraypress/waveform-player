@@ -141,6 +141,23 @@ export class WaveformPlayer {
         return event;
     }
 
+    /**
+     * External-mode seek request: dispatch a cancelable
+     * `waveformplayer:request-seek` and, unless the controller calls
+     * `preventDefault()`, optimistically advance the local progress overlay so
+     * the canvas repaints at once. Shared by the keyboard slider and canvas click.
+     * @param {number} percent - Target position as a 0..1 fraction.
+     * @private
+     * @fires WaveformPlayer#waveformplayer:request-seek
+     */
+    _requestSeek(percent) {
+        const evt = this._emit('waveformplayer:request-seek', { ...this._buildTrackDetail(), percent }, true);
+        if (!evt.defaultPrevented) {
+            this.progress = percent;
+            this.drawWaveform?.();
+        }
+    }
+
     // ============================================
     // Initialization
     // ============================================
@@ -563,12 +580,7 @@ export class WaveformPlayer {
         const clamped = clamp(seconds, 0, duration);
 
         if (this.options.audioMode === 'external') {
-            const percent = clamped / duration;
-            const evt = this._emit('waveformplayer:request-seek', { ...this._buildTrackDetail(), percent }, true);
-            if (!evt.defaultPrevented) {
-                this.progress = percent;
-                this.drawWaveform?.();
-            }
+            this._requestSeek(clamped / duration);
             this.updateSeekAccessibility();
             return;
         }
@@ -1063,11 +1075,7 @@ export class WaveformPlayer {
         const targetPercent = clamp(x / rect.width);
 
         if (this.options.audioMode === 'external') {
-            const evt = this._emit('waveformplayer:request-seek', { ...this._buildTrackDetail(), percent: targetPercent }, true);
-            if (!evt.defaultPrevented) {
-                this.progress = targetPercent;
-                this.drawWaveform?.();
-            }
+            this._requestSeek(targetPercent);
             return;
         }
 
