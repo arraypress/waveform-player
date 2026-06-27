@@ -37,7 +37,9 @@
     "dev:demo": "npm run build:css && concurrently \"npm run dev\" \"npm run dev:css\"",
     "size": "npm run build:min && npm run build:css && echo 'JS:' && gzip -c dist/waveform-player.min.js | wc -c && echo 'CSS:' && gzip -c dist/waveform-player.css | wc -c",
     "serve": "npx http-server -p 8000",
-    "prepublishOnly": "npm run build"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run test && npm run build"
   },
   "keywords": [
     "audio",
@@ -82,6 +84,8 @@
   ],
   "devDependencies": {
     "concurrently": "^7.6.0",
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.0",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.9"
   }
 }
