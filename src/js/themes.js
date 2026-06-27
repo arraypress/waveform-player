@@ -6,9 +6,19 @@
 import {perceivedBrightness} from './utils.js';
 
 /**
- * Detect appropriate color scheme
- * Priority: 1) Explicit classes, 2) Website background, 3) System preference, 4) Default
- * @returns {string} 'dark' or 'light'
+ * Detect the appropriate color scheme for the player from the surrounding page.
+ *
+ * Resolution order, first match wins:
+ *   1. Explicit theme hints on `<html>`/`<body>` — class names
+ *      (`dark`, `dark-mode`, `theme-dark`, light equivalents) and data
+ *      attributes (`data-theme`, `data-color-scheme`).
+ *   2. The page's computed `<body>` background colour, classified via
+ *      {@link perceivedBrightness} (>128 = light, <128 = dark; exactly 128
+ *      or unparseable is treated as ambiguous and falls through).
+ *   3. The OS/browser `prefers-color-scheme` media query.
+ *   4. Default fallback of `'dark'` (most audio players are dark).
+ *
+ * @returns {string} The detected scheme, either `'dark'` or `'light'`.
  */
 export function detectColorScheme() {
     const root = document.documentElement;
@@ -69,7 +79,17 @@ export function detectColorScheme() {
 }
 
 /**
- * Color presets - simple dark/light defaults that can be overridden
+ * Built-in colour presets keyed by scheme name.
+ *
+ * Each preset is a flat map of the player's themeable colour tokens
+ * (waveform, progress, button, text, background, border). They are deliberately
+ * simple translucent black/white values so they sit on any host background, and
+ * any individual token can be overridden per-instance via the matching
+ * `*Color` option in {@link DEFAULT_OPTIONS}.
+ *
+ * @type {Object<string, Object<string, string>>}
+ * @property {Object<string, string>} dark  Light-on-dark token set.
+ * @property {Object<string, string>} light Dark-on-light token set.
  */
 export const COLOR_PRESETS = {
     dark: {
@@ -95,9 +115,16 @@ export const COLOR_PRESETS = {
 };
 
 /**
- * Get color preset by name, with auto-detection fallback
- * @param {string|null} presetName - Preset name ('dark', 'light') or null for auto-detect
- * @returns {Object} Color preset object
+ * Resolve a colour preset by name, falling back to auto-detection.
+ *
+ * When `presetName` names a known preset it is returned as-is; otherwise
+ * (null, undefined, or an unrecognised name) the scheme is auto-detected via
+ * {@link detectColorScheme} and the corresponding preset is returned.
+ *
+ * @param {string|null} presetName - Preset name (`'dark'` or `'light'`), or
+ *   null/invalid to trigger auto-detection.
+ * @returns {Object<string, string>} The matching colour token map from
+ *   {@link COLOR_PRESETS}.
  */
 export function getColorPreset(presetName) {
     // If explicitly set to a valid preset, use it
@@ -111,7 +138,16 @@ export function getColorPreset(presetName) {
 }
 
 /**
- * Default player options
+ * Default option set for a {@link WaveformPlayer} instance.
+ *
+ * User-supplied options are merged over this object, so every supported option
+ * is enumerated here with its baseline value. `null` colour tokens mean "inherit
+ * from the resolved {@link COLOR_PRESETS} preset"; `null` content/callback
+ * fields mean "unset". See the grouped inline comments for per-field notes,
+ * notably the `audioMode` self/external distinction and the `accessibleSeek`
+ * keyboard slider.
+ *
+ * @type {Object}
  */
 export const DEFAULT_OPTIONS = {
     // Core settings
@@ -197,7 +233,13 @@ export const DEFAULT_OPTIONS = {
 };
 
 /**
- * Style defaults
+ * Per-waveform-style geometry defaults.
+ *
+ * Maps each supported `waveformStyle` to its natural `barWidth`/`barSpacing`
+ * (in px), used to seed bar geometry when the caller has not explicitly set
+ * those options so each style renders at sensible proportions.
+ *
+ * @type {Object<string, {barWidth: number, barSpacing: number}>}
  */
 export const STYLE_DEFAULTS = {
     bars: {barWidth: 3, barSpacing: 1},

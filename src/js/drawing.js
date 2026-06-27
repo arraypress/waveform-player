@@ -9,7 +9,13 @@ import {resampleData} from './utils.js';
  * Resolve a fill value that may be a CSS colour string OR an array of colour
  * stops (rendered as a vertical canvas gradient). Bundle-light gradient
  * support: pass e.g. `waveformColor: ['#fafafa', '#71717a']`.
- * @returns {string|CanvasGradient}
+ * A single-element array collapses to that one colour; a multi-element array
+ * is spread evenly from top (y=0) to bottom (y=height).
+ * @private
+ * @param {CanvasRenderingContext2D} ctx - Canvas context used to build the gradient.
+ * @param {string|string[]} value - A CSS colour string, or an array of colour stops.
+ * @param {number} height - Canvas height in device pixels (gradient span).
+ * @returns {string|CanvasGradient} The original string, or a vertical linear gradient.
  */
 function makeFill(ctx, value, height) {
     if (!Array.isArray(value)) return value;
@@ -22,8 +28,16 @@ function makeFill(ctx, value, height) {
 /**
  * Fill a bar rect, optionally with rounded caps (`barRadius`). Falls back to
  * a plain fillRect where `roundRect` is unavailable (older Safari) — square
- * bars, no error.
- * @param {number|number[]} radii - corner radius (number, or [tl,tr,br,bl]).
+ * bars, no error. Radii are clamped to half the rect's width/height so a
+ * large `barRadius` never overflows a thin or short bar.
+ * @private
+ * @param {CanvasRenderingContext2D} ctx - Canvas context (current fillStyle is used).
+ * @param {number} x - Left edge of the bar in device pixels.
+ * @param {number} y - Top edge of the bar in device pixels.
+ * @param {number} w - Bar width in device pixels.
+ * @param {number} h - Bar height in device pixels (may be negative for upward fills).
+ * @param {number|number[]} radii - Corner radius (number, or [tl, tr, br, bl]).
+ * @returns {void}
  */
 function fillBar(ctx, x, y, w, h, radii) {
     const any = Array.isArray(radii) ? radii.some(r => r > 0) : radii > 0;
@@ -38,19 +52,42 @@ function fillBar(ctx, x, y, w, h, radii) {
     }
 }
 
-/** barRadius in device pixels (scalar). */
+/**
+ * Scale the configured `barRadius` into device pixels (scalar).
+ * @private
+ * @param {Object} options - Drawing options (`barRadius` in CSS pixels, defaults to 0).
+ * @param {number} dpr - Device pixel ratio multiplier.
+ * @returns {number} The bar corner radius in device pixels.
+ */
 function barRadiusPx(options, dpr) {
     return (options.barRadius || 0) * dpr;
 }
 
-/** Top-rounded corner radii for bottom-anchored bars: [tl, tr, br, bl]. */
+/**
+ * Top-rounded corner radii for bottom-anchored bars: [tl, tr, br, bl].
+ * Only the top two corners are rounded so bars sit flush on the baseline.
+ * @private
+ * @param {Object} options - Drawing options (supplies `barRadius`).
+ * @param {number} dpr - Device pixel ratio multiplier.
+ * @returns {number[]} Corner radii in device pixels as [tl, tr, br, bl].
+ */
 function barRadii(options, dpr) {
     const r = barRadiusPx(options, dpr);
     return [r, r, 0, 0];
 }
 
 /**
- * Draw standard bars waveform - Classic vertical bars
+ * Draw standard bars waveform - classic vertical bars anchored to the baseline.
+ * Peaks are resampled to fit the available bar slots, drawn at 90% of canvas
+ * height, then the progress portion is repainted in `progressColor` via a
+ * left-anchored clip rect.
+ * @param {CanvasRenderingContext2D} ctx - Canvas 2D context to draw into.
+ * @param {HTMLCanvasElement} canvas - Canvas element (provides device-pixel dimensions).
+ * @param {number[]} peaks - Normalised waveform peak values (0-1).
+ * @param {number} progress - Playback progress (0-1) that drives the colour overlay.
+ * @param {Object} options - Drawing options: `barWidth`, `barSpacing`, `barRadius`,
+ *   `color`, `progressColor` (colour strings or gradient stop arrays).
+ * @returns {void}
  */
 export function drawBars(ctx, canvas, peaks, progress, options) {
     const dpr = window.devicePixelRatio || 1;
@@ -101,10 +138,17 @@ export function drawBars(ctx, canvas, peaks, progress, options) {
 }
 
 /**
- * Draw mirror/SoundCloud style waveform - Symmetrical bars
- */
-/**
- * Draw mirror/SoundCloud style waveform - Symmetrical bars
+ * Draw mirror/SoundCloud style waveform - symmetrical bars about the centre line.
+ * Each peak is drawn twice (45% of height up and down) with the upper cap rounded
+ * on top and the lower cap rounded on the bottom; the progress portion is then
+ * repainted in `progressColor` through a left-anchored clip rect.
+ * @param {CanvasRenderingContext2D} ctx - Canvas 2D context to draw into.
+ * @param {HTMLCanvasElement} canvas - Canvas element (provides device-pixel dimensions).
+ * @param {number[]} peaks - Normalised waveform peak values (0-1).
+ * @param {number} progress - Playback progress (0-1) that drives the colour overlay.
+ * @param {Object} options - Drawing options: `barWidth`, `barSpacing`, `barRadius`,
+ *   `color`, `progressColor`.
+ * @returns {void}
  */
 export function drawMirror(ctx, canvas, peaks, progress, options) {
     const dpr = window.devicePixelRatio || 1;
@@ -156,7 +200,17 @@ export function drawMirror(ctx, canvas, peaks, progress, options) {
 }
 
 /**
- * Draw line/oscilloscope style waveform - Smooth flowing wave with glow
+ * Draw line/oscilloscope style waveform - smooth flowing wave with glow.
+ * Renders a faint oscilloscope grid (centre line + 10 vertical divisions), the
+ * full waveform as a bezier-smoothed curve, then the played portion on top with
+ * a coloured shadow glow. Peaks are modulated by a sine term so the line undulates
+ * rather than reading as static bars.
+ * @param {CanvasRenderingContext2D} ctx - Canvas 2D context to draw into.
+ * @param {HTMLCanvasElement} canvas - Canvas element (provides device-pixel dimensions).
+ * @param {number[]} peaks - Normalised waveform peak values (0-1).
+ * @param {number} progress - Playback progress (0-1); the glowing curve is only drawn when > 0.
+ * @param {Object} options - Drawing options: `color` (base wave), `progressColor` (played wave).
+ * @returns {void}
  */
 export function drawLine(ctx, canvas, peaks, progress, options) {
     const width = canvas.width;
@@ -166,7 +220,15 @@ export function drawLine(ctx, canvas, peaks, progress, options) {
 
     ctx.clearRect(0, 0, width, height);
 
-    // Helper to draw a smooth curve through the peaks
+    /**
+     * Stroke a bezier-smoothed curve through the (optionally sine-modulated) peaks.
+     * @private
+     * @param {string} color - Stroke colour (and shadow colour when glowing).
+     * @param {number} lineWidth - Stroke width in pixels.
+     * @param {number} [endProgress=1] - Fraction (0-1) of the peaks to draw, left to right.
+     * @param {boolean} [addGlow=false] - When true, applies a coloured shadow blur for a glow effect.
+     * @returns {void}
+     */
     const drawCurve = (color, lineWidth, endProgress = 1, addGlow = false) => {
         if (addGlow) {
             ctx.shadowBlur = 12;
@@ -242,7 +304,18 @@ export function drawLine(ctx, canvas, peaks, progress, options) {
 }
 
 /**
- * Draw blocks/LED meter style waveform - Segmented blocks
+ * Draw blocks/LED meter style waveform - segmented blocks growing from the centre.
+ * Each bar's height is quantised into fixed-size blocks separated by gaps, drawn
+ * symmetrically up and down from the centre line (the shared centre block is not
+ * duplicated downward). Per-bar colour is chosen by comparing the bar's x against
+ * the played width — there is no clip overlay here.
+ * @param {CanvasRenderingContext2D} ctx - Canvas 2D context to draw into.
+ * @param {HTMLCanvasElement} canvas - Canvas element (provides device-pixel dimensions).
+ * @param {number[]} peaks - Normalised waveform peak values (0-1).
+ * @param {number} progress - Playback progress (0-1) used to pick each bar's colour.
+ * @param {Object} options - Drawing options: `barWidth` (default 3), `barSpacing` (default 1),
+ *   `color`, `progressColor`.
+ * @returns {void}
  */
 export function drawBlocks(ctx, canvas, peaks, progress, options) {
     const dpr = window.devicePixelRatio || 1;
@@ -285,7 +358,17 @@ export function drawBlocks(ctx, canvas, peaks, progress, options) {
 }
 
 /**
- * Draw dots style waveform - Circular points
+ * Draw dots style waveform - pairs of circular points mirrored about the centre.
+ * For each sample a dot is drawn above and below the centre line at half the peak
+ * height; dot radius scales with bar width but is floored at 1.5 device pixels.
+ * Per-dot colour is chosen by comparing x against the played width (no clip overlay).
+ * @param {CanvasRenderingContext2D} ctx - Canvas 2D context to draw into.
+ * @param {HTMLCanvasElement} canvas - Canvas element (provides device-pixel dimensions).
+ * @param {number[]} peaks - Normalised waveform peak values (0-1).
+ * @param {number} progress - Playback progress (0-1) used to pick each dot's colour.
+ * @param {Object} options - Drawing options: `barWidth` (default 2), `barSpacing` (default 3),
+ *   `color`, `progressColor`.
+ * @returns {void}
  */
 export function drawDots(ctx, canvas, peaks, progress, options) {
     const dpr = window.devicePixelRatio || 1;
@@ -323,7 +406,17 @@ export function drawDots(ctx, canvas, peaks, progress, options) {
 }
 
 /**
- * Draw seekbar style - Simple progress bar without waveform
+ * Draw seekbar style - a simple rounded progress bar with no waveform.
+ * Renders a pill-shaped background track, a glowing pill-shaped filled portion
+ * (clamped to at least one full pill width so it never collapses), and a draggable
+ * circular handle/thumb at the playhead with a drop shadow and inner accent dot.
+ * The `peaks` argument is accepted for signature parity but is unused by this style.
+ * @param {CanvasRenderingContext2D} ctx - Canvas 2D context to draw into.
+ * @param {HTMLCanvasElement} canvas - Canvas element (provides device-pixel dimensions).
+ * @param {number[]} peaks - Ignored; present to match the shared draw-function signature.
+ * @param {number} progress - Playback progress (0-1); the fill and handle are only drawn when > 0.
+ * @param {Object} options - Drawing options: `color` (track), `progressColor` (fill/glow/accent).
+ * @returns {void}
  */
 export function drawSeekbar(ctx, canvas, peaks, progress, options) {
     const width = canvas.width;
@@ -395,8 +488,10 @@ export function drawSeekbar(ctx, canvas, peaks, progress, options) {
 }
 
 /**
- * Map of style names to drawing functions
- * 6 visually distinct styles including a simple seekbar
+ * Map of style names (and singular aliases) to their drawing functions.
+ * Six visually distinct styles including a simple seekbar; keys are matched
+ * against `options.waveformStyle` by {@link draw}.
+ * @type {Object.<string, function(CanvasRenderingContext2D, HTMLCanvasElement, number[], number, Object): void>}
  */
 export const DRAWING_STYLES = {
     'bars': drawBars,        // Classic vertical bars
@@ -411,12 +506,15 @@ export const DRAWING_STYLES = {
 };
 
 /**
- * Main drawing function that delegates to appropriate style
+ * Main drawing entry point that delegates to the style named by
+ * `options.waveformStyle`, falling back to {@link drawBars} for unknown styles.
  * @param {CanvasRenderingContext2D} ctx - Canvas context
  * @param {HTMLCanvasElement} canvas - Canvas element
- * @param {number[]} peaks - Waveform peak data
+ * @param {number[]} peaks - Waveform peak data (0-1)
  * @param {number} progress - Progress (0-1)
- * @param {Object} options - Drawing options
+ * @param {Object} options - Drawing options, including `waveformStyle` plus the
+ *   per-style fields (`barWidth`, `barSpacing`, `barRadius`, `color`, `progressColor`).
+ * @returns {void}
  */
 export function draw(ctx, canvas, peaks, progress, options) {
     const drawFunc = DRAWING_STYLES[options.waveformStyle] || drawBars;

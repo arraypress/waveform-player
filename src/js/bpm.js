@@ -4,9 +4,18 @@
  */
 
 /**
- * Detect BPM from audio buffer
- * @param {AudioBuffer} buffer - Audio buffer to analyze
- * @returns {number|null} Detected BPM or null
+ * Estimate the tempo (beats per minute) of an audio buffer.
+ *
+ * Analyses the first (left/mono) channel by detecting onsets, measuring the
+ * time between successive onsets, converting each interval to a tempo, and
+ * histogramming those tempos into 3-BPM buckets (60-200 BPM) to find the most
+ * common one. Octave errors are corrected by doubling very slow results and
+ * halving very fast ones when a strong half/double bucket also exists, then a
+ * fixed -1 BPM calibration offset is applied. Returns a 120 BPM fallback when
+ * too few onsets are found, and null if analysis throws.
+ *
+ * @param {AudioBuffer} buffer - Decoded audio buffer to analyse; only channel 0 is read.
+ * @returns {number|null} Detected tempo in BPM, 120 as a fallback when onsets are insufficient, or null on error.
  */
 export function detectBPM(buffer) {
     try {
@@ -57,7 +66,19 @@ export function detectBPM(buffer) {
 }
 
 /**
- * Detect onsets (transients/beats) in audio
+ * Detect onset sample positions (transients/beats) within a channel of audio.
+ *
+ * Slides a 2048-sample window (50% overlap via a half-window hop) across the
+ * signal, computing the mean squared energy of each window. An onset is flagged
+ * when the energy rise over the previous (smoothed) energy exceeds an adaptive
+ * threshold and the window energy is above a noise floor, subject to a minimum
+ * spacing of 150 ms so a single transient is not counted twice. The running
+ * previousEnergy is exponentially smoothed (0.8 new / 0.2 old) to track the
+ * local energy envelope.
+ *
+ * @param {Float32Array} channelData - PCM samples (normalised -1..1) for a single channel.
+ * @param {number} sampleRate - Sample rate in Hz, used to derive the minimum onset spacing.
+ * @returns {number[]} Ascending sample indices at which onsets were detected.
  * @private
  */
 function detectOnsets(channelData, sampleRate) {

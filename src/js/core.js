@@ -32,9 +32,21 @@ export class WaveformPlayer {
     static currentlyPlaying = null;
 
     /**
-     * Create a new WaveformPlayer instance
-     * @param {string|HTMLElement} container - Container element or selector
-     * @param {Object} options - Player options
+     * Create a new WaveformPlayer instance.
+     *
+     * Resolves the container, merges options (defaults < `data-*` attributes <
+     * constructor options), applies the colour preset and style-specific
+     * defaults, registers the instance in the static map, and kicks off
+     * {@link WaveformPlayer#init}. A `waveformplayer:ready` event is dispatched
+     * ~100ms later, once initialization has settled.
+     *
+     * @param {string|HTMLElement} container - Container element, or a CSS
+     *   selector resolved with `document.querySelector`.
+     * @param {Object} [options={}] - Player options. Accepts the shorthand
+     *   aliases `style` (→ `waveformStyle`) and `src` (→ `url`); the canonical
+     *   names win if both are supplied.
+     * @throws {Error} If the container element cannot be found.
+     * @fires WaveformPlayer#waveformplayer:ready
      */
     constructor(container, options = {}) {
         // Resolve container
@@ -119,7 +131,10 @@ export class WaveformPlayer {
     // ============================================
 
     /**
-     * Initialize the player
+     * Initialize the player: build the DOM, create the audio element (self
+     * mode only), wire up the feature controls (speed, keyboard, accessible
+     * seek), bind events, attach the resize observer, then size the canvas and
+     * — if a `url` option was given — load it and optionally autoplay.
      * @private
      */
     init() {
@@ -149,7 +164,14 @@ export class WaveformPlayer {
     }
 
     /**
-     * Create DOM elements
+     * Build the player's DOM tree inside the container and cache element
+     * references.
+     *
+     * Clears the container, resolves button alignment (`auto` → `bottom` for
+     * the `bars` style, `center` otherwise), and conditionally renders the play
+     * button, info row (artwork/title/subtitle), BPM badge, playback-speed
+     * menu, and time display based on the relevant `show*` options. Caches the
+     * canvas, controls, and text elements onto `this`, then sizes the canvas.
      * @private
      */
     createDOM() {
@@ -291,7 +313,9 @@ export class WaveformPlayer {
     // ============================================
 
     /**
-     * Initialize playback speed controls
+     * Apply the configured initial playback rate to the audio element (self
+     * mode only) and, when `showPlaybackSpeed` is enabled, wire up the speed
+     * menu UI via {@link WaveformPlayer#initSpeedControls}.
      * @private
      */
     initPlaybackSpeed() {
@@ -311,7 +335,11 @@ export class WaveformPlayer {
     }
 
     /**
-     * Initialize speed control UI
+     * Wire up the playback-speed menu: toggle it open on the speed button,
+     * close it on any outside click, and apply the chosen rate when a
+     * `.speed-option` is clicked. All listeners are registered against the
+     * instance `AbortController` signal so {@link WaveformPlayer#destroy} tears
+     * them down. No-op if the speed elements are absent.
      * @private
      */
     initSpeedControls() {
@@ -346,7 +374,14 @@ export class WaveformPlayer {
     }
 
     /**
-     * Initialize keyboard controls
+     * Enable keyboard transport controls on the container.
+     *
+     * The container is focusable only after it is clicked (it carries
+     * `tabindex="-1"` until then, and clicking steals focus from sibling
+     * players). While focused it handles: digits 0-9 (seek to that tenth of
+     * the track), Space (toggle play), and — in self mode only, since
+     * `this.audio` is null in external mode — arrow keys (seek ±5s, volume
+     * ±0.1) and `m`/`M` (mute). Listeners use the instance abort signal.
      * @private
      */
     initKeyboardControls() {
@@ -496,9 +531,15 @@ export class WaveformPlayer {
 
     /**
      * Seek the slider to an absolute time, clamped to the track length.
-     * Routes through the external controller in external mode.
+     *
+     * In self mode this defers to {@link WaveformPlayer#seekTo}. In external
+     * mode it dispatches a cancelable `waveformplayer:request-seek` event with
+     * the target percentage; if the controller doesn't `preventDefault()`, the
+     * local progress/visual is updated optimistically. Either way the ARIA
+     * slider values are refreshed.
      * @param {number} seconds - Target time in seconds.
      * @private
+     * @fires WaveformPlayer#waveformplayer:request-seek
      */
     seekToSeconds(seconds) {
         const duration = this.getSeekDuration();
@@ -528,7 +569,9 @@ export class WaveformPlayer {
 
     /**
      * Set the slider's accessible name from `seekLabel`, falling back to the
-     * track title, then a generic 'Seek'.
+     * track title, then a generic 'Seek'. No-op if the slider isn't present.
+     * @param {string} [title=this.options.title] - Track title to fall back to
+     *   when `seekLabel` is not set.
      * @private
      */
     applySeekLabel(title = this.options.title) {
@@ -597,7 +640,10 @@ export class WaveformPlayer {
     // ============================================
 
     /**
-     * Bind event listeners
+     * Bind the core interaction listeners: play-button click, the `<audio>`
+     * media events (self mode only — external mode is fed state via
+     * {@link WaveformPlayer#setPlayingState}/{@link WaveformPlayer#setProgress}),
+     * canvas click-to-seek, and a debounced window-resize redraw.
      * @private
      */
     bindEvents() {
@@ -633,7 +679,8 @@ export class WaveformPlayer {
     }
 
     /**
-     * Setup resize observer
+     * Observe the canvas's parent element for size changes and re-fit the
+     * canvas on each one. No-op where `ResizeObserver` is unavailable.
      * @private
      */
     setupResizeObserver() {
@@ -653,9 +700,20 @@ export class WaveformPlayer {
     // ============================================
 
     /**
-     * Load audio file
-     * @param {string} url - Audio URL
-     * @returns {Promise<void>}
+     * Load an audio source: set the title, fetch/generate the waveform peaks,
+     * draw them, render markers, and initialise Media Session.
+     *
+     * In self mode the `<audio>` src is assigned and the method awaits
+     * `loadedmetadata` before proceeding. In external mode there is no audio
+     * element, so the src/metadata step is skipped and only the visualization
+     * is built (duration/time come from the controller via
+     * {@link WaveformPlayer#setProgress}). Peaks come from the `waveform`
+     * option when provided, otherwise they are decoded from the audio; a
+     * decode failure falls back to a placeholder waveform. The `onLoad`
+     * callback fires on success.
+     * @param {string} url - Audio URL.
+     * @returns {Promise<void>} Resolves once loading settles (errors are caught
+     *   internally and surfaced through {@link WaveformPlayer#onError}).
      */
     async load(url) {
         try {
@@ -734,11 +792,20 @@ export class WaveformPlayer {
     }
 
     /**
-     * Load a new track
-     * @param {string} url - Audio URL
-     * @param {string} [title] - Track title
-     * @param {string} [subtitle] - Track subtitle
-     * @param {Object} [options] - Additional options
+     * Swap the player to a new track at runtime.
+     *
+     * Pauses any current playback, fully resets the audio element (self mode),
+     * clears error/marker/progress state, merges the new metadata into
+     * `this.options`, updates the subtitle/artwork DOM, then calls
+     * {@link WaveformPlayer#load}. Auto-plays the new track unless
+     * `options.autoplay === false`.
+     * @param {string} url - Audio URL.
+     * @param {string|null} [title=null] - Track title; keeps the existing
+     *   title when null.
+     * @param {string|null} [subtitle=null] - Track subtitle; pass `''` to hide
+     *   the subtitle row, or null to keep the existing one.
+     * @param {Object} [options={}] - Additional options to merge (e.g.
+     *   `preload`, `artwork`, `markers`, `autoplay`).
      * @returns {Promise<void>}
      */
     async loadTrack(url, title = null, subtitle = null, options = {}) {
@@ -815,7 +882,15 @@ export class WaveformPlayer {
     // ============================================
 
     /**
-     * Set waveform data
+     * Normalise externally-supplied waveform data into `this.waveformData` and
+     * redraw.
+     *
+     * Accepts several shapes: a `.json` URL (fetched async; peaks and any
+     * embedded `markers` are applied on resolve), a JSON-encoded array string,
+     * a comma-separated number string, or a plain number array. Malformed
+     * input degrades to an empty array rather than throwing.
+     * @param {string|number[]} data - Peaks as an array, a JSON/CSV string, or
+     *   a URL to a `.json` peaks file.
      * @private
      */
     setWaveformData(data) {
@@ -849,7 +924,9 @@ export class WaveformPlayer {
     }
 
     /**
-     * Draw waveform
+     * Render the current waveform + progress to the canvas via the shared
+     * {@link draw} routine, passing the resolved style and colours. No-op
+     * before the context exists or while there is no peak data.
      * @private
      */
     drawWaveform() {
@@ -864,7 +941,9 @@ export class WaveformPlayer {
     }
 
     /**
-     * Resize canvas
+     * Re-fit the canvas backing store to its parent's width and the configured
+     * height, scaled by the device pixel ratio for crisp rendering, then
+     * redraw. Guards against running after destruction.
      * @private
      */
     resizeCanvas() {
@@ -884,7 +963,15 @@ export class WaveformPlayer {
     }
 
     /**
-     * Render markers on the waveform
+     * Render the configured cue markers as positioned, clickable buttons over
+     * the waveform.
+     *
+     * Clears any existing markers first, then bails out unless `showMarkers` is
+     * on, markers exist, and a duration is known (via the mode-agnostic
+     * {@link WaveformPlayer#getSeekDuration}). Each marker is placed by its
+     * time-as-percentage, carries a tooltip and ARIA label, and seeks on click
+     * (also starting playback when `playOnSeek` is set and currently paused).
+     * Markers past the track duration are skipped with a warning.
      * @private
      */
     renderMarkers() {
@@ -943,8 +1030,16 @@ export class WaveformPlayer {
     // ============================================
 
     /**
-     * Handle canvas click
+     * Seek to the clicked horizontal position on the waveform canvas.
+     *
+     * Converts the click X into a 0..1 percentage. In external mode it
+     * dispatches a cancelable `waveformplayer:request-seek` event (updating the
+     * local visual optimistically unless the controller vetoes it); in self
+     * mode it seeks the owned `<audio>` via
+     * {@link WaveformPlayer#seekToPercent}.
+     * @param {MouseEvent} event - The canvas click event.
      * @private
+     * @fires WaveformPlayer#waveformplayer:request-seek
      */
     handleCanvasClick(event) {
         // In external mode the player has no audio of its own —
@@ -976,7 +1071,10 @@ export class WaveformPlayer {
     }
 
     /**
-     * Set loading state
+     * Toggle the loading state: show/hide the spinner overlay and set
+     * `aria-busy` on the accessible seek slider so assistive tech knows the
+     * player is fetching/decoding.
+     * @param {boolean} loading - True while audio is loading.
      * @private
      */
     setLoading(loading) {
@@ -991,7 +1089,9 @@ export class WaveformPlayer {
     }
 
     /**
-     * Handle metadata loaded
+     * `loadedmetadata` handler (self mode): write the total-time display, now
+     * that duration is known re-render markers, and publish duration to the
+     * accessible seek slider. No-op during destruction.
      * @private
      */
     onMetadataLoaded() {
@@ -1008,8 +1108,12 @@ export class WaveformPlayer {
     }
 
     /**
-     * Handle play event
+     * `play` handler (self mode): set the playing flag, swap the button to its
+     * pause icon, start the smooth progress loop, dispatch
+     * `waveformplayer:play`, and fire the `onPlay` callback. No-op during
+     * destruction.
      * @private
+     * @fires WaveformPlayer#waveformplayer:play
      */
     onPlay() {
         // Ignore during destruction
@@ -1040,8 +1144,12 @@ export class WaveformPlayer {
     }
 
     /**
-     * Handle pause event
+     * `pause` handler (self mode): clear the playing flag, swap the button back
+     * to its play icon, stop the smooth progress loop, dispatch
+     * `waveformplayer:pause`, and fire the `onPause` callback. No-op during
+     * destruction.
      * @private
+     * @fires WaveformPlayer#waveformplayer:pause
      */
     onPause() {
         // Ignore during destruction
@@ -1072,8 +1180,12 @@ export class WaveformPlayer {
     }
 
     /**
-     * Handle ended event
+     * `ended` handler (self mode): reset progress and `currentTime` to the
+     * start, redraw, reset the time display, dispatch `waveformplayer:ended`
+     * (carrying the final time), run {@link WaveformPlayer#onPause}, and fire
+     * the `onEnd` callback. No-op during destruction.
      * @private
+     * @fires WaveformPlayer#waveformplayer:ended
      */
     onEnded() {
         // Ignore during destruction
@@ -1105,7 +1217,11 @@ export class WaveformPlayer {
     }
 
     /**
-     * Handle error event
+     * `error` handler: set the error flag, hide the spinner, reveal the error
+     * overlay, dim the canvas, disable the play button, and fire the `onError`
+     * callback. No-op during destruction.
+     * @param {Event|Error} error - The audio error event, or an Error thrown
+     *   during loading.
      * @private
      */
     onError(error) {
@@ -1138,7 +1254,10 @@ export class WaveformPlayer {
     // ============================================
 
     /**
-     * Start smooth update animation
+     * Start the `requestAnimationFrame` loop that drives smooth progress
+     * updates while playing (self mode only — external mode is redrawn by
+     * controller {@link WaveformPlayer#setProgress} pushes). Cancels any
+     * existing loop first so it's safe to call repeatedly.
      * @private
      */
     startSmoothUpdate() {
@@ -1158,7 +1277,7 @@ export class WaveformPlayer {
     }
 
     /**
-     * Stop smooth update animation
+     * Cancel the smooth-update animation frame, if one is scheduled.
      * @private
      */
     stopSmoothUpdate() {
@@ -1169,8 +1288,15 @@ export class WaveformPlayer {
     }
 
     /**
-     * Update progress
+     * Recompute progress from the owned `<audio>` clock and reflect it
+     * everywhere (self mode only — external mode uses
+     * {@link WaveformPlayer#setProgress}).
+     *
+     * Redraws the canvas when progress moves meaningfully, updates the
+     * current-time display, dispatches `waveformplayer:timeupdate`, fires the
+     * `onTimeUpdate` callback, and refreshes the accessible slider values.
      * @private
+     * @fires WaveformPlayer#waveformplayer:timeupdate
      */
     updateProgress() {
         // Self-mode only — external mode receives progress via
@@ -1212,7 +1338,7 @@ export class WaveformPlayer {
     // ============================================
 
     /**
-     * Update BPM display
+     * Show the detected BPM in the badge, once a value has been detected.
      * @private
      */
     updateBPMDisplay() {
@@ -1223,7 +1349,10 @@ export class WaveformPlayer {
     }
 
     /**
-     * Update speed UI to reflect current rate
+     * Sync the speed control's label and the menu's active-option highlight to
+     * the audio element's current `playbackRate`. No-op in external mode (no
+     * owned `<audio>`), which also avoids reading `playbackRate` before the
+     * element exists.
      * @private
      */
     updateSpeedUI() {
@@ -1261,7 +1390,12 @@ export class WaveformPlayer {
      * setPlayingState() / setProgress(). Calling preventDefault() on
      * the event lets the controller veto the play (state is unchanged).
      *
-     * @return {Promise|undefined}
+     * When `singlePlay` is enabled, any other currently-playing instance is
+     * paused first.
+     *
+     * @return {Promise|undefined} The promise from `HTMLMediaElement.play()` in
+     *   self mode; `undefined` in external mode.
+     * @fires WaveformPlayer#waveformplayer:request-play
      */
     play() {
         if (this.options.singlePlay && WaveformPlayer.currentlyPlaying &&
@@ -1293,6 +1427,8 @@ export class WaveformPlayer {
      *
      * In `audioMode: 'external'`, dispatches `waveformplayer:request-pause`
      * (cancelable) and does NOT touch any audio element. See play().
+     *
+     * @fires WaveformPlayer#waveformplayer:request-pause
      */
     pause() {
         if (WaveformPlayer.currentlyPlaying === this) {
@@ -1337,7 +1473,14 @@ export class WaveformPlayer {
      * touching audio. Mirrors what onPlay()/onPause() do but skips the
      * audio-element interactions. Safe to call repeatedly — idempotent.
      *
-     * @param {boolean} playing
+     * Only dispatches `waveformplayer:play`/`waveformplayer:pause` (and runs
+     * the matching callback) on an actual transition, starting/stopping the
+     * smooth-update loop accordingly.
+     *
+     * @param {boolean} playing - True to enter the playing state, false to
+     *   enter the paused state.
+     * @fires WaveformPlayer#waveformplayer:play
+     * @fires WaveformPlayer#waveformplayer:pause
      */
     setPlayingState(playing) {
         const wasPlaying = this.isPlaying;
@@ -1371,8 +1514,16 @@ export class WaveformPlayer {
      * from an external clock (e.g. WaveformBar's audio element's
      * timeupdate). Drives the canvas redraw + the time displays.
      *
-     * @param {number} currentTime  Current playback position in seconds.
-     * @param {number} duration     Total track duration in seconds.
+     * Redraws the canvas, updates the current/total time displays, stores the
+     * external duration for the accessible slider, dispatches
+     * `waveformplayer:timeupdate`, runs `onTimeUpdate`, and synthesizes a
+     * one-shot `waveformplayer:ended` (with `onEnd`) when progress reaches the
+     * end. No-op for a non-positive duration.
+     *
+     * @param {number} currentTime - Current playback position in seconds.
+     * @param {number} duration - Total track duration in seconds.
+     * @fires WaveformPlayer#waveformplayer:timeupdate
+     * @fires WaveformPlayer#waveformplayer:ended
      */
     setProgress(currentTime, duration) {
         if (!duration || duration <= 0) return;
@@ -1418,7 +1569,9 @@ export class WaveformPlayer {
     }
 
     /**
-     * Toggle play/pause
+     * Toggle between play and pause based on the current `isPlaying` state.
+     * Works in both audio modes (in external mode it routes through the
+     * request-play/pause events).
      */
     togglePlay() {
         if (this.isPlaying) {
@@ -1429,8 +1582,11 @@ export class WaveformPlayer {
     }
 
     /**
-     * Seek to time in seconds
-     * @param {number} seconds - Time in seconds
+     * Seek the owned `<audio>` element to an absolute time, clamped to
+     * `[0, duration]`, and refresh progress. Self mode only — a no-op when
+     * there is no audio element or duration. External-mode keyboard/click
+     * seeks go through {@link WaveformPlayer#seekToSeconds} instead.
+     * @param {number} seconds - Target time in seconds.
      */
     seekTo(seconds) {
         if (this.audio && this.audio.duration) {
@@ -1440,8 +1596,10 @@ export class WaveformPlayer {
     }
 
     /**
-     * Seek to percentage
-     * @param {number} percent - Percentage (0-1)
+     * Seek the owned `<audio>` element to a fraction of the track, clamped to
+     * `[0, 1]`, and refresh progress. Self mode only — a no-op without an audio
+     * element or duration.
+     * @param {number} percent - Position as a fraction from 0 to 1.
      */
     seekToPercent(percent) {
         if (this.audio && this.audio.duration) {
@@ -1451,8 +1609,9 @@ export class WaveformPlayer {
     }
 
     /**
-     * Set volume
-     * @param {number} volume - Volume (0-1)
+     * Set the owned `<audio>` element's volume, clamped to `[0, 1]`. Self mode
+     * only — a no-op in external mode where the controller owns volume.
+     * @param {number} volume - Volume from 0 (silent) to 1 (full).
      */
     setVolume(volume) {
         if (this.audio) {
@@ -1461,8 +1620,10 @@ export class WaveformPlayer {
     }
 
     /**
-     * Set playback rate
-     * @param {number} rate - Playback rate (0.5 to 2)
+     * Set the owned `<audio>` element's playback rate (clamped to 0.5–2),
+     * persist it onto `this.options.playbackRate`, and refresh the speed UI.
+     * Self mode only — a no-op in external mode.
+     * @param {number} rate - Desired playback rate; clamped to the 0.5–2 range.
      */
     setPlaybackRate(rate) {
         if (!this.audio) return;
@@ -1475,7 +1636,15 @@ export class WaveformPlayer {
     }
 
     /**
-     * Destroy player instance
+     * Tear down the player and release all resources.
+     *
+     * Flags destruction (so in-flight handlers bail), dispatches
+     * `waveformplayer:destroy`, stops playback and the animation loop, aborts
+     * every listener registered on the instance signal, disconnects the resize
+     * observer, removes the window-resize handler, drops the instance from the
+     * static map and `currentlyPlaying`, resets/releases the audio element, and
+     * empties the container.
+     * @fires WaveformPlayer#waveformplayer:destroy
      */
     destroy() {
         // Set a flag to indicate we're destroying

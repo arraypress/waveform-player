@@ -18,9 +18,25 @@ function parseColorValue(value) {
 }
 
 /**
- * Parse data attributes from element
- * @param {HTMLElement} element - Element with data attributes
- * @returns {Object} Parsed options
+ * Read every recognised `data-*` attribute off a host element and translate it
+ * into a plain options object suitable for `mergeOptions`.
+ *
+ * Only attributes that are actually present are copied, so the returned object
+ * is sparse and never overrides defaults with `undefined`. Numeric attributes
+ * are coerced with `parseInt`/`parseFloat`, boolean flags are compared against
+ * the literal string `'true'`, and JSON-valued attributes (`markers`,
+ * `playbackRates`) are parsed defensively — a parse failure is warned about and
+ * the attribute is skipped rather than thrown.
+ *
+ * Several attributes are shorthand aliases of a canonical long form: `data-src`
+ * → `url`, `data-style` → `waveformStyle`. When both are present the canonical
+ * long form is applied last and therefore wins. `data-color` and `data-theme`
+ * are retained as legacy aliases for `waveformColor` and `colorPreset`.
+ * Colour attributes that accept gradients (`waveformColor`, `progressColor`)
+ * are passed through {@link parseColorValue} so a JSON stop array is expanded.
+ *
+ * @param {HTMLElement} element - Host element whose `dataset` is inspected.
+ * @returns {Object} Sparse options object containing only the attributes found.
  */
 export function parseDataAttributes(element) {
     const options = {};
@@ -129,9 +145,13 @@ export function parseDataAttributes(element) {
 }
 
 /**
- * Format time in MM:SS format
- * @param {number} seconds - Time in seconds
- * @returns {string} Formatted time
+ * Format a duration as a clock string.
+ *
+ * Renders `M:SS` for durations under an hour and `H:MM:SS` for longer ones,
+ * zero-padding the minutes and seconds. Falsy, `NaN`, or negative inputs are
+ * treated as zero and return `'0:00'`.
+ * @param {number} seconds - Time in seconds.
+ * @returns {string} Formatted time, e.g. `'3:07'` or `'1:02:09'`.
  */
 export function formatTime(seconds) {
     if (!seconds || isNaN(seconds) || seconds < 0) return '0:00';
@@ -147,6 +167,12 @@ export function formatTime(seconds) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
+/**
+ * Monotonic per-process counter appended to every generated id to guarantee
+ * uniqueness even when two ids hash from the same URL.
+ * @type {number}
+ * @private
+ */
 let idCounter = 0;
 
 /**
@@ -168,9 +194,15 @@ export function generateId(url) {
 }
 
 /**
- * Extract title from URL
- * @param {string} url - Audio URL
- * @returns {string} Extracted title
+ * Derive a human-readable title from an audio URL's filename.
+ *
+ * Takes the last path segment, drops the extension, replaces `-`/`_`
+ * separators with spaces, and title-cases the first letter of each word.
+ * Returns `'Audio'` for an empty or missing URL.
+ * @param {string} url - Audio URL.
+ * @returns {string} Extracted, prettified title.
+ * @example
+ * extractTitleFromUrl('https://cdn.example.com/my-cool_track.mp3'); // 'My Cool Track'
  */
 export function extractTitleFromUrl(url) {
     if (!url) return 'Audio';
@@ -199,9 +231,13 @@ export function perceivedBrightness(color) {
 }
 
 /**
- * Merge multiple option objects
- * @param {...Object} sources - Option objects to merge
- * @returns {Object} Merged options
+ * Shallow-merge option objects into a new object, last source winning.
+ *
+ * Keys whose value is `null` or `undefined` are skipped, so a later source can
+ * leave an earlier value untouched by passing a nullish entry rather than
+ * clobbering it. The inputs are never mutated.
+ * @param {...Object} sources - Option objects merged left-to-right.
+ * @returns {Object} A fresh object containing the merged, defined keys.
  */
 export function mergeOptions(...sources) {
     const result = {};
@@ -218,10 +254,14 @@ export function mergeOptions(...sources) {
 }
 
 /**
- * Debounce function
- * @param {Function} func - Function to debounce
- * @param {number} wait - Wait time in ms
- * @returns {Function} Debounced function
+ * Wrap a function so it only runs once calls stop arriving for `wait` ms.
+ *
+ * Each invocation resets the pending timer, so rapid bursts collapse into a
+ * single trailing-edge call that receives the most recent arguments. The
+ * wrapper itself returns nothing.
+ * @param {Function} func - Function to debounce.
+ * @param {number} wait - Idle period in milliseconds before `func` fires.
+ * @returns {Function} Debounced wrapper forwarding its arguments to `func`.
  */
 export function debounce(func, wait) {
     let timeout;
@@ -238,10 +278,17 @@ export function debounce(func, wait) {
 }
 
 /**
- * Resample array data
- * @param {number[]} data - Original data
- * @param {number} targetLength - Target length
- * @returns {number[]} Resampled data
+ * Resize a waveform amplitude array to a target number of bars.
+ *
+ * Returns the original array unchanged when lengths already match, and an empty
+ * array when either side is empty. When upsampling (target larger than source)
+ * it linearly interpolates between neighbouring samples for a smooth result.
+ * When downsampling it splits the source into evenly sized buckets and keeps
+ * the peak (maximum) of each so transients survive the reduction; an empty
+ * bucket falls back to its nearest-neighbour sample.
+ * @param {number[]} data - Original amplitude samples.
+ * @param {number} targetLength - Desired number of output bars.
+ * @returns {number[]} Resampled amplitude array of length `targetLength`.
  */
 export function resampleData(data, targetLength) {
     if (data.length === targetLength) return data;
