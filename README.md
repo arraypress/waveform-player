@@ -3,7 +3,7 @@
 # WaveformPlayer
 
 **Zero-config audio waveforms for the web.**
-Add a `data-` attribute to a `<div>` — get a real, interactive waveform player. No build step, no dependencies, ~9KB.
+Add a `data-` attribute to a `<div>` — get a real, interactive waveform player. No build step, no dependencies, ~10KB.
 
 [![npm](https://img.shields.io/npm/v/@arraypress/waveform-player?style=flat-square&labelColor=09090b&color=3f3f46)](https://www.npmjs.com/package/@arraypress/waveform-player)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/@arraypress/waveform-player?style=flat-square&label=gzip&labelColor=09090b&color=3f3f46)](https://bundlephobia.com/package/@arraypress/waveform-player)
@@ -51,7 +51,7 @@ Ships ESM + CommonJS + a standalone IIFE for `<script>` tags, with bundled TypeS
 
 |                     | WaveformPlayer | WaveSurfer.js | Amplitude.js |
 | ------------------- | :------------: | :-----------: | :----------: |
-| Size (gzipped)      |    **~9KB**     |     40KB+     |    35KB+     |
+| Size (gzipped)      |    **~10KB**     |     40KB+     |    35KB+     |
 | Zero-config (HTML)  |       ✓        |       —       |      —       |
 | Dependencies        |     None       |     None      |     None     |
 | Real waveforms      |       ✓        |       ✓       |      —       |
@@ -67,7 +67,7 @@ Ships ESM + CommonJS + a standalone IIFE for `<script>` tags, with bundled TypeS
 - **Accessible** — the waveform is a keyboard-operable ARIA slider out of the box.
 - **Framework-ready** — first-party [React](https://github.com/arraypress/waveform-player-react) and [Astro](https://github.com/arraypress/waveform-player-astro) wrappers; works anywhere otherwise.
 - **Batteries included** — chapter markers, BPM detection, Media Session, speed control, auto theme detection.
-- **Tiny** — ~9KB gzipped, zero dependencies, TypeScript types bundled.
+- **Tiny** — ~10KB gzipped, zero dependencies, TypeScript types bundled.
 
 ## Visual styles
 
