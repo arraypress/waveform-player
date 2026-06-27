@@ -198,6 +198,19 @@ describe('core additions for controllers (v1.8.0)', () => {
 		expect([...markers].some((m) => m.classList.contains('active'))).toBe(false);
 	});
 
+	it('renders a custom errorText, defaulting to "Unable to load audio", escaped', () => {
+		const dflt = track(mount());
+		expect(dflt.el.querySelector('.waveform-error-text').textContent).toBe('Unable to load audio');
+
+		const custom = track(mount({ errorText: 'This track is unavailable' }));
+		expect(custom.el.querySelector('.waveform-error-text').textContent).toBe('This track is unavailable');
+
+		const evil = track(mount({ errorText: '<img src=x onerror=alert(1)>' }));
+		const span = evil.el.querySelector('.waveform-error-text');
+		expect(span.querySelector('img')).toBe(null);            // not parsed as HTML
+		expect(span.textContent).toContain('<img');
+	});
+
 	it('request-play detail mirrors subtitle into artist', () => {
 		const { el, player } = track(mount({ subtitle: 'DJ Foo' }));
 		let detail = null;

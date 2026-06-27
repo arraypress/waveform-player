@@ -117,6 +117,7 @@ function parseDataAttributes(element) {
   setBool("showMarkers");
   setBool("accessibleSeek");
   if (element.dataset.seekLabel) options.seekLabel = element.dataset.seekLabel;
+  if (element.dataset.errorText) options.errorText = element.dataset.errorText;
   if (element.dataset.playIcon) options.playIcon = element.dataset.playIcon;
   if (element.dataset.pauseIcon) options.pauseIcon = element.dataset.pauseIcon;
   return options;
@@ -736,6 +737,8 @@ var DEFAULT_OPTIONS = {
   subtitle: null,
   artwork: null,
   album: "",
+  // Message shown in the error state when audio fails to load.
+  errorText: "Unable to load audio",
   // Icons (SVG)
   playIcon: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>',
   pauseIcon: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>',
@@ -972,7 +975,7 @@ var WaveformPlayer = class _WaveformPlayer {
           <div class="waveform-markers"></div>
           <div class="waveform-loading" style="display:none;"></div>
           <div class="waveform-error" style="display:none;" role="alert">
-            <span class="waveform-error-text">Unable to load audio</span>
+            <span class="waveform-error-text">${escapeHtml(this.options.errorText)}</span>
           </div>
         </div>
       </div>

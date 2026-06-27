@@ -165,6 +165,8 @@ export interface WaveformPlayerOptions {
 	subtitle?: string | null;
 	artwork?: string | null;
 	album?: string;
+	/** Message shown when audio fails to load. @default 'Unable to load audio' */
+	errorText?: string;
 
 	// ── Icons (raw SVG markup) ────────────────────────────────────
 	playIcon?: string;

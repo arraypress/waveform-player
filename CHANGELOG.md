@@ -59,6 +59,9 @@ All notable changes to this project will be documented in this file.
     `audio.volume`).
   - The `request-*` event detail's `artist` now falls back to `subtitle`, so the
     published contract is self-consistent.
+- **`errorText` option** (default `'Unable to load audio'`) — customize/localize
+  the message shown when audio fails to load. Escaped before render. Also
+  settable via `data-error-text`.
 
 ### Fixed (additional)
 

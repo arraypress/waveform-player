@@ -191,6 +191,7 @@ export function parseDataAttributes(element) {
     // Accessibility
     setBool('accessibleSeek');
     if (element.dataset.seekLabel) options.seekLabel = element.dataset.seekLabel;
+    if (element.dataset.errorText) options.errorText = element.dataset.errorText;
 
     // Custom icons (raw SVG markup)
     if (element.dataset.playIcon) options.playIcon = element.dataset.playIcon;

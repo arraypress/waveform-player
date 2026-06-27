@@ -12,7 +12,8 @@ import {
     parseDataAttributes,
     mergeOptions,
     debounce,
-    clamp
+    clamp,
+    escapeHtml
 } from './utils.js';
 
 import {DEFAULT_OPTIONS, STYLE_DEFAULTS, getColorPreset} from './themes.js';
@@ -289,7 +290,7 @@ export class WaveformPlayer {
           <div class="waveform-markers"></div>
           <div class="waveform-loading" style="display:none;"></div>
           <div class="waveform-error" style="display:none;" role="alert">
-            <span class="waveform-error-text">Unable to load audio</span>
+            <span class="waveform-error-text">${escapeHtml(this.options.errorText)}</span>
           </div>
         </div>
       </div>

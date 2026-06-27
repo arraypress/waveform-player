@@ -218,6 +218,9 @@ export const DEFAULT_OPTIONS = {
     artwork: null,
     album: '',
 
+    // Message shown in the error state when audio fails to load.
+    errorText: 'Unable to load audio',
+
     // Icons (SVG)
     playIcon: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>',
     pauseIcon: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>',
