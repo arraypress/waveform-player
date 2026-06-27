@@ -7,9 +7,17 @@ if (typeof globalThis.requestAnimationFrame !== 'function') {
 }
 
 // jsdom has no canvas backend; return a no-op 2D context so the player can
-// construct without the "getContext not implemented" noise. The tests never
-// drive actual drawing (waveform data is empty), so a stub is sufficient.
+// construct and the drawing code (incl. gradients / roundRect) runs without
+// throwing. Sufficient for behavior tests; we don't assert pixels.
 if (typeof HTMLCanvasElement !== 'undefined') {
-	HTMLCanvasElement.prototype.getContext = () =>
-		new Proxy({}, { get: () => () => {} });
+	const noop = () => {};
+	HTMLCanvasElement.prototype.getContext = () => ({
+		clearRect: noop, fillRect: noop, beginPath: noop, closePath: noop,
+		rect: noop, roundRect: noop, clip: noop, save: noop, restore: noop,
+		moveTo: noop, lineTo: noop, arc: noop, bezierCurveTo: noop,
+		stroke: noop, fill: noop, scale: noop, translate: noop, setTransform: noop,
+		createLinearGradient: () => ({ addColorStop: noop }),
+		fillStyle: '', strokeStyle: '', lineWidth: 1, lineCap: '', lineJoin: '',
+		shadowBlur: 0, shadowColor: '', shadowOffsetY: 0,
+	});
 }

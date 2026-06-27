@@ -128,6 +128,27 @@ describe('destroy() teardown', () => {
 	});
 });
 
+describe('drawing options (barRadius + gradient)', () => {
+	it('renders every style with barRadius + gradient color stops without throwing', () => {
+		for (const waveformStyle of ['bars', 'mirror', 'blocks', 'dots', 'line', 'seekbar']) {
+			const { player } = track(mount({
+				waveformStyle,
+				barRadius: 4,
+				waveformColor: ['#fafafa', '#71717a'],
+				progressColor: ['#ffffff', '#a1a1aa'],
+			}));
+			player.setWaveformData([0.2, 0.6, 0.9, 0.4, 0.7, 0.3, 0.85]);
+			expect(() => player.drawWaveform(), waveformStyle).not.toThrow();
+		}
+	});
+
+	it('still accepts plain string colors (backwards compatible)', () => {
+		const { player } = track(mount({ waveformColor: '#fff', progressColor: '#0af', barRadius: 0 }));
+		player.setWaveformData([0.3, 0.7, 0.5]);
+		expect(() => player.drawWaveform()).not.toThrow();
+	});
+});
+
 describe('static getPeaksUrl', () => {
 	it('swaps a known audio extension for .json', () => {
 		expect(WaveformPlayer.getPeaksUrl('https://x.com/a.mp3')).toBe('https://x.com/a.json');

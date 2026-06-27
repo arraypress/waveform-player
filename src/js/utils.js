@@ -8,6 +8,20 @@
  * @param {HTMLElement} element - Element with data attributes
  * @returns {Object} Parsed options
  */
+/**
+ * A colour data-attribute may be a CSS colour string OR a JSON array of
+ * gradient stops (e.g. '["#fafafa","#71717a"]'). Parse the array form;
+ * otherwise pass the string straight through.
+ * @param {string} value
+ * @returns {string|string[]}
+ */
+function parseColorValue(value) {
+    if (typeof value === 'string' && value.trim().startsWith('[')) {
+        try { return JSON.parse(value); } catch (e) { /* fall through to string */ }
+    }
+    return value;
+}
+
 export function parseDataAttributes(element) {
     const options = {};
 
@@ -23,14 +37,15 @@ export function parseDataAttributes(element) {
     if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
     if (element.dataset.barWidth) options.barWidth = parseInt(element.dataset.barWidth);
     if (element.dataset.barSpacing) options.barSpacing = parseInt(element.dataset.barSpacing);
+    if (element.dataset.barRadius) options.barRadius = parseInt(element.dataset.barRadius);
     if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
 
     // Color preset
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;
 
     // Individual color customization
-    if (element.dataset.waveformColor) options.waveformColor = element.dataset.waveformColor;
-    if (element.dataset.progressColor) options.progressColor = element.dataset.progressColor;
+    if (element.dataset.waveformColor) options.waveformColor = parseColorValue(element.dataset.waveformColor);
+    if (element.dataset.progressColor) options.progressColor = parseColorValue(element.dataset.progressColor);
     if (element.dataset.buttonColor) options.buttonColor = element.dataset.buttonColor;
     if (element.dataset.buttonHoverColor) options.buttonHoverColor = element.dataset.buttonHoverColor;
     if (element.dataset.textColor) options.textColor = element.dataset.textColor;

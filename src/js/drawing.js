@@ -6,6 +6,50 @@
 import {resampleData} from './utils.js';
 
 /**
+ * Resolve a fill value that may be a CSS colour string OR an array of colour
+ * stops (rendered as a vertical canvas gradient). Bundle-light gradient
+ * support: pass e.g. `waveformColor: ['#fafafa', '#71717a']`.
+ * @returns {string|CanvasGradient}
+ */
+function makeFill(ctx, value, height) {
+    if (!Array.isArray(value)) return value;
+    if (value.length === 1) return value[0];
+    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    value.forEach((c, i) => grad.addColorStop(i / (value.length - 1), c));
+    return grad;
+}
+
+/**
+ * Fill a bar rect, optionally with rounded caps (`barRadius`). Falls back to
+ * a plain fillRect where `roundRect` is unavailable (older Safari) — square
+ * bars, no error.
+ * @param {number|number[]} radii - corner radius (number, or [tl,tr,br,bl]).
+ */
+function fillBar(ctx, x, y, w, h, radii) {
+    const any = Array.isArray(radii) ? radii.some(r => r > 0) : radii > 0;
+    if (any && typeof ctx.roundRect === 'function') {
+        const max = Math.min(w / 2, Math.abs(h) / 2);
+        const clamp = (r) => Math.max(0, Math.min(r, max));
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, Array.isArray(radii) ? radii.map(clamp) : clamp(radii));
+        ctx.fill();
+    } else {
+        ctx.fillRect(x, y, w, h);
+    }
+}
+
+/** barRadius in device pixels (scalar). */
+function barRadiusPx(options, dpr) {
+    return (options.barRadius || 0) * dpr;
+}
+
+/** Top-rounded corner radii for bottom-anchored bars: [tl, tr, br, bl]. */
+function barRadii(options, dpr) {
+    const r = barRadiusPx(options, dpr);
+    return [r, r, 0, 0];
+}
+
+/**
  * Draw standard bars waveform - Classic vertical bars
  */
 export function drawBars(ctx, canvas, peaks, progress, options) {
@@ -16,10 +60,14 @@ export function drawBars(ctx, canvas, peaks, progress, options) {
     const resampledPeaks = resampleData(peaks, barCount);
     const height = canvas.height;
     const progressWidth = progress * canvas.width;
+    const radii = barRadii(options, dpr);
+    const baseFill = makeFill(ctx, options.color, height);
+    const progFill = makeFill(ctx, options.progressColor, height);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw all bars first
+    ctx.fillStyle = baseFill;
     for (let i = 0; i < resampledPeaks.length; i++) {
         const x = i * (barWidth + barSpacing);
         if (x + barWidth > canvas.width) break;
@@ -28,8 +76,7 @@ export function drawBars(ctx, canvas, peaks, progress, options) {
         // Draw from bottom up, not centered
         const y = height - peakHeight;
 
-        ctx.fillStyle = options.color;
-        ctx.fillRect(x, y, barWidth, peakHeight);
+        fillBar(ctx, x, y, barWidth, peakHeight, radii);
     }
 
     // Progress overlay
@@ -38,6 +85,7 @@ export function drawBars(ctx, canvas, peaks, progress, options) {
     ctx.rect(0, 0, progressWidth, height);
     ctx.clip();
 
+    ctx.fillStyle = progFill;
     for (let i = 0; i < resampledPeaks.length; i++) {
         const x = i * (barWidth + barSpacing);
         if (x > progressWidth) break;
@@ -46,8 +94,7 @@ export function drawBars(ctx, canvas, peaks, progress, options) {
         // Draw from bottom up, not centered
         const y = height - peakHeight;
 
-        ctx.fillStyle = options.progressColor;
-        ctx.fillRect(x, y, barWidth, peakHeight);
+        fillBar(ctx, x, y, barWidth, peakHeight, radii);
     }
 
     ctx.restore();
@@ -68,19 +115,24 @@ export function drawMirror(ctx, canvas, peaks, progress, options) {
     const height = canvas.height;
     const centerY = height / 2;
     const progressWidth = progress * canvas.width;
+    const r = barRadiusPx(options, dpr);
+    const topRadii = [r, r, 0, 0];   // round the upper cap
+    const botRadii = [0, 0, r, r];   // round the lower cap
+    const baseFill = makeFill(ctx, options.color, height);
+    const progFill = makeFill(ctx, options.progressColor, height);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw all bars
+    ctx.fillStyle = baseFill;
     for (let i = 0; i < resampledPeaks.length; i++) {
         const x = i * (barWidth + barSpacing);
         if (x + barWidth > canvas.width) break;
 
         const peakHeight = resampledPeaks[i] * height * 0.45;
 
-        ctx.fillStyle = options.color;
-        ctx.fillRect(x, centerY - peakHeight, barWidth, peakHeight);
-        ctx.fillRect(x, centerY, barWidth, peakHeight);
+        fillBar(ctx, x, centerY - peakHeight, barWidth, peakHeight, topRadii);
+        fillBar(ctx, x, centerY, barWidth, peakHeight, botRadii);
     }
 
     // Progress overlay
@@ -89,15 +141,15 @@ export function drawMirror(ctx, canvas, peaks, progress, options) {
     ctx.rect(0, 0, progressWidth, height);
     ctx.clip();
 
+    ctx.fillStyle = progFill;
     for (let i = 0; i < resampledPeaks.length; i++) {
         const x = i * (barWidth + barSpacing);
         if (x > progressWidth) break;
 
         const peakHeight = resampledPeaks[i] * height * 0.45;
 
-        ctx.fillStyle = options.progressColor;
-        ctx.fillRect(x, centerY - peakHeight, barWidth, peakHeight);
-        ctx.fillRect(x, centerY, barWidth, peakHeight);
+        fillBar(ctx, x, centerY - peakHeight, barWidth, peakHeight, topRadii);
+        fillBar(ctx, x, centerY, barWidth, peakHeight, botRadii);
     }
 
     ctx.restore();
@@ -203,6 +255,8 @@ export function drawBlocks(ctx, canvas, peaks, progress, options) {
     const blockGap = 2 * dpr;
     const progressWidth = progress * canvas.width;
     const centerY = height / 2;
+    const baseFill = makeFill(ctx, options.color, height);
+    const progFill = makeFill(ctx, options.progressColor, height);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -213,7 +267,7 @@ export function drawBlocks(ctx, canvas, peaks, progress, options) {
         const peakHeight = resampledPeaks[i] * height * 0.9;
         const blockCount = Math.floor(peakHeight / (blockSize + blockGap));
 
-        ctx.fillStyle = x < progressWidth ? options.progressColor : options.color;
+        ctx.fillStyle = x < progressWidth ? progFill : baseFill;
 
         // Draw blocks from center outward
         for (let j = 0; j < blockCount; j++) {
@@ -243,6 +297,8 @@ export function drawDots(ctx, canvas, peaks, progress, options) {
     const dotRadius = Math.max(1.5 * dpr, barWidth / 2);
     const progressWidth = progress * canvas.width;
     const centerY = height / 2;
+    const baseFill = makeFill(ctx, options.color, height);
+    const progFill = makeFill(ctx, options.progressColor, height);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -252,7 +308,7 @@ export function drawDots(ctx, canvas, peaks, progress, options) {
 
         const peakHeight = resampledPeaks[i] * height * 0.9;
 
-        ctx.fillStyle = x < progressWidth ? options.progressColor : options.color;
+        ctx.fillStyle = x < progressWidth ? progFill : baseFill;
 
         // Draw upper dot
         ctx.beginPath();

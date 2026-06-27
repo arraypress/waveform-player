@@ -92,13 +92,19 @@ export interface WaveformPlayerOptions {
 	barWidth?: number;
 	/** Gap between bars in pixels (style-dependent default). */
 	barSpacing?: number;
+	/** Rounded bar-cap radius in pixels (bars/mirror). `0` = square. @default 0 */
+	barRadius?: number;
 
 	// ── Colours ───────────────────────────────────────────────────
 	/** Force a colour preset, or `null` to auto-detect. @default null */
 	colorPreset?: ColorPreset;
-	/** Individual colour overrides (each `null` = use the preset). */
-	waveformColor?: string | null;
-	progressColor?: string | null;
+	/**
+	 * Unplayed waveform colour (each `null` = use the preset). Pass an array of
+	 * CSS colour stops for a vertical gradient, e.g. `['#fafafa', '#71717a']`.
+	 */
+	waveformColor?: string | string[] | null;
+	/** Played-through colour. Also accepts an array of stops for a gradient. */
+	progressColor?: string | string[] | null;
 	buttonColor?: string | null;
 	buttonHoverColor?: string | null;
 	textColor?: string | null;

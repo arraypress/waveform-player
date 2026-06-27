@@ -24,6 +24,17 @@ All notable changes to this project will be documented in this file.
   `--waveform-body-gap` (8px), and `--waveform-track-gap` (12px). Lets
   embedders (e.g. `@arraypress/waveform-bar`) retune layout without
   `!important` overrides of internal classes. Defaults are unchanged.
+- **Expressive bar styling** (bundle-neutral): `barRadius` for rounded bar
+  caps (bars/mirror; falls back to square where `roundRect` is unavailable),
+  and **gradient fills** — `waveformColor`/`progressColor` now also accept an
+  array of CSS colour stops (e.g. `['#fafafa', '#71717a']`) rendered as a
+  vertical canvas gradient. Both work via constructor options, `data-*`
+  attributes (gradients as a JSON array), and the React/Astro wrappers.
+
+### Fixed (additional)
+
+- Type hygiene in `audio.js`: cast the `webkitAudioContext` fallback (silences
+  ts2568) and dropped a no-op `await` on the synchronous `detectBPM()`.
 
 ### Fixed
 

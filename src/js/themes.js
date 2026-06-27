@@ -144,6 +144,8 @@ export const DEFAULT_OPTIONS = {
     waveformStyle: 'mirror',
     barWidth: 2,
     barSpacing: 0,
+    // Rounded bar caps (px). 0 = square (default). Applies to bars/mirror.
+    barRadius: 0,
 
     // Color preset: null = auto-detect, 'dark' = force dark, 'light' = force light
     colorPreset: null,

@@ -1,5 +1,14 @@
 (() => {
   // src/js/utils.js
+  function parseColorValue(value) {
+    if (typeof value === "string" && value.trim().startsWith("[")) {
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+      }
+    }
+    return value;
+  }
   function parseDataAttributes(element) {
     const options = {};
     if (element.dataset.url) options.url = element.dataset.url;
@@ -11,10 +20,11 @@
     if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
     if (element.dataset.barWidth) options.barWidth = parseInt(element.dataset.barWidth);
     if (element.dataset.barSpacing) options.barSpacing = parseInt(element.dataset.barSpacing);
+    if (element.dataset.barRadius) options.barRadius = parseInt(element.dataset.barRadius);
     if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;
-    if (element.dataset.waveformColor) options.waveformColor = element.dataset.waveformColor;
-    if (element.dataset.progressColor) options.progressColor = element.dataset.progressColor;
+    if (element.dataset.waveformColor) options.waveformColor = parseColorValue(element.dataset.waveformColor);
+    if (element.dataset.progressColor) options.progressColor = parseColorValue(element.dataset.progressColor);
     if (element.dataset.buttonColor) options.buttonColor = element.dataset.buttonColor;
     if (element.dataset.buttonHoverColor) options.buttonHoverColor = element.dataset.buttonHoverColor;
     if (element.dataset.textColor) options.textColor = element.dataset.textColor;
@@ -153,6 +163,32 @@
   }
 
   // src/js/drawing.js
+  function makeFill(ctx, value, height) {
+    if (!Array.isArray(value)) return value;
+    if (value.length === 1) return value[0];
+    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    value.forEach((c, i) => grad.addColorStop(i / (value.length - 1), c));
+    return grad;
+  }
+  function fillBar(ctx, x, y, w, h, radii) {
+    const any = Array.isArray(radii) ? radii.some((r) => r > 0) : radii > 0;
+    if (any && typeof ctx.roundRect === "function") {
+      const max = Math.min(w / 2, Math.abs(h) / 2);
+      const clamp = (r) => Math.max(0, Math.min(r, max));
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, Array.isArray(radii) ? radii.map(clamp) : clamp(radii));
+      ctx.fill();
+    } else {
+      ctx.fillRect(x, y, w, h);
+    }
+  }
+  function barRadiusPx(options, dpr) {
+    return (options.barRadius || 0) * dpr;
+  }
+  function barRadii(options, dpr) {
+    const r = barRadiusPx(options, dpr);
+    return [r, r, 0, 0];
+  }
   function drawBars(ctx, canvas, peaks, progress, options) {
     const dpr = window.devicePixelRatio || 1;
     const barWidth = options.barWidth * dpr;
@@ -161,26 +197,29 @@
     const resampledPeaks = resampleData(peaks, barCount);
     const height = canvas.height;
     const progressWidth = progress * canvas.width;
+    const radii = barRadii(options, dpr);
+    const baseFill = makeFill(ctx, options.color, height);
+    const progFill = makeFill(ctx, options.progressColor, height);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = baseFill;
     for (let i = 0; i < resampledPeaks.length; i++) {
       const x = i * (barWidth + barSpacing);
       if (x + barWidth > canvas.width) break;
       const peakHeight = resampledPeaks[i] * height * 0.9;
       const y = height - peakHeight;
-      ctx.fillStyle = options.color;
-      ctx.fillRect(x, y, barWidth, peakHeight);
+      fillBar(ctx, x, y, barWidth, peakHeight, radii);
     }
     ctx.save();
     ctx.beginPath();
     ctx.rect(0, 0, progressWidth, height);
     ctx.clip();
+    ctx.fillStyle = progFill;
     for (let i = 0; i < resampledPeaks.length; i++) {
       const x = i * (barWidth + barSpacing);
       if (x > progressWidth) break;
       const peakHeight = resampledPeaks[i] * height * 0.9;
       const y = height - peakHeight;
-      ctx.fillStyle = options.progressColor;
-      ctx.fillRect(x, y, barWidth, peakHeight);
+      fillBar(ctx, x, y, barWidth, peakHeight, radii);
     }
     ctx.restore();
   }
@@ -193,26 +232,31 @@
     const height = canvas.height;
     const centerY = height / 2;
     const progressWidth = progress * canvas.width;
+    const r = barRadiusPx(options, dpr);
+    const topRadii = [r, r, 0, 0];
+    const botRadii = [0, 0, r, r];
+    const baseFill = makeFill(ctx, options.color, height);
+    const progFill = makeFill(ctx, options.progressColor, height);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = baseFill;
     for (let i = 0; i < resampledPeaks.length; i++) {
       const x = i * (barWidth + barSpacing);
       if (x + barWidth > canvas.width) break;
       const peakHeight = resampledPeaks[i] * height * 0.45;
-      ctx.fillStyle = options.color;
-      ctx.fillRect(x, centerY - peakHeight, barWidth, peakHeight);
-      ctx.fillRect(x, centerY, barWidth, peakHeight);
+      fillBar(ctx, x, centerY - peakHeight, barWidth, peakHeight, topRadii);
+      fillBar(ctx, x, centerY, barWidth, peakHeight, botRadii);
     }
     ctx.save();
     ctx.beginPath();
     ctx.rect(0, 0, progressWidth, height);
     ctx.clip();
+    ctx.fillStyle = progFill;
     for (let i = 0; i < resampledPeaks.length; i++) {
       const x = i * (barWidth + barSpacing);
       if (x > progressWidth) break;
       const peakHeight = resampledPeaks[i] * height * 0.45;
-      ctx.fillStyle = options.progressColor;
-      ctx.fillRect(x, centerY - peakHeight, barWidth, peakHeight);
-      ctx.fillRect(x, centerY, barWidth, peakHeight);
+      fillBar(ctx, x, centerY - peakHeight, barWidth, peakHeight, topRadii);
+      fillBar(ctx, x, centerY, barWidth, peakHeight, botRadii);
     }
     ctx.restore();
   }
@@ -283,13 +327,15 @@
     const blockGap = 2 * dpr;
     const progressWidth = progress * canvas.width;
     const centerY = height / 2;
+    const baseFill = makeFill(ctx, options.color, height);
+    const progFill = makeFill(ctx, options.progressColor, height);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < resampledPeaks.length; i++) {
       const x = i * (barWidth + barSpacing);
       if (x + barWidth > canvas.width) break;
       const peakHeight = resampledPeaks[i] * height * 0.9;
       const blockCount = Math.floor(peakHeight / (blockSize + blockGap));
-      ctx.fillStyle = x < progressWidth ? options.progressColor : options.color;
+      ctx.fillStyle = x < progressWidth ? progFill : baseFill;
       for (let j = 0; j < blockCount; j++) {
         const blockOffset = j * (blockSize + blockGap);
         ctx.fillRect(x, centerY - blockOffset - blockSize, barWidth, blockSize);
@@ -309,12 +355,14 @@
     const dotRadius = Math.max(1.5 * dpr, barWidth / 2);
     const progressWidth = progress * canvas.width;
     const centerY = height / 2;
+    const baseFill = makeFill(ctx, options.color, height);
+    const progFill = makeFill(ctx, options.progressColor, height);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < resampledPeaks.length; i++) {
       const x = i * (barWidth + barSpacing) + barWidth / 2;
       if (x > canvas.width) break;
       const peakHeight = resampledPeaks[i] * height * 0.9;
-      ctx.fillStyle = x < progressWidth ? options.progressColor : options.color;
+      ctx.fillStyle = x < progressWidth ? progFill : baseFill;
       ctx.beginPath();
       ctx.arc(x, centerY - peakHeight / 2, dotRadius, 0, Math.PI * 2);
       ctx.fill();
@@ -485,7 +533,9 @@
   async function generateWaveform(url, samples = 200, shouldDetectBPM = false) {
     let audioContext;
     try {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const AudioCtx = window.AudioContext || /** @type {any} */
+      window.webkitAudioContext;
+      audioContext = new AudioCtx();
       const response = await fetch(url);
       const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -493,7 +543,7 @@
       peaks = normalizePeaks(peaks);
       let bpm = null;
       if (shouldDetectBPM) {
-        bpm = await detectBPM(audioBuffer);
+        bpm = detectBPM(audioBuffer);
       }
       return { peaks, bpm };
     } catch (error) {
@@ -604,6 +654,8 @@
     waveformStyle: "mirror",
     barWidth: 2,
     barSpacing: 0,
+    // Rounded bar caps (px). 0 = square (default). Applies to bars/mirror.
+    barRadius: 0,
     // Color preset: null = auto-detect, 'dark' = force dark, 'light' = force light
     colorPreset: null,
     // Individual color overrides (null means use preset)

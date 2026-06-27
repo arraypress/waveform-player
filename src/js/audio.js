@@ -59,7 +59,8 @@ export async function generateWaveform(url, samples = 200, shouldDetectBPM = fal
     // decode would break every subsequent player on the page.
     let audioContext;
     try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const AudioCtx = window.AudioContext || /** @type {any} */ (window).webkitAudioContext;
+        audioContext = new AudioCtx();
         const response = await fetch(url);
         const arrayBuffer = await response.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -71,7 +72,7 @@ export async function generateWaveform(url, samples = 200, shouldDetectBPM = fal
 
         let bpm = null;
         if (shouldDetectBPM) {
-            bpm = await detectBPM(audioBuffer);
+            bpm = detectBPM(audioBuffer); // synchronous — returns number|null
         }
 
         return {peaks, bpm};
