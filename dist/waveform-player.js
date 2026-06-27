@@ -791,11 +791,24 @@
       _WaveformPlayer.instances.set(this.id, this);
       this.init();
       setTimeout(() => {
-        this.container.dispatchEvent(new CustomEvent("waveformplayer:ready", {
-          bubbles: true,
-          detail: { player: this, url: this.options.url }
-        }));
+        this._emit("waveformplayer:ready", { player: this, url: this.options.url });
       }, 100);
+    }
+    /**
+     * Build and dispatch a bubbling `waveformplayer:*` CustomEvent on the
+     * container, returning the event so cancelable (request-*) events can have
+     * their `defaultPrevented` checked. Single source of truth for the event
+     * shape — every player event bubbles and carries the supplied detail.
+     * @param {string} type - Full event type, e.g. `'waveformplayer:play'`.
+     * @param {Object} detail - Event detail payload.
+     * @param {boolean} [cancelable=false] - Whether the event is cancelable.
+     * @returns {CustomEvent} The dispatched event.
+     * @private
+     */
+    _emit(type, detail, cancelable = false) {
+      const event = new CustomEvent(type, { bubbles: true, cancelable, detail });
+      this.container.dispatchEvent(event);
+      return event;
     }
     // ============================================
     // Initialization
@@ -1144,12 +1157,7 @@
       const clamped = clamp(seconds, 0, duration);
       if (this.options.audioMode === "external") {
         const percent = clamped / duration;
-        const evt = new CustomEvent("waveformplayer:request-seek", {
-          bubbles: true,
-          cancelable: true,
-          detail: { ...this._buildTrackDetail(), percent }
-        });
-        this.container.dispatchEvent(evt);
+        const evt = this._emit("waveformplayer:request-seek", { ...this._buildTrackDetail(), percent }, true);
         if (!evt.defaultPrevented) {
           this.progress = percent;
           this.drawWaveform?.();
@@ -1533,12 +1541,7 @@
       const x = event.clientX - rect.left;
       const targetPercent = clamp(x / rect.width);
       if (this.options.audioMode === "external") {
-        const evt = new CustomEvent("waveformplayer:request-seek", {
-          bubbles: true,
-          cancelable: true,
-          detail: { ...this._buildTrackDetail(), percent: targetPercent }
-        });
-        this.container.dispatchEvent(evt);
+        const evt = this._emit("waveformplayer:request-seek", { ...this._buildTrackDetail(), percent: targetPercent }, true);
         if (!evt.defaultPrevented) {
           this.progress = targetPercent;
           this.drawWaveform?.();
@@ -1607,10 +1610,7 @@
       this.isPlaying = true;
       this.setPlayButtonState(true);
       this.startSmoothUpdate();
-      this.container.dispatchEvent(new CustomEvent("waveformplayer:play", {
-        bubbles: true,
-        detail: { player: this, url: this.options.url }
-      }));
+      this._emit("waveformplayer:play", { player: this, url: this.options.url });
       if (this.options.onPlay) {
         this.options.onPlay(this);
       }
@@ -1628,10 +1628,7 @@
       this.isPlaying = false;
       this.setPlayButtonState(false);
       this.stopSmoothUpdate();
-      this.container.dispatchEvent(new CustomEvent("waveformplayer:pause", {
-        bubbles: true,
-        detail: { player: this, url: this.options.url }
-      }));
+      this._emit("waveformplayer:pause", { player: this, url: this.options.url });
       if (this.options.onPause) {
         this.options.onPause(this);
       }
@@ -1653,10 +1650,7 @@
       if (this.currentTimeEl) {
         this.currentTimeEl.textContent = "0:00";
       }
-      this.container.dispatchEvent(new CustomEvent("waveformplayer:ended", {
-        bubbles: true,
-        detail: { player: this, url: this.options.url, currentTime: duration, duration }
-      }));
+      this._emit("waveformplayer:ended", { player: this, url: this.options.url, currentTime: duration, duration });
       this.onPause();
       if (this.options.onEnd) {
         this.options.onEnd(this);
@@ -1739,16 +1733,13 @@
       if (this.currentTimeEl) {
         this.currentTimeEl.textContent = formatTime(this.audio.currentTime);
       }
-      this.container.dispatchEvent(new CustomEvent("waveformplayer:timeupdate", {
-        bubbles: true,
-        detail: {
-          player: this,
-          currentTime: this.audio.currentTime,
-          duration: this.audio.duration,
-          progress: this.progress,
-          url: this.options.url
-        }
-      }));
+      this._emit("waveformplayer:timeupdate", {
+        player: this,
+        currentTime: this.audio.currentTime,
+        duration: this.audio.duration,
+        progress: this.progress,
+        url: this.options.url
+      });
       if (this.options.onTimeUpdate) {
         this.options.onTimeUpdate(this.audio.currentTime, this.audio.duration, this);
       }
@@ -1814,12 +1805,7 @@
         _WaveformPlayer.currentlyPlaying.pause();
       }
       if (this.options.audioMode === "external") {
-        const evt = new CustomEvent("waveformplayer:request-play", {
-          bubbles: true,
-          cancelable: true,
-          detail: this._buildTrackDetail()
-        });
-        this.container.dispatchEvent(evt);
+        const evt = this._emit("waveformplayer:request-play", this._buildTrackDetail(), true);
         if (!evt.defaultPrevented) {
           _WaveformPlayer.currentlyPlaying = this;
         }
@@ -1841,11 +1827,7 @@
         _WaveformPlayer.currentlyPlaying = null;
       }
       if (this.options.audioMode === "external") {
-        this.container.dispatchEvent(new CustomEvent("waveformplayer:request-pause", {
-          bubbles: true,
-          cancelable: true,
-          detail: this._buildTrackDetail()
-        }));
+        this._emit("waveformplayer:request-pause", this._buildTrackDetail(), true);
         return;
       }
       this.audio.pause();
@@ -1892,17 +1874,11 @@
       this.setPlayButtonState(this.isPlaying);
       if (this.isPlaying && !wasPlaying) {
         this.startSmoothUpdate?.();
-        this.container.dispatchEvent(new CustomEvent("waveformplayer:play", {
-          bubbles: true,
-          detail: { player: this, url: this.options.url }
-        }));
+        this._emit("waveformplayer:play", { player: this, url: this.options.url });
         if (this.options.onPlay) this.options.onPlay(this);
       } else if (!this.isPlaying && wasPlaying) {
         this.stopSmoothUpdate?.();
-        this.container.dispatchEvent(new CustomEvent("waveformplayer:pause", {
-          bubbles: true,
-          detail: { player: this, url: this.options.url }
-        }));
+        this._emit("waveformplayer:pause", { player: this, url: this.options.url });
         if (this.options.onPause) this.options.onPause(this);
       }
     }
@@ -1933,18 +1909,12 @@
         this.totalTimeEl.dataset._extDur = String(duration);
       }
       this.drawWaveform?.();
-      this.container.dispatchEvent(new CustomEvent("waveformplayer:timeupdate", {
-        bubbles: true,
-        detail: { player: this, currentTime, duration, progress: this.progress, url: this.options.url }
-      }));
+      this._emit("waveformplayer:timeupdate", { player: this, currentTime, duration, progress: this.progress, url: this.options.url });
       if (this.options.onTimeUpdate) this.options.onTimeUpdate(currentTime, duration, this);
       if (this.progress >= 1) {
         if (!this._extEnded) {
           this._extEnded = true;
-          this.container.dispatchEvent(new CustomEvent("waveformplayer:ended", {
-            bubbles: true,
-            detail: { player: this, url: this.options.url, currentTime: duration, duration }
-          }));
+          this._emit("waveformplayer:ended", { player: this, url: this.options.url, currentTime: duration, duration });
           if (this.options.onEnd) this.options.onEnd(this);
         }
       } else {
@@ -2025,10 +1995,7 @@
      */
     destroy() {
       this.isDestroying = true;
-      this.container.dispatchEvent(new CustomEvent("waveformplayer:destroy", {
-        bubbles: true,
-        detail: { player: this, url: this.options.url }
-      }));
+      this._emit("waveformplayer:destroy", { player: this, url: this.options.url });
       this.pause();
       this.stopSmoothUpdate();
       this._ac?.abort();
