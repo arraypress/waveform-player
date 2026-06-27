@@ -16,6 +16,10 @@ import {
 
 import {DEFAULT_OPTIONS, STYLE_DEFAULTS, getColorPreset} from './themes.js';
 
+// Keyboard seek steps (seconds) for the accessible slider.
+const SEEK_STEP_SECONDS = 5;
+const SEEK_PAGE_SECONDS = 10;
+
 /**
  * WaveformPlayer - Modern audio player with waveform visualization
  * @class
@@ -112,6 +116,7 @@ export class WaveformPlayer {
         this.createAudio();
         this.initPlaybackSpeed();
         this.initKeyboardControls();
+        this.initSeekControl();
         this.bindEvents();
         this.setupResizeObserver();
 
@@ -390,6 +395,156 @@ export class WaveformPlayer {
     }
 
     /**
+     * Expose the waveform as an accessible, keyboard-operable slider.
+     *
+     * Adds role="slider" + ARIA value attributes to the waveform surface,
+     * makes it focusable in the tab order, and handles the standard slider
+     * keys (arrows, Page Up/Down, Home/End) to seek. Works in both self and
+     * external audio modes. Opt out with `accessibleSeek: false`.
+     * @private
+     */
+    initSeekControl() {
+        if (!this.options.accessibleSeek) return;
+
+        this.seekEl = this.container.querySelector('.waveform-container');
+        if (!this.seekEl) return;
+
+        this.seekEl.setAttribute('role', 'slider');
+        this.seekEl.setAttribute('tabindex', '0');
+        this.seekEl.setAttribute('aria-valuemin', '0');
+        this.applySeekLabel();
+        this.updateSeekAccessibility();
+
+        this.seekEl.addEventListener('keydown', (e) => {
+            const duration = this.getSeekDuration();
+            if (!duration) return;
+
+            const current = this.getSeekCurrentTime();
+            let target;
+            switch (e.key) {
+                case 'ArrowLeft':
+                case 'ArrowDown':
+                    target = current - SEEK_STEP_SECONDS;
+                    break;
+                case 'ArrowRight':
+                case 'ArrowUp':
+                    target = current + SEEK_STEP_SECONDS;
+                    break;
+                case 'PageDown':
+                    target = current - SEEK_PAGE_SECONDS;
+                    break;
+                case 'PageUp':
+                    target = current + SEEK_PAGE_SECONDS;
+                    break;
+                case 'Home':
+                    target = 0;
+                    break;
+                case 'End':
+                    target = duration;
+                    break;
+                default:
+                    return;
+            }
+
+            // Prevent page scroll and stop the container-level keydown
+            // handler from also seeking (it would double-fire / change
+            // volume on the vertical arrows).
+            e.preventDefault();
+            e.stopPropagation();
+            this.seekToSeconds(target);
+        });
+    }
+
+    /**
+     * Total seekable duration in seconds, regardless of audio mode.
+     * @returns {number}
+     * @private
+     */
+    getSeekDuration() {
+        if (this.options.audioMode === 'external') {
+            return this._extDuration || 0;
+        }
+        return this.audio && Number.isFinite(this.audio.duration)
+            ? this.audio.duration
+            : 0;
+    }
+
+    /**
+     * Current playback position in seconds, regardless of audio mode.
+     * @returns {number}
+     * @private
+     */
+    getSeekCurrentTime() {
+        if (this.options.audioMode === 'external') {
+            return this.progress * (this._extDuration || 0);
+        }
+        return this.audio && Number.isFinite(this.audio.currentTime)
+            ? this.audio.currentTime
+            : 0;
+    }
+
+    /**
+     * Seek the slider to an absolute time, clamped to the track length.
+     * Routes through the external controller in external mode.
+     * @param {number} seconds - Target time in seconds.
+     * @private
+     */
+    seekToSeconds(seconds) {
+        const duration = this.getSeekDuration();
+        if (!duration) return;
+
+        const clamped = Math.max(0, Math.min(seconds, duration));
+
+        if (this.options.audioMode === 'external') {
+            const percent = clamped / duration;
+            const evt = new CustomEvent('waveformplayer:request-seek', {
+                bubbles: true,
+                cancelable: true,
+                detail: { ...this._buildTrackDetail(), percent }
+            });
+            this.container.dispatchEvent(evt);
+            if (!evt.defaultPrevented) {
+                this.progress = percent;
+                this.drawWaveform?.();
+            }
+            this.updateSeekAccessibility();
+            return;
+        }
+
+        // seekTo() calls updateProgress(), which refreshes the ARIA values.
+        this.seekTo(clamped);
+    }
+
+    /**
+     * Set the slider's accessible name from `seekLabel`, falling back to the
+     * track title, then a generic 'Seek'.
+     * @private
+     */
+    applySeekLabel(title = this.options.title) {
+        if (!this.seekEl) return;
+        const label = this.options.seekLabel || title || 'Seek';
+        this.seekEl.setAttribute('aria-label', label);
+    }
+
+    /**
+     * Keep the slider's ARIA value attributes in sync with playback.
+     * @private
+     */
+    updateSeekAccessibility() {
+        if (!this.seekEl) return;
+
+        const duration = this.getSeekDuration();
+        const current = Math.min(this.getSeekCurrentTime(), duration);
+
+        this.seekEl.setAttribute('aria-valuemax', String(Math.round(duration)));
+        this.seekEl.setAttribute('aria-valuenow', String(Math.round(current)));
+        this.seekEl.setAttribute(
+            'aria-valuetext',
+            `${formatTime(current)} of ${formatTime(duration)}`
+        );
+    }
+
+    /**
      * Initialize Media Session API for system media controls
      * @private
      */
@@ -528,6 +683,8 @@ export class WaveformPlayer {
             if (this.titleEl) {
                 this.titleEl.textContent = title;
             }
+            // Keep the seek slider's accessible name in sync with the track.
+            this.applySeekLabel(title);
 
             // Load or generate waveform
             if (this.options.waveform) {
@@ -826,6 +983,8 @@ export class WaveformPlayer {
         }
         // Re-render markers when duration is known
         this.renderMarkers();
+        // Duration is now known — publish it to the accessible slider.
+        this.updateSeekAccessibility();
     }
 
     /**
@@ -1020,6 +1179,8 @@ export class WaveformPlayer {
         if (this.options.onTimeUpdate) {
             this.options.onTimeUpdate(this.audio.currentTime, this.audio.duration, this);
         }
+
+        this.updateSeekAccessibility();
     }
 
     // ============================================
@@ -1200,6 +1361,8 @@ export class WaveformPlayer {
             detail: {player: this, currentTime, duration, progress: this.progress}
         }));
         if (this.options.onTimeUpdate) this.options.onTimeUpdate(this, currentTime, duration);
+
+        this.updateSeekAccessibility();
     }
 
     /**

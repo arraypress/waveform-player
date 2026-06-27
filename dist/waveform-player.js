@@ -617,6 +617,12 @@
     // Markers
     markers: [],
     showMarkers: true,
+    // Accessibility — expose the waveform as a keyboard-operable slider
+    // (role="slider" + ARIA value attributes + arrow/page/home/end seeking).
+    // seekLabel sets the slider's accessible name; when null it falls back
+    // to the track title, then 'Seek'.
+    accessibleSeek: true,
+    seekLabel: null,
     // Content
     title: null,
     subtitle: null,
@@ -643,6 +649,8 @@
   };
 
   // src/js/core.js
+  var SEEK_STEP_SECONDS = 5;
+  var SEEK_PAGE_SECONDS = 10;
   var WaveformPlayer = class _WaveformPlayer {
     /** @type {Map<string, WaveformPlayer>} */
     static instances = /* @__PURE__ */ new Map();
@@ -707,6 +715,7 @@
       this.createAudio();
       this.initPlaybackSpeed();
       this.initKeyboardControls();
+      this.initSeekControl();
       this.bindEvents();
       this.setupResizeObserver();
       requestAnimationFrame(() => {
@@ -926,6 +935,132 @@
       });
     }
     /**
+     * Expose the waveform as an accessible, keyboard-operable slider.
+     *
+     * Adds role="slider" + ARIA value attributes to the waveform surface,
+     * makes it focusable in the tab order, and handles the standard slider
+     * keys (arrows, Page Up/Down, Home/End) to seek. Works in both self and
+     * external audio modes. Opt out with `accessibleSeek: false`.
+     * @private
+     */
+    initSeekControl() {
+      if (!this.options.accessibleSeek) return;
+      this.seekEl = this.container.querySelector(".waveform-container");
+      if (!this.seekEl) return;
+      this.seekEl.setAttribute("role", "slider");
+      this.seekEl.setAttribute("tabindex", "0");
+      this.seekEl.setAttribute("aria-valuemin", "0");
+      this.applySeekLabel();
+      this.updateSeekAccessibility();
+      this.seekEl.addEventListener("keydown", (e) => {
+        const duration = this.getSeekDuration();
+        if (!duration) return;
+        const current = this.getSeekCurrentTime();
+        let target;
+        switch (e.key) {
+          case "ArrowLeft":
+          case "ArrowDown":
+            target = current - SEEK_STEP_SECONDS;
+            break;
+          case "ArrowRight":
+          case "ArrowUp":
+            target = current + SEEK_STEP_SECONDS;
+            break;
+          case "PageDown":
+            target = current - SEEK_PAGE_SECONDS;
+            break;
+          case "PageUp":
+            target = current + SEEK_PAGE_SECONDS;
+            break;
+          case "Home":
+            target = 0;
+            break;
+          case "End":
+            target = duration;
+            break;
+          default:
+            return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        this.seekToSeconds(target);
+      });
+    }
+    /**
+     * Total seekable duration in seconds, regardless of audio mode.
+     * @returns {number}
+     * @private
+     */
+    getSeekDuration() {
+      if (this.options.audioMode === "external") {
+        return this._extDuration || 0;
+      }
+      return this.audio && Number.isFinite(this.audio.duration) ? this.audio.duration : 0;
+    }
+    /**
+     * Current playback position in seconds, regardless of audio mode.
+     * @returns {number}
+     * @private
+     */
+    getSeekCurrentTime() {
+      if (this.options.audioMode === "external") {
+        return this.progress * (this._extDuration || 0);
+      }
+      return this.audio && Number.isFinite(this.audio.currentTime) ? this.audio.currentTime : 0;
+    }
+    /**
+     * Seek the slider to an absolute time, clamped to the track length.
+     * Routes through the external controller in external mode.
+     * @param {number} seconds - Target time in seconds.
+     * @private
+     */
+    seekToSeconds(seconds) {
+      const duration = this.getSeekDuration();
+      if (!duration) return;
+      const clamped = Math.max(0, Math.min(seconds, duration));
+      if (this.options.audioMode === "external") {
+        const percent = clamped / duration;
+        const evt = new CustomEvent("waveformplayer:request-seek", {
+          bubbles: true,
+          cancelable: true,
+          detail: { ...this._buildTrackDetail(), percent }
+        });
+        this.container.dispatchEvent(evt);
+        if (!evt.defaultPrevented) {
+          this.progress = percent;
+          this.drawWaveform?.();
+        }
+        this.updateSeekAccessibility();
+        return;
+      }
+      this.seekTo(clamped);
+    }
+    /**
+     * Set the slider's accessible name from `seekLabel`, falling back to the
+     * track title, then a generic 'Seek'.
+     * @private
+     */
+    applySeekLabel(title = this.options.title) {
+      if (!this.seekEl) return;
+      const label = this.options.seekLabel || title || "Seek";
+      this.seekEl.setAttribute("aria-label", label);
+    }
+    /**
+     * Keep the slider's ARIA value attributes in sync with playback.
+     * @private
+     */
+    updateSeekAccessibility() {
+      if (!this.seekEl) return;
+      const duration = this.getSeekDuration();
+      const current = Math.min(this.getSeekCurrentTime(), duration);
+      this.seekEl.setAttribute("aria-valuemax", String(Math.round(duration)));
+      this.seekEl.setAttribute("aria-valuenow", String(Math.round(current)));
+      this.seekEl.setAttribute(
+        "aria-valuetext",
+        `${formatTime(current)} of ${formatTime(duration)}`
+      );
+    }
+    /**
      * Initialize Media Session API for system media controls
      * @private
      */
@@ -1026,6 +1161,7 @@
         if (this.titleEl) {
           this.titleEl.textContent = title;
         }
+        this.applySeekLabel(title);
         if (this.options.waveform) {
           this.setWaveformData(this.options.waveform);
         } else {
@@ -1251,6 +1387,7 @@
         this.totalTimeEl.textContent = formatTime(this.audio.duration);
       }
       this.renderMarkers();
+      this.updateSeekAccessibility();
     }
     /**
      * Handle play event
@@ -1394,6 +1531,7 @@
       if (this.options.onTimeUpdate) {
         this.options.onTimeUpdate(this.audio.currentTime, this.audio.duration, this);
       }
+      this.updateSeekAccessibility();
     }
     // ============================================
     // UI Updates
@@ -1556,6 +1694,7 @@
         detail: { player: this, currentTime, duration, progress: this.progress }
       }));
       if (this.options.onTimeUpdate) this.options.onTimeUpdate(this, currentTime, duration);
+      this.updateSeekAccessibility();
     }
     /**
      * Toggle play/pause

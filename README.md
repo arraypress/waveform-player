@@ -229,6 +229,20 @@ Choose from 6 built-in styles:
 | `waveform`           | array   | `null`                    | Pre-generated waveform data                             |
 | `enableMediaSession` | boolean | `true`                    | Enable system media controls                            |
 | `audioMode`          | string  | `'self'`                  | `'self'` (own `<audio>`) or `'external'` (delegate)     |
+| `accessibleSeek`     | boolean | `true`                    | Expose the waveform as a keyboard-operable ARIA slider  |
+| `seekLabel`          | string  | `null`                    | Accessible name for the seek slider (falls back to title) |
+
+### Accessibility
+
+By default the waveform is exposed as a keyboard-operable [ARIA slider](https://www.w3.org/WAI/ARIA/apg/patterns/slider/): the `.waveform-container` gets `role="slider"`, is focusable in the tab order, and reports `aria-valuemin`/`aria-valuemax`/`aria-valuenow` plus a readable `aria-valuetext` (e.g. `"0:30 of 2:00"`). When focused it responds to the standard slider keys:
+
+| Key | Action |
+|---|---|
+| <kbd>←</kbd> / <kbd>↓</kbd> · <kbd>→</kbd> / <kbd>↑</kbd> | Seek ∓5s |
+| <kbd>Page Down</kbd> / <kbd>Page Up</kbd> | Seek ∓10s |
+| <kbd>Home</kbd> / <kbd>End</kbd> | Start / end |
+
+This works in both `self` and `external` audio modes (in external mode it dispatches `waveformplayer:request-seek`, exactly like click-to-seek). Set `accessibleSeek: false` to opt out and keep the prior markup, or `seekLabel` to localize the control's accessible name.
 
 ### External audio mode
 

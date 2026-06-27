@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.2] — 2026-06-27
+
+### Added
+
+- **Accessible seek slider** — the waveform surface (`.waveform-container`)
+  is now exposed as a keyboard-operable [ARIA slider](https://www.w3.org/WAI/ARIA/apg/patterns/slider/):
+  `role="slider"`, focusable in the tab order, with `aria-valuemin` /
+  `aria-valuemax` / `aria-valuenow` and a readable `aria-valuetext`
+  (e.g. `"0:30 of 2:00"`) kept in sync on metadata load, `timeupdate`,
+  and external `setProgress()`. When focused it handles the standard
+  slider keys — <kbd>←</kbd>/<kbd>↓</kbd> and <kbd>→</kbd>/<kbd>↑</kbd>
+  (±5s), <kbd>Page Up</kbd>/<kbd>Page Down</kbd> (±10s),
+  <kbd>Home</kbd>/<kbd>End</kbd> — calling `preventDefault()` (no page
+  scroll). Works in both `self` (calls `seekTo()`) and `external` mode
+  (dispatches `waveformplayer:request-seek`, exactly like click-to-seek).
+  Addresses WCAG 2.1.1 (Keyboard) and 4.1.2 (Name, Role, Value).
+  Resolves [#8](https://github.com/arraypress/waveform-player/issues/8);
+  upstreamed from WordPress/Gutenberg's external accessibility layer
+  ([#9](https://github.com/arraypress/waveform-player/pull/9)).
+
+  Two new options: `accessibleSeek` (boolean, default `true` — set
+  `false` to opt out and keep the prior markup) and `seekLabel` (string,
+  default `null` — accessible name for the slider, falls back to the
+  track title, then `'Seek'`).
+
+  The existing container-level keyboard shortcuts (number-key seek,
+  space, volume on ↑/↓, mute) are untouched; they live on the outer
+  container and only run when it is the active element, so they don't
+  collide with the slider on the inner element.
+
 ## [1.7.1] — Unreleased
 
 ### Fixed
