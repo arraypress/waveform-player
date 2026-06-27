@@ -1,174 +1,122 @@
+<div align="center">
+
 # WaveformPlayer
 
-A lightweight, customizable audio player with waveform visualization. Under 10KB gzipped, with TypeScript definitions included.
+**Zero-config audio waveforms for the web.**
+Add a `data-` attribute to a `<div>` — get a real, interactive waveform player. No build step, no dependencies, ~9KB.
 
-**[Live Demo](https://waveformplayer.com)** | **[Documentation](https://waveformplayer.com/#docs)** | *
-*[NPM Package](https://www.npmjs.com/package/@arraypress/waveform-player)**
+[![npm](https://img.shields.io/npm/v/@arraypress/waveform-player?style=flat-square&labelColor=09090b&color=3f3f46)](https://www.npmjs.com/package/@arraypress/waveform-player)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@arraypress/waveform-player?style=flat-square&label=gzip&labelColor=09090b&color=3f3f46)](https://bundlephobia.com/package/@arraypress/waveform-player)
+[![downloads](https://img.shields.io/npm/dm/@arraypress/waveform-player?style=flat-square&labelColor=09090b&color=3f3f46)](https://www.npmjs.com/package/@arraypress/waveform-player)
+[![types](https://img.shields.io/npm/types/@arraypress/waveform-player?style=flat-square&labelColor=09090b&color=3f3f46)](./index.d.ts)
+[![license](https://img.shields.io/npm/l/@arraypress/waveform-player?style=flat-square&labelColor=09090b&color=3f3f46)](./LICENSE)
 
-![Version](https://img.shields.io/npm/v/@arraypress/waveform-player)
-![Size](https://img.shields.io/bundlephobia/minzip/@arraypress/waveform-player)
-![License](https://img.shields.io/npm/l/@arraypress/waveform-player)
-![Downloads](https://img.shields.io/npm/dm/@arraypress/waveform-player)
+[Live demo](https://waveformplayer.com) · [Docs](https://waveformplayer.com/#docs) · [npm](https://www.npmjs.com/package/@arraypress/waveform-player)
 
-![WaveformPlayer Demo](https://waveformplayer.com/assets/img/og-image.png)
+![WaveformPlayer](./assets/og-image.svg)
 
-## Why WaveformPlayer?
+</div>
 
-- **Zero Config** - Just add `data-waveform-player` to any div. No JavaScript required.
-- **Tiny** - ~9KB gzipped vs 40KB+ for alternatives
-- **Real Waveforms** - Actual audio analysis, not fake waves
-- **No Dependencies** - No jQuery, no bloat, pure vanilla JS
-- **Works Everywhere** - WordPress, Shopify, React, Vue, or plain HTML
-- **Ecosystem** - Optional [WaveformBar](https://github.com/arraypress/waveform-bar) persistent player addon available
+---
 
-## What's New
+## Quick start
 
-For detailed release notes, see the [Changelog](CHANGELOG.md).
-
-## Quick Start
-
-Simplest possible usage:
+No build tools. No initialization. Drop in two files and add a `<div>`.
 
 ```html
-<!-- Just this. That's it. -->
-<div data-waveform-player data-url="song.mp3"></div>
+<link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player/dist/waveform-player.css">
+<script src="https://unpkg.com/@arraypress/waveform-player/dist/waveform-player.min.js"></script>
+
+<div data-waveform-player data-url="track.mp3" data-title="My Song"></div>
 ```
 
-## Installation
+It auto-initializes every `[data-waveform-player]` on the page when the DOM is ready. That's it.
 
-### NPM
+## Install
 
 ```bash
 npm install @arraypress/waveform-player
 ```
 
-### CDN
+```js
+import WaveformPlayer from '@arraypress/waveform-player';
+import '@arraypress/waveform-player/styles.css';
 
-```html
-
-<link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.css">
-<script src="https://unpkg.com/@arraypress/waveform-player@latest/dist/waveform-player.min.js"></script>
+const player = new WaveformPlayer('#player', { url: 'track.mp3' });
 ```
 
-### Download
+Ships ESM + CommonJS + a standalone IIFE for `<script>` tags, with bundled TypeScript definitions.
 
-```html
+## Why
 
-<link rel="stylesheet" href="waveform-player.css">
-<script src="waveform-player.js"></script>
-```
+|                     | WaveformPlayer | WaveSurfer.js | Amplitude.js |
+| ------------------- | :------------: | :-----------: | :----------: |
+| Size (gzipped)      |    **~9KB**     |     40KB+     |    35KB+     |
+| Zero-config (HTML)  |       ✓        |       —       |      —       |
+| Dependencies        |     None       |     None      |     None     |
+| Real waveforms      |       ✓        |       ✓       |      —       |
+| TypeScript types    |       ✓        |       ✓       |      —       |
+| Keyboard + ARIA     |       ✓        |    partial    |      —       |
+| Media Session API   |       ✓        |       —       |      —       |
 
 ## Features
 
-- 🎨 **6 Visual Styles** - Bars, mirror, line, blocks, dots, seekbar
-- 🎯 **Tiny Footprint** - Under 10KB gzipped
-- 📘 **TypeScript** - Type definitions bundled (`WaveformPlayerOptions`, typed events)
-- ⚡ **Zero Dependencies** - Pure JavaScript
-- 🎭 **Fully Customizable** - Colors, sizes, styles
-- 🎛️ **Show/Hide Controls** - Hide button and info bar for custom UIs
-- 📱 **Responsive** - Works on all devices
-- 🎵 **BPM Detection** - Automatic tempo detection (optional)
-- 💾 **Waveform Caching** - Pre-generate waveforms for performance
-- 🌐 **Framework Agnostic** - Works with React, Vue, Angular, or vanilla JS
-- ⌨️ **Keyboard Controls** - Full keyboard navigation support
-- 📱 **Media Session API** - System media controls, lock screen integration
-- ⏩ **Speed Control** - Adjustable playback rate for podcasts/audiobooks
-- 📍 **Chapter Markers** - Add clickable markers for navigation
-- 🔄 **Dynamic Loading** - Load new tracks without page refresh
-- 🎨 **Auto Theme Detection** - Adapts to light/dark themes automatically
+- **Zero-config** — works from plain HTML via `data-` attributes; no JS required.
+- **6 visual styles** — bars, mirror, line, blocks, dots, seekbar — plus rounded caps and gradient fills.
+- **Real audio analysis** — decodes peaks with the Web Audio API, or uses pre-generated data.
+- **Accessible** — the waveform is a keyboard-operable ARIA slider out of the box.
+- **Framework-ready** — first-party [React](https://github.com/arraypress/waveform-player-react) and [Astro](https://github.com/arraypress/waveform-player-astro) wrappers; works anywhere otherwise.
+- **Batteries included** — chapter markers, BPM detection, Media Session, speed control, auto theme detection.
+- **Tiny** — ~9KB gzipped, zero dependencies, TypeScript types bundled.
 
-## Ecosystem
+## Visual styles
 
-### WaveformBar (Optional Addon)
+Set with `data-waveform-style` or the `waveformStyle` option.
 
-A persistent bottom-bar audio player with queue, favorites, cart, volume popup, DJ mode with markers, and cross-page
-session persistence:
+| Style     | Look                                |
+| --------- | ----------------------------------- |
+| `mirror`  | Symmetrical, SoundCloud-style (default) |
+| `bars`    | Classic bottom-anchored bars        |
+| `line`    | Smooth oscilloscope line            |
+| `blocks`  | Segmented LED meter                 |
+| `dots`    | Circular points                     |
+| `seekbar` | Minimal progress bar, no peaks      |
 
-```html
+**Modern caps & gradients** (bundle-neutral):
 
-<div data-wb-play
-     data-url="song.mp3"
-     data-title="My Track"
-     data-artist="Artist"
-     data-bpm="128"
-     data-key="Am">
-</div>
-
-<script>
-    WaveformBar.init();
-</script>
-```
-
-[Learn more →](https://github.com/arraypress/waveform-bar)
-
-### WaveformPlaylist (Optional Addon)
-
-Add playlist and chapter support with zero JavaScript:
-
-```html
-
-<div data-waveform-playlist data-continuous="true">
-    <div data-track data-url="song1.mp3" data-title="Track 1">
-        <div data-chapter data-time="0:00">Intro</div>
-        <div data-chapter data-time="2:30">Verse</div>
-    </div>
-    <div data-track data-url="song2.mp3" data-title="Track 2"></div>
-</div>
-```
-
-[Learn more →](https://github.com/arraypress/waveform-playlist)
-
-### WaveformTracker (Optional Addon)
-
-Track meaningful audio engagement:
-
-```javascript
-WaveformTracker.init({
-    endpoint: '/api/analytics',
-    events: {
-        listen: 30  // Track after 30 seconds of listening
-    }
+```js
+new WaveformPlayer('#player', {
+  url: 'track.mp3',
+  waveformStyle: 'mirror',
+  barRadius: 3,                              // rounded bar caps
+  waveformColor: ['#fafafa', '#71717a'],     // vertical gradient (array of stops)
+  progressColor: ['#ffffff', '#a1a1aa'],
 });
 ```
 
-[Learn more →](https://github.com/arraypress/waveform-tracker)
-
-## Comparison
-
-| Feature           | WaveformPlayer | WaveSurfer.js | Amplitude.js |
-|-------------------|----------------|---------------|--------------|
-| Size (gzipped)    | ~9KB           | 40KB+         | 35KB+        |
-| Zero Config       | ✅              | ❌             | ❌            |
-| Dependencies      | None           | None          | None         |
-| Waveform Styles   | 6              | 3             | N/A          |
-| Setup Time        | 30 seconds     | 5+ minutes    | 5+ minutes   |
-| Real Waveforms    | ✅              | ✅             | ❌            |
-| Keyboard Controls | ✅              | ✅             | ❌            |
-| Media Session API | ✅              | ❌             | ❌            |
-| Speed Control     | ✅              | ✅             | ❌            |
+In zero-config markup, pass a gradient as a JSON array: `data-waveform-color='["#fafafa","#71717a"]'`.
 
 ## Usage
 
-### HTML (Zero JavaScript)
+### HTML (zero JavaScript)
 
 ```html
-
 <div data-waveform-player
-     data-url="audio.mp3"
+     data-url="track.mp3"
      data-title="My Song"
      data-subtitle="Artist Name"
      data-waveform-style="mirror"
+     data-bar-radius="3"
      data-show-playback-speed="true"
      data-markers='[{"time": 30, "label": "Chorus"}]'>
 </div>
 ```
 
-### Waveform Only (Custom UI)
+### Waveform only (custom UI)
 
 ```html
-<!-- Hide built-in controls for custom UI integration -->
 <div data-waveform-player
-     data-url="audio.mp3"
+     data-url="track.mp3"
      data-show-controls="false"
      data-show-info="false">
 </div>
@@ -176,315 +124,165 @@ WaveformTracker.init({
 
 ### JavaScript API
 
-```javascript
+```js
 import WaveformPlayer from '@arraypress/waveform-player';
 
 const player = new WaveformPlayer('#player', {
-    url: 'audio.mp3',
-    waveformStyle: 'mirror',
-    height: 80,
-    barWidth: 2,
-    barSpacing: 1,
-    markers: [
-        {time: 30, label: 'Verse', color: '#4ade80'},
-        {time: 60, label: 'Chorus', color: '#f59e0b'}
-    ]
+  url: 'track.mp3',
+  waveformStyle: 'mirror',
+  height: 80,
+  markers: [
+    { time: 30, label: 'Verse',  color: '#4ade80' },
+    { time: 60, label: 'Chorus', color: '#f59e0b' },
+  ],
 });
 ```
-
-## Visual Styles
-
-Choose from 6 built-in styles:
-
-- **bars** - Classic waveform bars
-- **mirror** - SoundCloud-style mirrored waveform
-- **line** - Smooth oscilloscope line
-- **blocks** - LED meter blocks
-- **dots** - Circular dots
-- **seekbar** - Minimal progress bar
 
 ## Options
 
-| Option               | Type    | Default                   | Description                                             |
-|----------------------|---------|---------------------------|---------------------------------------------------------|
-| `url`                | string  | `''`                      | Audio file URL                                          |
-| `waveformStyle`      | string  | `'bars'`                  | Visual style: bars, mirror, line, blocks, dots, seekbar |
-| `height`             | number  | `60`                      | Waveform height in pixels                               |
-| `barWidth`           | number  | `3`                       | Width of waveform bars                                  |
-| `barSpacing`         | number  | `1`                       | Space between bars                                      |
-| `samples`            | number  | `200`                     | Number of waveform samples                              |
-| `waveformColor`      | string  | `'rgba(255,255,255,0.3)'` | Waveform color                                          |
-| `progressColor`      | string  | `'rgba(255,255,255,0.9)'` | Progress color                                          |
-| `buttonColor`        | string  | `'rgba(255,255,255,0.9)'` | Play button color                                       |
-| `showControls`       | boolean | `true`                    | Show play/pause button                                  |
-| `showInfo`           | boolean | `true`                    | Show title, subtitle, time, and metadata                |
-| `showTime`           | boolean | `true`                    | Show time display                                       |
-| `showBPM`            | boolean | `false`                   | Enable BPM detection                                    |
-| `showPlaybackSpeed`  | boolean | `false`                   | Show speed control menu                                 |
-| `playbackRate`       | number  | `1`                       | Initial playback speed (0.5-2)                          |
-| `autoplay`           | boolean | `false`                   | Autoplay on load                                        |
-| `title`              | string  | `''`                      | Track title                                             |
-| `subtitle`           | string  | `''`                      | Track subtitle                                          |
-| `artwork`            | string  | `''`                      | Album artwork URL                                       |
-| `markers`            | array   | `[]`                      | Chapter markers array                                   |
-| `waveform`           | array   | `null`                    | Pre-generated waveform data                             |
-| `enableMediaSession` | boolean | `true`                    | Enable system media controls                            |
-| `audioMode`          | string  | `'self'`                  | `'self'` (own `<audio>`) or `'external'` (delegate)     |
-| `accessibleSeek`     | boolean | `true`                    | Expose the waveform as a keyboard-operable ARIA slider  |
-| `seekLabel`          | string  | `null`                    | Accessible name for the seek slider (falls back to title) |
+| Option               | Type                  | Default     | Description                                              |
+| -------------------- | --------------------- | ----------- | ------------------------------------------------------- |
+| `url`                | `string`              | `''`        | Audio file URL                                          |
+| `waveformStyle`      | `string`              | `'mirror'`  | `bars` · `mirror` · `line` · `blocks` · `dots` · `seekbar` |
+| `height`             | `number`              | `60`        | Waveform height (px)                                    |
+| `barWidth`           | `number`              | style-based | Bar width (px)                                          |
+| `barSpacing`         | `number`              | style-based | Gap between bars (px)                                   |
+| `barRadius`          | `number`              | `0`         | Rounded bar-cap radius (px) — bars/mirror              |
+| `waveformColor`      | `string \| string[]`  | preset      | Unplayed colour; array = vertical gradient            |
+| `progressColor`      | `string \| string[]`  | preset      | Played colour; array = vertical gradient              |
+| `colorPreset`        | `'dark' \| 'light' \| null` | `null` | Force a theme, or `null` to auto-detect               |
+| `samples`            | `number`              | `200`       | Peak samples to extract                                 |
+| `waveform`           | `number[] \| string`  | `null`      | Pre-generated peaks (array, `.json` URL, or JSON)      |
+| `audioMode`          | `'self' \| 'external'`| `'self'`    | Own the `<audio>`, or delegate (see below)            |
+| `markers`            | `WaveformMarker[]`    | `[]`        | Chapter markers                                        |
+| `showControls`       | `boolean`             | `true`      | Show the play/pause button                             |
+| `showInfo`           | `boolean`             | `true`      | Show title/subtitle/time                               |
+| `showPlaybackSpeed`  | `boolean`             | `false`     | Show the speed menu                                    |
+| `showBPM`            | `boolean`             | `false`     | Detect + display BPM                                   |
+| `autoplay`           | `boolean`             | `false`     | Play on load                                           |
+| `enableMediaSession` | `boolean`             | `true`      | System media controls (self mode)                     |
+| `accessibleSeek`     | `boolean`             | `true`      | Expose the waveform as a keyboard ARIA slider         |
+| `seekLabel`          | `string`              | `null`      | Accessible name for the slider (falls back to title)  |
 
-### Accessibility
+Full option types ship in [`index.d.ts`](./index.d.ts).
 
-By default the waveform is exposed as a keyboard-operable [ARIA slider](https://www.w3.org/WAI/ARIA/apg/patterns/slider/): the `.waveform-container` gets `role="slider"`, is focusable in the tab order, and reports `aria-valuemin`/`aria-valuemax`/`aria-valuenow` plus a readable `aria-valuetext` (e.g. `"0:30 of 2:00"`). When focused it responds to the standard slider keys:
+## Accessibility
 
-| Key | Action |
-|---|---|
+By default the waveform is a keyboard-operable [ARIA slider](https://www.w3.org/WAI/ARIA/apg/patterns/slider/): `.waveform-container` gets `role="slider"`, joins the tab order, and reports `aria-valuemin`/`max`/`now` plus a readable `aria-valuetext` (e.g. `"0:30 of 2:00"`). When focused:
+
+| Key                                          | Action       |
+| -------------------------------------------- | ------------ |
 | <kbd>←</kbd> / <kbd>↓</kbd> · <kbd>→</kbd> / <kbd>↑</kbd> | Seek ∓5s |
-| <kbd>Page Down</kbd> / <kbd>Page Up</kbd> | Seek ∓10s |
-| <kbd>Home</kbd> / <kbd>End</kbd> | Start / end |
+| <kbd>Page Down</kbd> / <kbd>Page Up</kbd>    | Seek ∓10s    |
+| <kbd>Home</kbd> / <kbd>End</kbd>             | Start / end  |
 
-This works in both `self` and `external` audio modes (in external mode it dispatches `waveformplayer:request-seek`, exactly like click-to-seek). Set `accessibleSeek: false` to opt out and keep the prior markup, or `seekLabel` to localize the control's accessible name.
+Works in both audio modes, respects `prefers-reduced-motion`, and announces load errors to screen readers. Opt out with `accessibleSeek: false`; localize with `seekLabel`.
 
-### External audio mode
-
-When `audioMode: 'external'` the player skips creating its own `<audio>` element and becomes a visualization-only surface. Play / pause / seek interactions dispatch cancelable events on the container, and an external controller (e.g. [`@arraypress/waveform-bar`](https://github.com/arraypress/waveform-bar) 1.3+) handles audio + pumps state back via `setPlayingState()` / `setProgress()`.
-
-```html
-<!-- The bar discovers this on init, listens for request-play events,
-     and mirrors its own playback progress back into the canvas. -->
-<div data-waveform-player
-     data-audio-mode="external"
-     data-url="song.mp3"
-     data-waveform-style="bars"
-     data-wb-play
-     data-wb-url="song.mp3"
-     data-wb-title="..."></div>
-```
+## API
 
 ```js
-// Or construct directly:
-const player = new WaveformPlayer(el, { audioMode: 'external' });
-
-// Listen for the play action and route to your own audio source:
-el.addEventListener('waveformplayer:request-play', (e) => {
-    // e.detail = { url, title, subtitle, artist, artwork, id, player }
-    yourAudio.src = e.detail.url;
-    yourAudio.play();
-});
-
-// Drive the visualization from your audio's timeupdate:
-yourAudio.addEventListener('timeupdate', () => {
-    player.setProgress(yourAudio.currentTime, yourAudio.duration);
-});
-yourAudio.addEventListener('play',  () => player.setPlayingState(true));
-yourAudio.addEventListener('pause', () => player.setPlayingState(false));
-```
-
-Events dispatched in external mode (all bubble; all cancelable):
-
-| Event                              | Detail                                              |
-|------------------------------------|-----------------------------------------------------|
-| `waveformplayer:request-play`      | `{ url, title, subtitle, artist, artwork, id, player }` |
-| `waveformplayer:request-pause`     | Same shape as request-play                          |
-| `waveformplayer:request-seek`      | Same shape + `{ percent: 0..1 }`                    |
-
-## API Methods
-
-```javascript
-// Control playback
-player.play();
+player.play();                 // returns the <audio>.play() promise in self mode
 player.pause();
 player.togglePlay();
 
-// Seek
-player.seekTo(30);           // Seek to 30 seconds
-player.seekToPercent(0.5);   // Seek to 50%
+player.seekTo(30);             // seconds
+player.seekToPercent(0.5);
+player.setVolume(0.8);
+player.setPlaybackRate(1.5);
 
-// Volume
-player.setVolume(0.8);       // 80% volume
+await player.loadTrack('next.mp3', 'Title', 'Artist', { artwork: 'cover.jpg' });
+player.destroy();              // removes all listeners + DOM
 
-// Speed
-player.setPlaybackRate(1.5); // 1.5x speed
-
-// External-mode state pumps (only useful when audioMode === 'external')
-player.setPlayingState(true);           // toggle play/pause UI state
-player.setProgress(currentTime, duration); // sync canvas + time displays
-
-// Dynamic loading
-await player.loadTrack('new-song.mp3', 'New Title', 'New Artist', {
-    markers: [{time: 30, label: 'Chorus'}],
-    artwork: 'cover.jpg',
-    waveform: [0.2, 0.5, 0.8, 0.3]  // Optional pre-generated data
-});
-
-// Destroy
-player.destroy();
-```
-
-## Events
-
-```javascript
-new WaveformPlayer('#player', {
-    url: 'audio.mp3',
-    onLoad: (player) => console.log('Loaded'),
-    onPlay: (player) => console.log('Playing'),
-    onPause: (player) => console.log('Paused'),
-    onEnd: (player) => console.log('Ended'),
-    onTimeUpdate: (current, total, player) => {
-        console.log(`${current}/${total}`);
-    }
-});
-```
-
-## Keyboard Controls
-
-When a player is focused (click on it):
-
-- `Space` - Play/pause
-- `←/→` - Seek backward/forward 5 seconds
-- `↑/↓` - Volume up/down
-- `M` - Mute/unmute
-- `0-9` - Jump to 0%-90% of track
-
-## Advanced Usage
-
-### Pre-generated Waveforms
-
-For better performance, generate waveform data server-side:
-
-```javascript
-// Generate waveform data once
-const waveformData = await WaveformPlayer.generateWaveformData('audio.mp3');
-
-// Use pre-generated data for instant display
-new WaveformPlayer('#player', {
-    url: 'audio.mp3',
-    waveform: waveformData  // Bypass client-side processing
-});
-```
-
-**Build-time pipeline:** when you generate peaks ahead of time with [`@arraypress/waveform-gen`](https://github.com/arraypress/waveform-gen) and store the JSON alongside each MP3 (`/audio/track.mp3` ↔ `/audio/track.json`), `WaveformPlayer.getPeaksUrl()` derives the JSON URL by swapping the extension:
-
-```javascript
-new WaveformPlayer('#player', {
-    url: track.audioUrl,
-    waveform: WaveformPlayer.getPeaksUrl(track.audioUrl),
-});
-```
-
-Recognised extensions: `mp3`, `wav`, `ogg`, `flac`, `m4a`, `aac`. Query strings and URL fragments are preserved. Returns `undefined` for unrecognised inputs so the player falls back to live decoding.
-
-### Multiple Players
-
-```javascript
-// Get all instances
-const players = WaveformPlayer.getAllInstances();
-
-// Find specific player
-const player = WaveformPlayer.getInstance('my-player');
-
-// Destroy all players
+// Statics
+WaveformPlayer.getInstance('id');
+WaveformPlayer.getAllInstances();
 WaveformPlayer.destroyAll();
+const peaks = await WaveformPlayer.generateWaveformData('track.mp3');
+const jsonUrl = WaveformPlayer.getPeaksUrl('track.mp3'); // -> 'track.json'
 ```
 
-### Custom Styling
+### Events
 
-```css
-.waveform-player {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
-}
+Lifecycle callbacks via options, or DOM events on the container (all bubble, `e.detail` is typed):
 
-.waveform-btn {
-    border-color: #fff;
-}
+```js
+new WaveformPlayer('#player', {
+  url: 'track.mp3',
+  onPlay:  (player) => {},
+  onPause: (player) => {},
+  onEnd:   (player) => {},
+  onTimeUpdate: (currentTime, duration, player) => {},
+});
+
+el.addEventListener('waveformplayer:timeupdate', (e) => {
+  const { currentTime, duration, progress } = e.detail;
+});
 ```
 
-## Framework Integration
+## External audio mode
 
-### React
+Set `audioMode: 'external'` and the player becomes a visualization-only surface: play/pause/seek dispatch cancelable events, and you drive the canvas back with `setPlayingState()` / `setProgress()`. This is how [`@arraypress/waveform-bar`](https://github.com/arraypress/waveform-bar) turns many inline players into one persistent bar.
 
-```jsx
-import {useEffect, useRef} from 'react';
-import WaveformPlayer from '@arraypress/waveform-player';
+```js
+const player = new WaveformPlayer(el, { audioMode: 'external' });
 
-function AudioPlayer({url}) {
-    const playerRef = useRef();
-
-    useEffect(() => {
-        const player = new WaveformPlayer(playerRef.current, {url});
-        return () => player.destroy();
-    }, [url]);
-
-    return <div ref={playerRef}/>;
-}
+el.addEventListener('waveformplayer:request-play', (e) => {
+  audio.src = e.detail.url;        // e.detail = { url, title, subtitle, artist, artwork, id, player }
+  audio.play();
+});
+audio.addEventListener('timeupdate', () => player.setProgress(audio.currentTime, audio.duration));
+audio.addEventListener('play',  () => player.setPlayingState(true));
+audio.addEventListener('pause', () => player.setPlayingState(false));
 ```
 
-### Vue
+| Event                          | Detail                                              |
+| ------------------------------ | --------------------------------------------------- |
+| `waveformplayer:request-play`  | `{ url, title, subtitle, artist, artwork, id, player }` |
+| `waveformplayer:request-pause` | Same shape                                          |
+| `waveformplayer:request-seek`  | Same shape + `{ percent: 0..1 }`                    |
 
-```vue
+## Frameworks
 
-<template>
-  <div ref="player"></div>
-</template>
+| Environment | Package |
+| ----------- | ------- |
+| React       | [`@arraypress/waveform-player-react`](https://github.com/arraypress/waveform-player-react) |
+| Astro       | [`@arraypress/waveform-player-astro`](https://github.com/arraypress/waveform-player-astro) |
+| Vanilla / anything else | this package — `new WaveformPlayer(el, opts)` and `player.destroy()` on teardown |
 
-<script>
-  import WaveformPlayer from '@arraypress/waveform-player';
+## Ecosystem
 
-  export default {
-    mounted() {
-      this.player = new WaveformPlayer(this.$refs.player, {
-        url: this.audioUrl
-      });
-    },
-    beforeDestroy() {
-      this.player?.destroy();
-    }
-  }
-</script>
+- **[WaveformBar](https://github.com/arraypress/waveform-bar)** — persistent bottom-bar player with queue, favorites, and cross-page session.
+- **[WaveformPlaylist](https://github.com/arraypress/waveform-playlist)** — zero-JS playlists and chapters.
+- **[WaveformGen](https://github.com/arraypress/waveform-gen)** — pre-generate peak JSON at build time.
+- **[WaveformTracker](https://github.com/arraypress/waveform-tracker)** — audio engagement analytics.
+
+## Pre-generated waveforms
+
+Skip client-side decoding by storing peaks next to each file (`track.mp3` ↔ `track.json`):
+
+```js
+new WaveformPlayer('#player', {
+  url: track.audioUrl,
+  waveform: WaveformPlayer.getPeaksUrl(track.audioUrl),
+});
 ```
 
-## Browser Support
+`getPeaksUrl()` swaps a known audio extension (`mp3`, `wav`, `ogg`, `flac`, `m4a`, `aac`) for `.json`, preserving query/hash, and returns `undefined` for anything else (so the player falls back to live decoding).
 
-- Chrome/Edge 90+
-- Firefox 88+
-- Safari 14+
-- Mobile browsers (iOS Safari, Chrome Android)
+## Browser support
 
-## Examples
-
-See the [live demo](https://waveformplayer.com) for:
-
-- All visual styles
-- Custom styling examples
-- Event handling
-- Player builder
-- BPM detection
-- Pre-generated waveforms
-- Keyboard navigation
-- Speed controls
-- Chapter markers
+Chrome/Edge 90+, Firefox 88+, Safari 14+, and modern mobile browsers. Rounded bar caps use `roundRect` where available (Safari 16+) and fall back to square bars elsewhere.
 
 ## Development
 
 ```bash
-# Install dependencies
 npm install
-
-# Development mode
-npm run dev
-
-# Build
-npm run build
-
-# Check size
-npm run size
+npm run dev      # watch build
+npm test         # vitest
+npm run build    # all bundles
+npm run size     # gzipped size
 ```
 
 ## License
 
-MIT © [ArrayPress](https://github.com/arraypress)
-
-## Credits
-
-Created by [David Sherlock](https://github.com/arraypress)
+MIT © [ArrayPress](https://github.com/arraypress) · created by [David Sherlock](https://github.com/arraypress)
