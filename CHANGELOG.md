@@ -20,6 +20,10 @@ All notable changes to this project will be documented in this file.
 - **Accessibility polish** (near-zero footprint): a `@media (prefers-reduced-motion: reduce)`
   guard that neutralizes transitions/animations, `role="alert"` on the error
   node, and `aria-busy` toggled on the seek slider while loading.
+- **CSS custom properties for spacing** — `--waveform-line-height` (1.4),
+  `--waveform-body-gap` (8px), and `--waveform-track-gap` (12px). Lets
+  embedders (e.g. `@arraypress/waveform-bar`) retune layout without
+  `!important` overrides of internal classes. Defaults are unchanged.
 
 ### Fixed
 

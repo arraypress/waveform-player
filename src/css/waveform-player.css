@@ -2,7 +2,7 @@
 .waveform-player {
     font-family: inherit;
     color: inherit;
-    line-height: 1.4;
+    line-height: var(--waveform-line-height, 1.4);
 }
 
 .waveform-player * {
@@ -13,14 +13,14 @@
 .waveform-body {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--waveform-body-gap, 8px);
 }
 
 /* Track row */
 .waveform-track {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--waveform-track-gap, 12px);
     position: relative;
 }
 
