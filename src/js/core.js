@@ -85,6 +85,11 @@ export class WaveformPlayer {
         this.updateTimer = null;
         this.resizeObserver = null;
 
+        // All DOM/document listeners are registered with this signal so a
+        // single abort() in destroy() tears every one of them down (the old
+        // destroy left the document-click and container listeners attached).
+        this._ac = new AbortController();
+
         // Generate unique ID
         this.id = this.container.id || generateId(this.options.url);
 
@@ -128,7 +133,7 @@ export class WaveformPlayer {
             if (this.options.url) {
                 this.load(this.options.url).then(() => {
                     if (this.options.autoplay) {
-                        this.play();
+                        this.play()?.catch(() => {});
                     }
                 }).catch(error => {
                     console.error('Failed to load audio:', error);
@@ -223,7 +228,7 @@ export class WaveformPlayer {
           <canvas></canvas>
           <div class="waveform-markers"></div>
           <div class="waveform-loading" style="display:none;"></div>
-          <div class="waveform-error" style="display:none;">
+          <div class="waveform-error" style="display:none;" role="alert">
             <span class="waveform-error-text">Unable to load audio</span>
           </div>
         </div>
@@ -313,12 +318,12 @@ export class WaveformPlayer {
         speedBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             speedMenu.style.display = speedMenu.style.display === 'none' ? 'block' : 'none';
-        });
+        }, {signal: this._ac.signal});
 
         // Close menu when clicking outside
         document.addEventListener('click', () => {
             speedMenu.style.display = 'none';
-        });
+        }, {signal: this._ac.signal});
 
         // Handle speed selection
         speedMenu.addEventListener('click', (e) => {
@@ -328,7 +333,7 @@ export class WaveformPlayer {
                 this.setPlaybackRate(rate);
                 speedMenu.style.display = 'none';
             }
-        });
+        }, {signal: this._ac.signal});
 
         // Set initial UI state
         this.updateSpeedUI();
@@ -353,7 +358,7 @@ export class WaveformPlayer {
             // Make this one focusable
             this.container.setAttribute('tabindex', '0');
             this.container.focus();
-        });
+        }, {signal: this._ac.signal});
 
         // Keyboard events. In external mode `this.audio` is null, so
         // seek/volume/mute keys are no-ops (the external controller
@@ -391,7 +396,7 @@ export class WaveformPlayer {
                 e.preventDefault();
                 actions[key]();
             }
-        });
+        }, {signal: this._ac.signal});
     }
 
     /**
@@ -452,7 +457,7 @@ export class WaveformPlayer {
             e.preventDefault();
             e.stopPropagation();
             this.seekToSeconds(target);
-        });
+        }, {signal: this._ac.signal});
     }
 
     /**
@@ -881,20 +886,22 @@ export class WaveformPlayer {
 
         if (!this.options.showMarkers || !this.options.markers?.length) return;
 
-        // Don't render if audio duration isn't available yet
-        if (!this.audio || !this.audio.duration || this.audio.duration === 0) {
+        // Duration may come from the <audio> (self mode) or the external
+        // controller (external mode) — use the mode-agnostic accessor.
+        const duration = this.getSeekDuration();
+        if (!duration) {
             return;
         }
 
         // Add each marker
         this.options.markers.forEach((marker, index) => {
             // Skip markers that are beyond the audio duration
-            if (marker.time > this.audio.duration) {
-                console.warn(`Marker "${marker.label}" at ${marker.time}s exceeds audio duration of ${this.audio.duration}s`);
+            if (marker.time > duration) {
+                console.warn(`Marker "${marker.label}" at ${marker.time}s exceeds audio duration of ${duration}s`);
                 return;
             }
 
-            const position = (marker.time / this.audio.duration) * 100;
+            const position = (marker.time / duration) * 100;
 
             const markerEl = document.createElement('button');
             markerEl.className = 'waveform-marker';
@@ -967,6 +974,10 @@ export class WaveformPlayer {
         this.isLoading = loading;
         if (this.loadingEl) {
             this.loadingEl.style.display = loading ? 'block' : 'none';
+        }
+        // Let assistive tech know the player is busy fetching/decoding.
+        if (this.seekEl) {
+            this.seekEl.setAttribute('aria-busy', loading ? 'true' : 'false');
         }
     }
 
@@ -1172,6 +1183,7 @@ export class WaveformPlayer {
                 player: this,
                 currentTime: this.audio.currentTime,
                 duration: this.audio.duration,
+                progress: this.progress,
                 url: this.options.url
             }
         }));
@@ -1203,6 +1215,10 @@ export class WaveformPlayer {
      * @private
      */
     updateSpeedUI() {
+        // External mode owns no <audio>; nothing to reflect (and reading
+        // this.audio.playbackRate here would throw during construction).
+        if (!this.audio) return;
+
         const speedValue = this.container.querySelector('.speed-value');
         if (speedValue) {
             const rate = this.audio.playbackRate;
@@ -1350,17 +1366,24 @@ export class WaveformPlayer {
         // Mirror the existing display update code so callers don't have
         // to know which DOM elements live where.
         if (this.currentTimeEl)  this.currentTimeEl.textContent  = formatTime(currentTime);
-        if (this.totalTimeEl && (!this.totalTimeEl.dataset._extSet || this._extDuration !== duration)) {
+        // Publish the duration unconditionally — the accessible seek slider
+        // and keyboard seeking read getSeekDuration()/_extDuration even when
+        // there's no time display to update.
+        this._extDuration = duration;
+        if (this.totalTimeEl && (!this.totalTimeEl.dataset._extSet || this.totalTimeEl.dataset._extDur !== String(duration))) {
             this.totalTimeEl.textContent = formatTime(duration);
             this.totalTimeEl.dataset._extSet = '1';
-            this._extDuration = duration;
+            this.totalTimeEl.dataset._extDur = String(duration);
         }
         this.drawWaveform?.();
         this.container.dispatchEvent(new CustomEvent('waveformplayer:timeupdate', {
             bubbles: true,
-            detail: {player: this, currentTime, duration, progress: this.progress}
+            detail: {player: this, currentTime, duration, progress: this.progress, url: this.options.url}
         }));
-        if (this.options.onTimeUpdate) this.options.onTimeUpdate(this, currentTime, duration);
+        // Same (currentTime, duration, player) signature as self mode — the
+        // arg order used to be swapped here, which made one shared handler
+        // impossible across audioModes.
+        if (this.options.onTimeUpdate) this.options.onTimeUpdate(currentTime, duration, this);
 
         this.updateSeekAccessibility();
     }
@@ -1432,6 +1455,9 @@ export class WaveformPlayer {
         // Stop playback and animations
         this.pause();
         this.stopSmoothUpdate();
+
+        // Tear down every document/container/seek listener in one shot.
+        this._ac?.abort();
 
         // Disconnect observer
         if (this.resizeObserver) {

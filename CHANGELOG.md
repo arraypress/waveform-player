@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.0] — 2026-06-27
+
+### Added
+
+- **TypeScript definitions** — the package now ships a hand-authored
+  `index.d.ts` (wired through a `types` export condition), so bundler/IDE
+  users get full IntelliSense and type-checking with zero runtime bytes. It
+  is the single source of truth for the option surface, the `WaveformPlayer`
+  class API, and a typed custom-event map (`addEventListener('waveformplayer:timeupdate', …)`
+  now types `e.detail`). The React/Astro wrappers can re-export from it
+  instead of re-declaring the option list.
+- **Dual ESM + CommonJS build** — added a `dist/waveform-player.cjs` bundle
+  and a `require` export condition, so `require('@arraypress/waveform-player')`
+  works under Node CJS (previously ESM-only). External sourcemaps now ship
+  for the ESM, CJS, and minified IIFE bundles. New `./styles.css` export alias.
+- **Accessibility polish** (near-zero footprint): a `@media (prefers-reduced-motion: reduce)`
+  guard that neutralizes transitions/animations, `role="alert"` on the error
+  node, and `aria-busy` toggled on the seek slider while loading.
+
+### Fixed
+
+- **AudioContext leak on failed decode** — `generateWaveform()` now closes the
+  context in a `finally` block. Browsers hard-cap live AudioContexts (~6 in
+  Chrome), so leaking one per failed load could break every later player on a
+  catalogue page.
+- **`destroy()` listener leak** — all document/container/seek listeners are now
+  registered against an `AbortController` and torn down on `destroy()`. The old
+  teardown left the outside-click and container listeners attached.
+- **Constructor crash in external mode** — `audioMode: 'external'` combined with
+  `showPlaybackSpeed: true` threw on init (dereferencing the null `<audio>`);
+  `updateSpeedUI()` now no-ops without audio.
+- **`onTimeUpdate` argument order** — external mode previously fired
+  `(player, currentTime, duration)`; it now matches self mode's documented
+  `(currentTime, duration, player)` so one handler works in both modes.
+  ⚠️ Behavior change for external-mode consumers relying on the old order.
+- **Markers in external mode** — `renderMarkers()` now uses a mode-agnostic
+  duration, so chapter markers render when audio is delegated.
+- **Accessible seek in external mode** — the duration is now published
+  unconditionally, so keyboard seeking / the ARIA slider work even when
+  `showTime` is off.
+- **`generateId()`** — hashes the full URL (+ a counter) instead of a 10-char
+  `btoa()` prefix: no more collisions for same-host tracks and no throw on
+  non-Latin1 / Unicode URLs.
+- **`formatTime()`** — adds `H:MM:SS` rollover past one hour and clamps
+  negatives (also fixes `aria-valuetext`).
+- **Autoplay** — the autoplay `play()` no longer emits an unhandled promise
+  rejection when the browser blocks it.
+
 ## [1.7.2] — 2026-06-27
 
 ### Added

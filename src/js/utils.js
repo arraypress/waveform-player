@@ -99,22 +99,37 @@ export function parseDataAttributes(element) {
  * @returns {string} Formatted time
  */
 export function formatTime(seconds) {
-    if (!seconds || isNaN(seconds)) return '0:00';
+    if (!seconds || isNaN(seconds) || seconds < 0) return '0:00';
 
-    const mins = Math.floor(seconds / 60);
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
+
+    if (hrs > 0) {
+        return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
 
     return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
+let idCounter = 0;
+
 /**
- * Generate unique ID from URL
+ * Generate a unique, DOM-safe ID from a URL.
+ *
+ * Uses a DJB2 hash of the FULL url (not a 10-char prefix) plus a process
+ * counter, so same-host tracks don't collide in the instances map and
+ * non-Latin1 / Unicode URLs don't throw (the old btoa() approach did both).
  * @param {string} url - Audio URL
- * @returns {string} Base64 encoded ID
+ * @returns {string} Unique element-id-safe string
  */
 export function generateId(url) {
-    const str = url || Math.random().toString();
-    return btoa(str.substring(0, 10)).replace(/[^a-zA-Z0-9]/g, '');
+    const str = url || 'audio';
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) + hash + str.charCodeAt(i)) | 0;
+    }
+    return `wp_${(hash >>> 0).toString(36)}_${(idCounter++).toString(36)}`;
 }
 
 /**

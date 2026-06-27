@@ -62,14 +62,23 @@
     return options;
   }
   function formatTime(seconds) {
-    if (!seconds || isNaN(seconds)) return "0:00";
-    const mins = Math.floor(seconds / 60);
+    if (!seconds || isNaN(seconds) || seconds < 0) return "0:00";
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor(seconds % 3600 / 60);
     const secs = Math.floor(seconds % 60);
+    if (hrs > 0) {
+      return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    }
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   }
+  var idCounter = 0;
   function generateId(url) {
-    const str = url || Math.random().toString();
-    return btoa(str.substring(0, 10)).replace(/[^a-zA-Z0-9]/g, "");
+    const str = url || "audio";
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) + hash + str.charCodeAt(i) | 0;
+    }
+    return `wp_${(hash >>> 0).toString(36)}_${(idCounter++).toString(36)}`;
   }
   function extractTitleFromUrl(url) {
     if (!url) return "Audio";
@@ -474,8 +483,9 @@
     return maxPeak > 0 ? peaks.map((peak) => peak / maxPeak) : peaks;
   }
   async function generateWaveform(url, samples = 200, shouldDetectBPM = false) {
+    let audioContext;
     try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const response = await fetch(url);
       const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -485,11 +495,12 @@
       if (shouldDetectBPM) {
         bpm = await detectBPM(audioBuffer);
       }
-      audioContext.close();
       return { peaks, bpm };
     } catch (error) {
       console.error("Failed to generate waveform:", error);
       throw error;
+    } finally {
+      if (audioContext) audioContext.close();
     }
   }
   function generatePlaceholderWaveform(samples = 200) {
@@ -693,6 +704,7 @@
       this.hasError = false;
       this.updateTimer = null;
       this.resizeObserver = null;
+      this._ac = new AbortController();
       this.id = this.container.id || generateId(this.options.url);
       _WaveformPlayer.instances.set(this.id, this);
       this.init();
@@ -723,7 +735,8 @@
         if (this.options.url) {
           this.load(this.options.url).then(() => {
             if (this.options.autoplay) {
-              this.play();
+              this.play()?.catch(() => {
+              });
             }
           }).catch((error) => {
             console.error("Failed to load audio:", error);
@@ -807,7 +820,7 @@
           <canvas></canvas>
           <div class="waveform-markers"></div>
           <div class="waveform-loading" style="display:none;"></div>
-          <div class="waveform-error" style="display:none;">
+          <div class="waveform-error" style="display:none;" role="alert">
             <span class="waveform-error-text">Unable to load audio</span>
           </div>
         </div>
@@ -879,10 +892,10 @@
       speedBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         speedMenu.style.display = speedMenu.style.display === "none" ? "block" : "none";
-      });
+      }, { signal: this._ac.signal });
       document.addEventListener("click", () => {
         speedMenu.style.display = "none";
-      });
+      }, { signal: this._ac.signal });
       speedMenu.addEventListener("click", (e) => {
         e.stopPropagation();
         if (e.target.classList.contains("speed-option")) {
@@ -890,7 +903,7 @@
           this.setPlaybackRate(rate);
           speedMenu.style.display = "none";
         }
-      });
+      }, { signal: this._ac.signal });
       this.updateSpeedUI();
     }
     /**
@@ -907,7 +920,7 @@
         });
         this.container.setAttribute("tabindex", "0");
         this.container.focus();
-      });
+      }, { signal: this._ac.signal });
       this.container.addEventListener("keydown", (e) => {
         if (document.activeElement !== this.container) return;
         const key = e.key;
@@ -932,7 +945,7 @@
           e.preventDefault();
           actions[key]();
         }
-      });
+      }, { signal: this._ac.signal });
     }
     /**
      * Expose the waveform as an accessible, keyboard-operable slider.
@@ -984,7 +997,7 @@
         e.preventDefault();
         e.stopPropagation();
         this.seekToSeconds(target);
-      });
+      }, { signal: this._ac.signal });
     }
     /**
      * Total seekable duration in seconds, regardless of audio mode.
@@ -1311,15 +1324,16 @@
       if (!this.markersContainer) return;
       this.markersContainer.innerHTML = "";
       if (!this.options.showMarkers || !this.options.markers?.length) return;
-      if (!this.audio || !this.audio.duration || this.audio.duration === 0) {
+      const duration = this.getSeekDuration();
+      if (!duration) {
         return;
       }
       this.options.markers.forEach((marker, index) => {
-        if (marker.time > this.audio.duration) {
-          console.warn(`Marker "${marker.label}" at ${marker.time}s exceeds audio duration of ${this.audio.duration}s`);
+        if (marker.time > duration) {
+          console.warn(`Marker "${marker.label}" at ${marker.time}s exceeds audio duration of ${duration}s`);
           return;
         }
-        const position = marker.time / this.audio.duration * 100;
+        const position = marker.time / duration * 100;
         const markerEl = document.createElement("button");
         markerEl.className = "waveform-marker";
         markerEl.style.left = `${position}%`;
@@ -1375,6 +1389,9 @@
       this.isLoading = loading;
       if (this.loadingEl) {
         this.loadingEl.style.display = loading ? "block" : "none";
+      }
+      if (this.seekEl) {
+        this.seekEl.setAttribute("aria-busy", loading ? "true" : "false");
       }
     }
     /**
@@ -1525,6 +1542,7 @@
           player: this,
           currentTime: this.audio.currentTime,
           duration: this.audio.duration,
+          progress: this.progress,
           url: this.options.url
         }
       }));
@@ -1551,6 +1569,7 @@
      * @private
      */
     updateSpeedUI() {
+      if (!this.audio) return;
       const speedValue = this.container.querySelector(".speed-value");
       if (speedValue) {
         const rate = this.audio.playbackRate;
@@ -1683,17 +1702,18 @@
       if (!duration || duration <= 0) return;
       this.progress = Math.max(0, Math.min(1, currentTime / duration));
       if (this.currentTimeEl) this.currentTimeEl.textContent = formatTime(currentTime);
-      if (this.totalTimeEl && (!this.totalTimeEl.dataset._extSet || this._extDuration !== duration)) {
+      this._extDuration = duration;
+      if (this.totalTimeEl && (!this.totalTimeEl.dataset._extSet || this.totalTimeEl.dataset._extDur !== String(duration))) {
         this.totalTimeEl.textContent = formatTime(duration);
         this.totalTimeEl.dataset._extSet = "1";
-        this._extDuration = duration;
+        this.totalTimeEl.dataset._extDur = String(duration);
       }
       this.drawWaveform?.();
       this.container.dispatchEvent(new CustomEvent("waveformplayer:timeupdate", {
         bubbles: true,
-        detail: { player: this, currentTime, duration, progress: this.progress }
+        detail: { player: this, currentTime, duration, progress: this.progress, url: this.options.url }
       }));
-      if (this.options.onTimeUpdate) this.options.onTimeUpdate(this, currentTime, duration);
+      if (this.options.onTimeUpdate) this.options.onTimeUpdate(currentTime, duration, this);
       this.updateSeekAccessibility();
     }
     /**
@@ -1753,6 +1773,7 @@
       this.isDestroying = true;
       this.pause();
       this.stopSmoothUpdate();
+      this._ac?.abort();
       if (this.resizeObserver) {
         this.resizeObserver.disconnect();
         this.resizeObserver = null;

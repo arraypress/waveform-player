@@ -1,31 +1,37 @@
 {
   "name": "@arraypress/waveform-player",
-  "version": "1.7.2",
+  "version": "1.8.0",
   "description": "Lightweight, customizable audio player with waveform visualization",
   "type": "module",
-  "main": "dist/waveform-player.esm.js",
+  "types": "./index.d.ts",
+  "main": "dist/waveform-player.cjs",
   "module": "dist/waveform-player.esm.js",
   "unpkg": "dist/waveform-player.min.js",
   "exports": {
     ".": {
+      "types": "./index.d.ts",
       "import": "./dist/waveform-player.esm.js",
+      "require": "./dist/waveform-player.cjs",
       "default": "./dist/waveform-player.esm.js"
     },
+    "./styles.css": "./dist/waveform-player.css",
     "./dist/*": "./dist/*",
     "./package.json": "./package.json"
   },
   "files": [
     "dist/",
     "src/",
+    "index.d.ts",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "npm run build:css && npm run build:iife && npm run build:esm && npm run build:min",
+    "build": "npm run build:css && npm run build:iife && npm run build:esm && npm run build:cjs && npm run build:min",
     "build:css": "esbuild src/css/waveform-player.css --minify --outfile=dist/waveform-player.css",
     "build:iife": "esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.js",
-    "build:min": "esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.min.js --minify",
-    "build:esm": "esbuild src/js/index.js --bundle --format=esm --outfile=dist/waveform-player.esm.js --minify",
+    "build:min": "esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.min.js --minify --sourcemap=external",
+    "build:esm": "esbuild src/js/index.js --bundle --format=esm --outfile=dist/waveform-player.esm.js --minify --sourcemap=external",
+    "build:cjs": "esbuild src/js/index.js --bundle --format=cjs --outfile=dist/waveform-player.cjs --sourcemap=external",
     "dev": "npm run build:css && esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.js --watch",
     "dev:css": "esbuild src/css/waveform-player.css --outfile=dist/waveform-player.css --watch",
     "dev:demo": "npm run build:css && concurrently \"npm run dev\" \"npm run dev:css\"",

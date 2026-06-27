@@ -53,9 +53,13 @@ export function extractPeaks(buffer, samples = 200) {
  * @param {boolean} [shouldDetectBPM=false] - Whether to detect BPM
  * @returns {Promise<{peaks: number[], bpm?: number}>} Waveform data
  */
-export async function generateWaveform(url, samples = 200, shouldDetectBPM = false) {  // Renamed parameter
+export async function generateWaveform(url, samples = 200, shouldDetectBPM = false) {
+    // Created lazily so the finally block can always close it — browsers
+    // hard-cap live AudioContexts (~6 in Chrome), so leaking one per failed
+    // decode would break every subsequent player on the page.
+    let audioContext;
     try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const response = await fetch(url);
         const arrayBuffer = await response.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -66,15 +70,16 @@ export async function generateWaveform(url, samples = 200, shouldDetectBPM = fal
         peaks = normalizePeaks(peaks);
 
         let bpm = null;
-        if (shouldDetectBPM) {  // Use renamed parameter
-            bpm = await detectBPM(audioBuffer);  // Now this correctly calls the imported function
+        if (shouldDetectBPM) {
+            bpm = await detectBPM(audioBuffer);
         }
 
-        audioContext.close();
         return {peaks, bpm};
     } catch (error) {
         console.error('Failed to generate waveform:', error);
         throw error;
+    } finally {
+        if (audioContext) audioContext.close();
     }
 }
 

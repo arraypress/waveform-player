@@ -365,3 +365,14 @@
         font-size: 10px;
     }
 }
+
+/* Respect users who prefer reduced motion — neutralize transitions/animations. */
+@media (prefers-reduced-motion: reduce) {
+    .waveform-player *,
+    .waveform-player *::before,
+    .waveform-player *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
