@@ -79,6 +79,18 @@ describe('parseDataAttributes', () => {
 		expect(o.barRadius).toBe(4);
 	});
 
+	it('accepts data-src as a shorthand alias for data-url', () => {
+		const a = document.createElement('div');
+		a.dataset.src = 'song.mp3';
+		expect(parseDataAttributes(a).url).toBe('song.mp3');
+
+		// canonical data-url wins when both are present
+		const b = document.createElement('div');
+		b.dataset.src = 'short.mp3';
+		b.dataset.url = 'canonical.mp3';
+		expect(parseDataAttributes(b).url).toBe('canonical.mp3');
+	});
+
 	it('accepts data-style as a shorthand alias for data-waveform-style', () => {
 		const a = document.createElement('div');
 		a.dataset.style = 'bars';

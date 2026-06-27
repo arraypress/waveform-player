@@ -74,6 +74,8 @@ export interface WaveformPlayerOptions {
 	// ── Audio source ──────────────────────────────────────────────
 	/** Audio file URL. */
 	url?: string;
+	/** Shorthand alias for {@link url} (`data-src`). The canonical name wins if both are set. */
+	src?: string;
 	/** Waveform height in pixels. @default 60 */
 	height?: number;
 	/** Number of peak samples to extract when decoding. @default 200 */

@@ -11,6 +11,7 @@
   }
   function parseDataAttributes(element) {
     const options = {};
+    if (element.dataset.src) options.url = element.dataset.src;
     if (element.dataset.url) options.url = element.dataset.url;
     if (element.dataset.height) options.height = parseInt(element.dataset.height);
     if (element.dataset.samples) options.samples = parseInt(element.dataset.samples);
@@ -741,7 +742,9 @@
         throw new Error("WaveformPlayer: Container element not found");
       }
       const dataOptions = parseDataAttributes(this.container);
-      const userOptions = options.style && !options.waveformStyle ? { ...options, waveformStyle: options.style } : options;
+      const userOptions = { ...options };
+      if (userOptions.style && !userOptions.waveformStyle) userOptions.waveformStyle = userOptions.style;
+      if (userOptions.src && !userOptions.url) userOptions.url = userOptions.src;
       this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, userOptions);
       const preset = getColorPreset(this.options.colorPreset);
       for (const [key, value] of Object.entries(preset)) {

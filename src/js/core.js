@@ -49,11 +49,11 @@ export class WaveformPlayer {
         // Parse data attributes if present
         const dataOptions = parseDataAttributes(this.container);
 
-        // `style` is a shorthand alias for `waveformStyle`. The canonical
-        // name still works and wins if both are supplied.
-        const userOptions = options.style && !options.waveformStyle
-            ? { ...options, waveformStyle: options.style }
-            : options;
+        // Shorthand option aliases — `style` -> `waveformStyle`, `src` -> `url`.
+        // The canonical names still work and win if both are supplied.
+        const userOptions = { ...options };
+        if (userOptions.style && !userOptions.waveformStyle) userOptions.waveformStyle = userOptions.style;
+        if (userOptions.src && !userOptions.url) userOptions.url = userOptions.src;
 
         // Merge options: defaults < data attributes < constructor options
         this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, userOptions);

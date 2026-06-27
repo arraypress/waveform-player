@@ -142,7 +142,7 @@ const player = new WaveformPlayer('#player', {
 
 | Option               | Type                  | Default     | Description                                              |
 | -------------------- | --------------------- | ----------- | ------------------------------------------------------- |
-| `url`                | `string`              | `''`        | Audio file URL                                          |
+| `url`                | `string`              | `''`        | Audio file URL (alias: `src` / `data-src`)             |
 | `waveformStyle`      | `string`              | `'mirror'`  | `bars` · `mirror` · `line` · `blocks` · `dots` · `seekbar` |
 | `height`             | `number`              | `60`        | Waveform height (px)                                    |
 | `barWidth`           | `number`              | style-based | Bar width (px)                                          |

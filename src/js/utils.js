@@ -25,7 +25,9 @@ function parseColorValue(value) {
 export function parseDataAttributes(element) {
     const options = {};
 
-    // Core attributes
+    // Core attributes. `data-src` is a shorthand alias for `data-url`;
+    // the canonical long form wins if both are set.
+    if (element.dataset.src) options.url = element.dataset.src;
     if (element.dataset.url) options.url = element.dataset.url;
     if (element.dataset.height) options.height = parseInt(element.dataset.height);
     if (element.dataset.samples) options.samples = parseInt(element.dataset.samples);

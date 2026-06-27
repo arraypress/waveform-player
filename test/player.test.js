@@ -196,6 +196,13 @@ describe('drawing options (barRadius + gradient)', () => {
 		expect(p2.options.waveformStyle).toBe('line');
 	});
 
+	it('accepts the `src` shorthand option as an alias for url', () => {
+		const { player } = track(mount({ src: 'song.mp3' }));
+		expect(player.options.url).toBe('song.mp3');
+		const { player: p2 } = track(mount({ src: 's.mp3', url: 'canonical.mp3' }));
+		expect(p2.options.url).toBe('canonical.mp3');
+	});
+
 	it('still accepts plain string colors (backwards compatible)', () => {
 		const { player } = track(mount({ waveformColor: '#fff', progressColor: '#0af', barRadius: 0 }));
 		player.setWaveformData([0.3, 0.7, 0.5]);

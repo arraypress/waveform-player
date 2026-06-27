@@ -44,9 +44,9 @@ All notable changes to this project will be documented in this file.
   - `parseDataAttributes` now reads `data-audio-mode`, `data-show-markers`,
     `data-accessible-seek`, `data-seek-label`, `data-play-icon`,
     `data-pause-icon` (previously silently inert on every auto-init path).
-  - **`style` / `data-style` shorthand** for `waveformStyle` /
-    `data-waveform-style` (e.g. `data-style="bars"`). The canonical long form
-    still works and wins if both are supplied.
+  - **Shorthand aliases** — `style` / `data-style` for `waveformStyle`, and
+    `src` / `data-src` for `url` (e.g. `<div data-waveform-player data-src="t.mp3"
+    data-style="bars">`). The canonical names still work and win if both are set.
 
 ### Fixed (additional)
 
