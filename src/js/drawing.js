@@ -3,7 +3,7 @@
  * @description Core waveform drawing styles optimized for visual distinction at all sizes
  */
 
-import {resampleData} from './utils.js';
+import {resampleData, clamp} from './utils.js';
 
 /**
  * Resolve a fill value that may be a CSS colour string OR an array of colour
@@ -43,9 +43,9 @@ function fillBar(ctx, x, y, w, h, radii) {
     const any = Array.isArray(radii) ? radii.some(r => r > 0) : radii > 0;
     if (any && typeof ctx.roundRect === 'function') {
         const max = Math.min(w / 2, Math.abs(h) / 2);
-        const clamp = (r) => Math.max(0, Math.min(r, max));
+        const clampR = (r) => clamp(r, 0, max);
         ctx.beginPath();
-        ctx.roundRect(x, y, w, h, Array.isArray(radii) ? radii.map(clamp) : clamp(radii));
+        ctx.roundRect(x, y, w, h, Array.isArray(radii) ? radii.map(clampR) : clampR(radii));
         ctx.fill();
     } else {
         ctx.fillRect(x, y, w, h);

@@ -4,6 +4,7 @@
  */
 
 import {detectBPM} from './bpm.js';
+import {clamp} from './utils.js';
 
 /**
  * Extract peaks from a decoded audio buffer for waveform visualization.
@@ -118,7 +119,7 @@ export function generatePlaceholderWaveform(samples = 200) {
     for (let i = 0; i < samples; i++) {
         const base = Math.random() * 0.5 + 0.3;
         const variation = Math.sin(i / samples * Math.PI * 4) * 0.2;
-        data.push(Math.max(0.1, Math.min(1, base + variation)));
+        data.push(clamp(base + variation, 0.1, 1));
     }
     return data;
 }

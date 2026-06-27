@@ -11,7 +11,8 @@ import {
     generateId,
     parseDataAttributes,
     mergeOptions,
-    debounce
+    debounce,
+    clamp
 } from './utils.js';
 
 import {DEFAULT_OPTIONS, STYLE_DEFAULTS, getColorPreset} from './themes.js';
@@ -426,10 +427,10 @@ export class WaveformPlayer {
                 ' ': () => this.togglePlay(),
             };
             if (hasAudio) {
-                actions['ArrowLeft']  = () => this.seekTo(Math.max(0, currentTime - 5));
-                actions['ArrowRight'] = () => this.seekTo(Math.min(this.audio.duration, currentTime + 5));
-                actions['ArrowUp']    = () => this.setVolume(Math.min(1, this.audio.volume + 0.1));
-                actions['ArrowDown']  = () => this.setVolume(Math.max(0, this.audio.volume - 0.1));
+                actions['ArrowLeft']  = () => this.seekTo(clamp(currentTime - 5, 0, this.audio.duration));
+                actions['ArrowRight'] = () => this.seekTo(clamp(currentTime + 5, 0, this.audio.duration));
+                actions['ArrowUp']    = () => this.setVolume(clamp(this.audio.volume + 0.1));
+                actions['ArrowDown']  = () => this.setVolume(clamp(this.audio.volume - 0.1));
                 actions['m'] = actions['M'] = () => this.audio.muted = !this.audio.muted;
             }
 
@@ -545,7 +546,7 @@ export class WaveformPlayer {
         const duration = this.getSeekDuration();
         if (!duration) return;
 
-        const clamped = Math.max(0, Math.min(seconds, duration));
+        const clamped = clamp(seconds, 0, duration);
 
         if (this.options.audioMode === 'external') {
             const percent = clamped / duration;
@@ -623,10 +624,10 @@ export class WaveformPlayer {
         navigator.mediaSession.setActionHandler('play', () => this.play());
         navigator.mediaSession.setActionHandler('pause', () => this.pause());
         navigator.mediaSession.setActionHandler('seekbackward', () => {
-            this.seekTo(Math.max(0, this.audio.currentTime - 10));
+            this.seekTo(clamp(this.audio.currentTime - 10, 0, this.audio.duration));
         });
         navigator.mediaSession.setActionHandler('seekforward', () => {
-            this.seekTo(Math.min(this.audio.duration, this.audio.currentTime + 10));
+            this.seekTo(clamp(this.audio.currentTime + 10, 0, this.audio.duration));
         });
         navigator.mediaSession.setActionHandler('seekto', (details) => {
             if (details.seekTime !== null) {
@@ -1050,7 +1051,7 @@ export class WaveformPlayer {
         // controller's progress event will reconcile shortly after).
         const rect = this.canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
-        const targetPercent = Math.max(0, Math.min(1, x / rect.width));
+        const targetPercent = clamp(x / rect.width);
 
         if (this.options.audioMode === 'external') {
             const evt = new CustomEvent('waveformplayer:request-seek', {
@@ -1108,6 +1109,23 @@ export class WaveformPlayer {
     }
 
     /**
+     * Reflect play/pause state on the transport button: toggle the `playing`
+     * class and swap the play/pause icon visibility. The single source of
+     * truth shared by `onPlay`, `onPause`, and the external-mode
+     * `setPlayingState` pump so they can't drift. No-op without a button.
+     * @param {boolean} isPlaying - Whether playback is active.
+     * @private
+     */
+    setPlayButtonState(isPlaying) {
+        if (!this.playBtn) return;
+        this.playBtn.classList.toggle('playing', isPlaying);
+        const playIcon = this.playBtn.querySelector('.waveform-icon-play');
+        const pauseIcon = this.playBtn.querySelector('.waveform-icon-pause');
+        if (playIcon) playIcon.style.display = isPlaying ? 'none' : 'flex';
+        if (pauseIcon) pauseIcon.style.display = isPlaying ? 'flex' : 'none';
+    }
+
+    /**
      * `play` handler (self mode): set the playing flag, swap the button to its
      * pause icon, start the smooth progress loop, dispatch
      * `waveformplayer:play`, and fire the `onPlay` callback. No-op during
@@ -1121,14 +1139,7 @@ export class WaveformPlayer {
 
         this.isPlaying = true;
 
-        if (this.playBtn) {
-            this.playBtn.classList.add('playing');
-
-            const playIcon = this.playBtn.querySelector('.waveform-icon-play');
-            const pauseIcon = this.playBtn.querySelector('.waveform-icon-pause');
-            if (playIcon) playIcon.style.display = 'none';
-            if (pauseIcon) pauseIcon.style.display = 'flex';
-        }
+        this.setPlayButtonState(true);
 
         this.startSmoothUpdate();
 
@@ -1157,14 +1168,7 @@ export class WaveformPlayer {
 
         this.isPlaying = false;
 
-        if (this.playBtn) {
-            this.playBtn.classList.remove('playing');
-
-            const playIcon = this.playBtn.querySelector('.waveform-icon-play');
-            const pauseIcon = this.playBtn.querySelector('.waveform-icon-pause');
-            if (playIcon) playIcon.style.display = 'flex';
-            if (pauseIcon) pauseIcon.style.display = 'none';
-        }
+        this.setPlayButtonState(false);
 
         this.stopSmoothUpdate();
 
@@ -1485,13 +1489,7 @@ export class WaveformPlayer {
     setPlayingState(playing) {
         const wasPlaying = this.isPlaying;
         this.isPlaying = !!playing;
-        if (this.playBtn) {
-            this.playBtn.classList.toggle('playing', this.isPlaying);
-            const playIcon  = this.playBtn.querySelector('.waveform-icon-play');
-            const pauseIcon = this.playBtn.querySelector('.waveform-icon-pause');
-            if (playIcon)  playIcon.style.display  = this.isPlaying ? 'none'   : 'flex';
-            if (pauseIcon) pauseIcon.style.display = this.isPlaying ? 'flex'   : 'none';
-        }
+        this.setPlayButtonState(this.isPlaying);
         if (this.isPlaying && !wasPlaying) {
             this.startSmoothUpdate?.();
             this.container.dispatchEvent(new CustomEvent('waveformplayer:play', {
@@ -1527,7 +1525,7 @@ export class WaveformPlayer {
      */
     setProgress(currentTime, duration) {
         if (!duration || duration <= 0) return;
-        this.progress = Math.max(0, Math.min(1, currentTime / duration));
+        this.progress = clamp(currentTime / duration);
         // Mirror the existing display update code so callers don't have
         // to know which DOM elements live where.
         if (this.currentTimeEl)  this.currentTimeEl.textContent  = formatTime(currentTime);
@@ -1590,7 +1588,7 @@ export class WaveformPlayer {
      */
     seekTo(seconds) {
         if (this.audio && this.audio.duration) {
-            this.audio.currentTime = Math.max(0, Math.min(seconds, this.audio.duration));
+            this.audio.currentTime = clamp(seconds, 0, this.audio.duration);
             this.updateProgress();
         }
     }
@@ -1603,7 +1601,7 @@ export class WaveformPlayer {
      */
     seekToPercent(percent) {
         if (this.audio && this.audio.duration) {
-            this.audio.currentTime = this.audio.duration * Math.max(0, Math.min(1, percent));
+            this.audio.currentTime = this.audio.duration * clamp(percent);
             this.updateProgress();
         }
     }
@@ -1615,7 +1613,7 @@ export class WaveformPlayer {
      */
     setVolume(volume) {
         if (this.audio) {
-            this.audio.volume = Math.max(0, Math.min(1, volume));
+            this.audio.volume = clamp(volume);
         }
     }
 
@@ -1628,7 +1626,7 @@ export class WaveformPlayer {
     setPlaybackRate(rate) {
         if (!this.audio) return;
 
-        const clampedRate = Math.max(0.5, Math.min(2, rate));
+        const clampedRate = clamp(rate, 0.5, 2);
         this.audio.playbackRate = clampedRate;
         this.options.playbackRate = clampedRate;
 

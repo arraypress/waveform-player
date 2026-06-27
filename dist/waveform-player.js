@@ -1,5 +1,11 @@
 (() => {
   // src/js/utils.js
+  function clamp(value, min = 0, max = 1) {
+    return Math.max(min, Math.min(value, max));
+  }
+  function parseBoolAttr(value) {
+    return value === void 0 ? void 0 : value === "true";
+  }
   function parseColorValue(value) {
     if (typeof value === "string" && value.trim().startsWith("[")) {
       try {
@@ -11,6 +17,10 @@
   }
   function parseDataAttributes(element) {
     const options = {};
+    const setBool = (optKey, dataKey = optKey) => {
+      const v = parseBoolAttr(element.dataset[dataKey]);
+      if (v !== void 0) options[optKey] = v;
+    };
     if (element.dataset.src) options.url = element.dataset.src;
     if (element.dataset.url) options.url = element.dataset.url;
     if (element.dataset.height) options.height = parseInt(element.dataset.height);
@@ -36,14 +46,14 @@
     if (element.dataset.borderColor) options.borderColor = element.dataset.borderColor;
     if (element.dataset.color) options.waveformColor = element.dataset.color;
     if (element.dataset.theme) options.colorPreset = element.dataset.theme;
-    if (element.dataset.autoplay) options.autoplay = element.dataset.autoplay === "true";
-    if (element.dataset.showControls !== void 0) options.showControls = element.dataset.showControls === "true";
-    if (element.dataset.showInfo !== void 0) options.showInfo = element.dataset.showInfo === "true";
-    if (element.dataset.showTime) options.showTime = element.dataset.showTime === "true";
-    if (element.dataset.showHoverTime) options.showHoverTime = element.dataset.showHoverTime === "true";
-    if (element.dataset.showBpm) options.showBPM = element.dataset.showBpm === "true";
-    if (element.dataset.singlePlay) options.singlePlay = element.dataset.singlePlay === "true";
-    if (element.dataset.playOnSeek) options.playOnSeek = element.dataset.playOnSeek === "true";
+    setBool("autoplay");
+    setBool("showControls");
+    setBool("showInfo");
+    setBool("showTime");
+    setBool("showHoverTime");
+    setBool("showBPM", "showBpm");
+    setBool("singlePlay");
+    setBool("playOnSeek");
     if (element.dataset.title) options.title = element.dataset.title;
     if (element.dataset.subtitle) options.subtitle = element.dataset.subtitle;
     if (element.dataset.album) options.album = element.dataset.album;
@@ -59,9 +69,7 @@
     if (element.dataset.playbackRate) {
       options.playbackRate = parseFloat(element.dataset.playbackRate);
     }
-    if (element.dataset.showPlaybackSpeed !== void 0) {
-      options.showPlaybackSpeed = element.dataset.showPlaybackSpeed === "true";
-    }
+    setBool("showPlaybackSpeed");
     if (element.dataset.playbackRates) {
       try {
         options.playbackRates = JSON.parse(element.dataset.playbackRates);
@@ -69,15 +77,9 @@
         console.warn("Invalid playbackRates JSON:", e);
       }
     }
-    if (element.dataset.enableMediaSession !== void 0) {
-      options.enableMediaSession = element.dataset.enableMediaSession === "true";
-    }
-    if (element.dataset.showMarkers !== void 0) {
-      options.showMarkers = element.dataset.showMarkers === "true";
-    }
-    if (element.dataset.accessibleSeek !== void 0) {
-      options.accessibleSeek = element.dataset.accessibleSeek === "true";
-    }
+    setBool("enableMediaSession");
+    setBool("showMarkers");
+    setBool("accessibleSeek");
     if (element.dataset.seekLabel) options.seekLabel = element.dataset.seekLabel;
     if (element.dataset.playIcon) options.playIcon = element.dataset.playIcon;
     if (element.dataset.pauseIcon) options.pauseIcon = element.dataset.pauseIcon;
@@ -192,9 +194,9 @@
     const any = Array.isArray(radii) ? radii.some((r) => r > 0) : radii > 0;
     if (any && typeof ctx.roundRect === "function") {
       const max = Math.min(w / 2, Math.abs(h) / 2);
-      const clamp = (r) => Math.max(0, Math.min(r, max));
+      const clampR = (r) => clamp(r, 0, max);
       ctx.beginPath();
-      ctx.roundRect(x, y, w, h, Array.isArray(radii) ? radii.map(clamp) : clamp(radii));
+      ctx.roundRect(x, y, w, h, Array.isArray(radii) ? radii.map(clampR) : clampR(radii));
       ctx.fill();
     } else {
       ctx.fillRect(x, y, w, h);
@@ -576,7 +578,7 @@
     for (let i = 0; i < samples; i++) {
       const base = Math.random() * 0.5 + 0.3;
       const variation = Math.sin(i / samples * Math.PI * 4) * 0.2;
-      data.push(Math.max(0.1, Math.min(1, base + variation)));
+      data.push(clamp(base + variation, 0.1, 1));
     }
     return data;
   }
@@ -1038,10 +1040,10 @@
           " ": () => this.togglePlay()
         };
         if (hasAudio) {
-          actions["ArrowLeft"] = () => this.seekTo(Math.max(0, currentTime - 5));
-          actions["ArrowRight"] = () => this.seekTo(Math.min(this.audio.duration, currentTime + 5));
-          actions["ArrowUp"] = () => this.setVolume(Math.min(1, this.audio.volume + 0.1));
-          actions["ArrowDown"] = () => this.setVolume(Math.max(0, this.audio.volume - 0.1));
+          actions["ArrowLeft"] = () => this.seekTo(clamp(currentTime - 5, 0, this.audio.duration));
+          actions["ArrowRight"] = () => this.seekTo(clamp(currentTime + 5, 0, this.audio.duration));
+          actions["ArrowUp"] = () => this.setVolume(clamp(this.audio.volume + 0.1));
+          actions["ArrowDown"] = () => this.setVolume(clamp(this.audio.volume - 0.1));
           actions["m"] = actions["M"] = () => this.audio.muted = !this.audio.muted;
         }
         if (actions[key]) {
@@ -1139,7 +1141,7 @@
     seekToSeconds(seconds) {
       const duration = this.getSeekDuration();
       if (!duration) return;
-      const clamped = Math.max(0, Math.min(seconds, duration));
+      const clamped = clamp(seconds, 0, duration);
       if (this.options.audioMode === "external") {
         const percent = clamped / duration;
         const evt = new CustomEvent("waveformplayer:request-seek", {
@@ -1202,10 +1204,10 @@
       navigator.mediaSession.setActionHandler("play", () => this.play());
       navigator.mediaSession.setActionHandler("pause", () => this.pause());
       navigator.mediaSession.setActionHandler("seekbackward", () => {
-        this.seekTo(Math.max(0, this.audio.currentTime - 10));
+        this.seekTo(clamp(this.audio.currentTime - 10, 0, this.audio.duration));
       });
       navigator.mediaSession.setActionHandler("seekforward", () => {
-        this.seekTo(Math.min(this.audio.duration, this.audio.currentTime + 10));
+        this.seekTo(clamp(this.audio.currentTime + 10, 0, this.audio.duration));
       });
       navigator.mediaSession.setActionHandler("seekto", (details) => {
         if (details.seekTime !== null) {
@@ -1529,7 +1531,7 @@
     handleCanvasClick(event) {
       const rect = this.canvas.getBoundingClientRect();
       const x = event.clientX - rect.left;
-      const targetPercent = Math.max(0, Math.min(1, x / rect.width));
+      const targetPercent = clamp(x / rect.width);
       if (this.options.audioMode === "external") {
         const evt = new CustomEvent("waveformplayer:request-seek", {
           bubbles: true,
@@ -1577,6 +1579,22 @@
       this.updateSeekAccessibility();
     }
     /**
+     * Reflect play/pause state on the transport button: toggle the `playing`
+     * class and swap the play/pause icon visibility. The single source of
+     * truth shared by `onPlay`, `onPause`, and the external-mode
+     * `setPlayingState` pump so they can't drift. No-op without a button.
+     * @param {boolean} isPlaying - Whether playback is active.
+     * @private
+     */
+    setPlayButtonState(isPlaying) {
+      if (!this.playBtn) return;
+      this.playBtn.classList.toggle("playing", isPlaying);
+      const playIcon = this.playBtn.querySelector(".waveform-icon-play");
+      const pauseIcon = this.playBtn.querySelector(".waveform-icon-pause");
+      if (playIcon) playIcon.style.display = isPlaying ? "none" : "flex";
+      if (pauseIcon) pauseIcon.style.display = isPlaying ? "flex" : "none";
+    }
+    /**
      * `play` handler (self mode): set the playing flag, swap the button to its
      * pause icon, start the smooth progress loop, dispatch
      * `waveformplayer:play`, and fire the `onPlay` callback. No-op during
@@ -1587,13 +1605,7 @@
     onPlay() {
       if (this.isDestroying) return;
       this.isPlaying = true;
-      if (this.playBtn) {
-        this.playBtn.classList.add("playing");
-        const playIcon = this.playBtn.querySelector(".waveform-icon-play");
-        const pauseIcon = this.playBtn.querySelector(".waveform-icon-pause");
-        if (playIcon) playIcon.style.display = "none";
-        if (pauseIcon) pauseIcon.style.display = "flex";
-      }
+      this.setPlayButtonState(true);
       this.startSmoothUpdate();
       this.container.dispatchEvent(new CustomEvent("waveformplayer:play", {
         bubbles: true,
@@ -1614,13 +1626,7 @@
     onPause() {
       if (this.isDestroying) return;
       this.isPlaying = false;
-      if (this.playBtn) {
-        this.playBtn.classList.remove("playing");
-        const playIcon = this.playBtn.querySelector(".waveform-icon-play");
-        const pauseIcon = this.playBtn.querySelector(".waveform-icon-pause");
-        if (playIcon) playIcon.style.display = "flex";
-        if (pauseIcon) pauseIcon.style.display = "none";
-      }
+      this.setPlayButtonState(false);
       this.stopSmoothUpdate();
       this.container.dispatchEvent(new CustomEvent("waveformplayer:pause", {
         bubbles: true,
@@ -1883,13 +1889,7 @@
     setPlayingState(playing) {
       const wasPlaying = this.isPlaying;
       this.isPlaying = !!playing;
-      if (this.playBtn) {
-        this.playBtn.classList.toggle("playing", this.isPlaying);
-        const playIcon = this.playBtn.querySelector(".waveform-icon-play");
-        const pauseIcon = this.playBtn.querySelector(".waveform-icon-pause");
-        if (playIcon) playIcon.style.display = this.isPlaying ? "none" : "flex";
-        if (pauseIcon) pauseIcon.style.display = this.isPlaying ? "flex" : "none";
-      }
+      this.setPlayButtonState(this.isPlaying);
       if (this.isPlaying && !wasPlaying) {
         this.startSmoothUpdate?.();
         this.container.dispatchEvent(new CustomEvent("waveformplayer:play", {
@@ -1924,7 +1924,7 @@
      */
     setProgress(currentTime, duration) {
       if (!duration || duration <= 0) return;
-      this.progress = Math.max(0, Math.min(1, currentTime / duration));
+      this.progress = clamp(currentTime / duration);
       if (this.currentTimeEl) this.currentTimeEl.textContent = formatTime(currentTime);
       this._extDuration = duration;
       if (this.totalTimeEl && (!this.totalTimeEl.dataset._extSet || this.totalTimeEl.dataset._extDur !== String(duration))) {
@@ -1973,7 +1973,7 @@
      */
     seekTo(seconds) {
       if (this.audio && this.audio.duration) {
-        this.audio.currentTime = Math.max(0, Math.min(seconds, this.audio.duration));
+        this.audio.currentTime = clamp(seconds, 0, this.audio.duration);
         this.updateProgress();
       }
     }
@@ -1985,7 +1985,7 @@
      */
     seekToPercent(percent) {
       if (this.audio && this.audio.duration) {
-        this.audio.currentTime = this.audio.duration * Math.max(0, Math.min(1, percent));
+        this.audio.currentTime = this.audio.duration * clamp(percent);
         this.updateProgress();
       }
     }
@@ -1996,7 +1996,7 @@
      */
     setVolume(volume) {
       if (this.audio) {
-        this.audio.volume = Math.max(0, Math.min(1, volume));
+        this.audio.volume = clamp(volume);
       }
     }
     /**
@@ -2007,7 +2007,7 @@
      */
     setPlaybackRate(rate) {
       if (!this.audio) return;
-      const clampedRate = Math.max(0.5, Math.min(2, rate));
+      const clampedRate = clamp(rate, 0.5, 2);
       this.audio.playbackRate = clampedRate;
       this.options.playbackRate = clampedRate;
       this.updateSpeedUI();

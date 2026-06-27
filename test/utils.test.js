@@ -6,7 +6,33 @@ import {
 	extractTitleFromUrl,
 	parseDataAttributes,
 	perceivedBrightness,
+	clamp,
+	parseBoolAttr,
 } from '../src/js/utils.js';
+
+describe('clamp', () => {
+	it('constrains a value to [min, max]', () => {
+		expect(clamp(5, 0, 1)).toBe(1);
+		expect(clamp(-3, 0, 1)).toBe(0);
+		expect(clamp(0.4, 0, 1)).toBe(0.4);
+		expect(clamp(150, 0, 120)).toBe(120);
+		expect(clamp(60, 0, 120)).toBe(60);
+	});
+	it('defaults to the [0, 1] range', () => {
+		expect(clamp(2)).toBe(1);
+		expect(clamp(-1)).toBe(0);
+		expect(clamp(0.5)).toBe(0.5);
+	});
+});
+
+describe('parseBoolAttr', () => {
+	it('returns a boolean when present, undefined when absent', () => {
+		expect(parseBoolAttr('true')).toBe(true);
+		expect(parseBoolAttr('false')).toBe(false);
+		expect(parseBoolAttr('')).toBe(false);
+		expect(parseBoolAttr(undefined)).toBe(undefined);
+	});
+});
 
 describe('formatTime', () => {
 	it('formats M:SS', () => {

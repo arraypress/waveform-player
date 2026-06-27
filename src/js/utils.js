@@ -4,6 +4,28 @@
  */
 
 /**
+ * Clamp a number to an inclusive range.
+ * @param {number} value - Value to constrain.
+ * @param {number} [min=0] - Lower bound.
+ * @param {number} [max=1] - Upper bound.
+ * @returns {number} `value` constrained to `[min, max]`.
+ */
+export function clamp(value, min = 0, max = 1) {
+    return Math.max(min, Math.min(value, max));
+}
+
+/**
+ * Read a boolean `data-*` flag. Returns `undefined` when the attribute is
+ * absent (preserving the sparse-options contract) and otherwise compares the
+ * raw value against the literal string `'true'`.
+ * @param {string|undefined} value - Raw `dataset` value.
+ * @returns {boolean|undefined} `true`/`false` when present, else `undefined`.
+ */
+export function parseBoolAttr(value) {
+    return value === undefined ? undefined : value === 'true';
+}
+
+/**
  * A colour data-attribute may be a CSS colour string OR a JSON array of
  * gradient stops (e.g. '["#fafafa","#71717a"]'). Parse the array form;
  * otherwise pass the string straight through.
@@ -40,6 +62,14 @@ function parseColorValue(value) {
  */
 export function parseDataAttributes(element) {
     const options = {};
+
+    // Set a boolean option only when its `data-*` attribute is present, so the
+    // returned object stays sparse and never overrides a default with a value
+    // the author didn't set. (`dataKey` differs from `optKey` only for showBPM.)
+    const setBool = (optKey, dataKey = optKey) => {
+        const v = parseBoolAttr(element.dataset[dataKey]);
+        if (v !== undefined) options[optKey] = v;
+    };
 
     // Core attributes. `data-src` is a shorthand alias for `data-url`;
     // the canonical long form wins if both are set.
@@ -79,14 +109,14 @@ export function parseDataAttributes(element) {
     if (element.dataset.theme) options.colorPreset = element.dataset.theme;
 
     // Feature flags
-    if (element.dataset.autoplay) options.autoplay = element.dataset.autoplay === 'true';
-    if (element.dataset.showControls !== undefined) options.showControls = element.dataset.showControls === 'true';
-    if (element.dataset.showInfo !== undefined) options.showInfo = element.dataset.showInfo === 'true';
-    if (element.dataset.showTime) options.showTime = element.dataset.showTime === 'true';
-    if (element.dataset.showHoverTime) options.showHoverTime = element.dataset.showHoverTime === 'true';
-    if (element.dataset.showBpm) options.showBPM = element.dataset.showBpm === 'true';
-    if (element.dataset.singlePlay) options.singlePlay = element.dataset.singlePlay === 'true';
-    if (element.dataset.playOnSeek) options.playOnSeek = element.dataset.playOnSeek === 'true';
+    setBool('autoplay');
+    setBool('showControls');
+    setBool('showInfo');
+    setBool('showTime');
+    setBool('showHoverTime');
+    setBool('showBPM', 'showBpm');
+    setBool('singlePlay');
+    setBool('playOnSeek');
 
     // Content and metadata
     if (element.dataset.title) options.title = element.dataset.title;
@@ -110,9 +140,7 @@ export function parseDataAttributes(element) {
     if (element.dataset.playbackRate) {
         options.playbackRate = parseFloat(element.dataset.playbackRate);
     }
-    if (element.dataset.showPlaybackSpeed !== undefined) {
-        options.showPlaybackSpeed = element.dataset.showPlaybackSpeed === 'true';
-    }
+    setBool('showPlaybackSpeed');
     if (element.dataset.playbackRates) {
         try {
             options.playbackRates = JSON.parse(element.dataset.playbackRates);
@@ -122,19 +150,13 @@ export function parseDataAttributes(element) {
     }
 
     // Media Session API
-    if (element.dataset.enableMediaSession !== undefined) {
-        options.enableMediaSession = element.dataset.enableMediaSession === 'true';
-    }
+    setBool('enableMediaSession');
 
     // Markers visibility
-    if (element.dataset.showMarkers !== undefined) {
-        options.showMarkers = element.dataset.showMarkers === 'true';
-    }
+    setBool('showMarkers');
 
     // Accessibility
-    if (element.dataset.accessibleSeek !== undefined) {
-        options.accessibleSeek = element.dataset.accessibleSeek === 'true';
-    }
+    setBool('accessibleSeek');
     if (element.dataset.seekLabel) options.seekLabel = element.dataset.seekLabel;
 
     // Custom icons (raw SVG markup)
