@@ -172,6 +172,21 @@ describe('lifecycle + external events', () => {
 		await player.loadTrack('x.mp3', 'T', 'S', { autoplay: false, waveform: [0.2, 0.6] });
 		expect(requested).toBe(false);
 	});
+
+	it('loadTrack does not reuse the previous track\'s waveform peaks', async () => {
+		// Start with explicit peaks, then load a new track WITHOUT peaks: the
+		// old peaks must NOT stick (they used to — load() would redraw stale
+		// data because mergeOptions kept the previous this.options.waveform).
+		const { player } = track(mount({ waveform: [0.1, 0.5, 0.9] }));
+		expect(player.options.waveform).toEqual([0.1, 0.5, 0.9]);
+
+		await player.loadTrack('next.mp3', 'Next', 'Artist', { autoplay: false });
+		expect(player.options.waveform).toBeNull();   // cleared → regenerates from URL
+
+		// ...but explicit peaks on a later load are still honoured.
+		await player.loadTrack('third.mp3', 'Third', 'Artist', { autoplay: false, waveform: [0.2, 0.4] });
+		expect(player.options.waveform).toEqual([0.2, 0.4]);
+	});
 });
 
 describe('core additions for controllers (v1.8.0)', () => {

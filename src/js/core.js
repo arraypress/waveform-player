@@ -890,6 +890,14 @@ export class WaveformPlayer {
         // Clear or update markers
         this.options.markers = options.markers || [];
 
+        // Reset the waveform to the NEW track's peaks, or null to regenerate
+        // from the URL. mergeOptions() above keeps the previous track's
+        // this.options.waveform when the caller passes none, and load() does
+        // `if (this.options.waveform) setWaveformData(...)` — so without this
+        // reset a track loaded without peaks would redraw the PREVIOUS track's
+        // waveform (audio changes, visualization doesn't).
+        this.options.waveform = options.waveform || null;
+
         // Load the new track
         await this.load(url);
 

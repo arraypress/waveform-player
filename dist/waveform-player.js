@@ -1415,6 +1415,7 @@
         this.artworkEl.src = options.artwork;
       }
       this.options.markers = options.markers || [];
+      this.options.waveform = options.waveform || null;
       await this.load(url);
       if (options.autoplay !== false) {
         this.play()?.catch(() => {
