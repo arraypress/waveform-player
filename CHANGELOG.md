@@ -44,6 +44,9 @@ All notable changes to this project will be documented in this file.
   - `parseDataAttributes` now reads `data-audio-mode`, `data-show-markers`,
     `data-accessible-seek`, `data-seek-label`, `data-play-icon`,
     `data-pause-icon` (previously silently inert on every auto-init path).
+  - **`style` / `data-style` shorthand** for `waveformStyle` /
+    `data-waveform-style` (e.g. `data-style="bars"`). The canonical long form
+    still works and wins if both are supplied.
 
 ### Fixed (additional)
 

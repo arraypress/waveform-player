@@ -79,6 +79,18 @@ describe('parseDataAttributes', () => {
 		expect(o.barRadius).toBe(4);
 	});
 
+	it('accepts data-style as a shorthand alias for data-waveform-style', () => {
+		const a = document.createElement('div');
+		a.dataset.style = 'bars';
+		expect(parseDataAttributes(a).waveformStyle).toBe('bars');
+
+		// canonical long form wins when both are present
+		const b = document.createElement('div');
+		b.dataset.style = 'dots';
+		b.dataset.waveformStyle = 'mirror';
+		expect(parseDataAttributes(b).waveformStyle).toBe('mirror');
+	});
+
 	it('parses a gradient color JSON array, but leaves plain colors as strings', () => {
 		const grad = document.createElement('div');
 		grad.dataset.waveformColor = '["#fafafa","#71717a"]';

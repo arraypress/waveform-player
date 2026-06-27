@@ -4,11 +4,6 @@
  */
 
 /**
- * Parse data attributes from element
- * @param {HTMLElement} element - Element with data attributes
- * @returns {Object} Parsed options
- */
-/**
  * A colour data-attribute may be a CSS colour string OR a JSON array of
  * gradient stops (e.g. '["#fafafa","#71717a"]'). Parse the array form;
  * otherwise pass the string straight through.
@@ -22,6 +17,11 @@ function parseColorValue(value) {
     return value;
 }
 
+/**
+ * Parse data attributes from element
+ * @param {HTMLElement} element - Element with data attributes
+ * @returns {Object} Parsed options
+ */
 export function parseDataAttributes(element) {
     const options = {};
 
@@ -34,7 +34,9 @@ export function parseDataAttributes(element) {
     }
     if (element.dataset.audioMode) options.audioMode = element.dataset.audioMode;
 
-    // Waveform style attributes
+    // Waveform style attributes. `data-style` is a shorthand alias for
+    // `data-waveform-style`; the canonical long form wins if both are set.
+    if (element.dataset.style) options.waveformStyle = element.dataset.style;
     if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
     if (element.dataset.barWidth) options.barWidth = parseInt(element.dataset.barWidth);
     if (element.dataset.barSpacing) options.barSpacing = parseInt(element.dataset.barSpacing);

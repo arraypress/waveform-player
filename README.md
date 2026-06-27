@@ -71,7 +71,7 @@ Ships ESM + CommonJS + a standalone IIFE for `<script>` tags, with bundled TypeS
 
 ## Visual styles
 
-Set with `data-waveform-style` or the `waveformStyle` option.
+Set with `data-style` (or the longer `data-waveform-style`), or the `style` / `waveformStyle` option.
 
 | Style     | Look                                |
 | --------- | ----------------------------------- |

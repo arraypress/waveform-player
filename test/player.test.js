@@ -188,6 +188,14 @@ describe('drawing options (barRadius + gradient)', () => {
 		}
 	});
 
+	it('accepts the `style` shorthand option as an alias for waveformStyle', () => {
+		const { player } = track(mount({ style: 'bars' }));
+		expect(player.options.waveformStyle).toBe('bars');
+		// canonical waveformStyle wins if both supplied
+		const { player: p2 } = track(mount({ style: 'dots', waveformStyle: 'line' }));
+		expect(p2.options.waveformStyle).toBe('line');
+	});
+
 	it('still accepts plain string colors (backwards compatible)', () => {
 		const { player } = track(mount({ waveformColor: '#fff', progressColor: '#0af', barRadius: 0 }));
 		player.setWaveformData([0.3, 0.7, 0.5]);

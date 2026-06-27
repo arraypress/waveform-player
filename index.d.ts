@@ -88,6 +88,8 @@ export interface WaveformPlayerOptions {
 	// ── Waveform visualisation ────────────────────────────────────
 	/** Visual style. @default 'mirror' */
 	waveformStyle?: WaveformStyle;
+	/** Shorthand alias for {@link waveformStyle} (`data-style`). The canonical name wins if both are set. */
+	style?: WaveformStyle;
 	/** Bar width in pixels (style-dependent default). */
 	barWidth?: number;
 	/** Gap between bars in pixels (style-dependent default). */

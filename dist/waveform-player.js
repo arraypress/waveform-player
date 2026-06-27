@@ -18,6 +18,7 @@
       options.preload = element.dataset.preload;
     }
     if (element.dataset.audioMode) options.audioMode = element.dataset.audioMode;
+    if (element.dataset.style) options.waveformStyle = element.dataset.style;
     if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
     if (element.dataset.barWidth) options.barWidth = parseInt(element.dataset.barWidth);
     if (element.dataset.barSpacing) options.barSpacing = parseInt(element.dataset.barSpacing);
@@ -740,7 +741,8 @@
         throw new Error("WaveformPlayer: Container element not found");
       }
       const dataOptions = parseDataAttributes(this.container);
-      this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, options);
+      const userOptions = options.style && !options.waveformStyle ? { ...options, waveformStyle: options.style } : options;
+      this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, userOptions);
       const preset = getColorPreset(this.options.colorPreset);
       for (const [key, value] of Object.entries(preset)) {
         if (this.options[key] === null || this.options[key] === void 0) {

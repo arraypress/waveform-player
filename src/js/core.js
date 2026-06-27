@@ -49,8 +49,14 @@ export class WaveformPlayer {
         // Parse data attributes if present
         const dataOptions = parseDataAttributes(this.container);
 
+        // `style` is a shorthand alias for `waveformStyle`. The canonical
+        // name still works and wins if both are supplied.
+        const userOptions = options.style && !options.waveformStyle
+            ? { ...options, waveformStyle: options.style }
+            : options;
+
         // Merge options: defaults < data attributes < constructor options
-        this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, options);
+        this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, userOptions);
 
         // Apply color preset (auto-detect if not specified)
         const preset = getColorPreset(this.options.colorPreset);
