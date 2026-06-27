@@ -83,8 +83,8 @@
     "*.css"
   ],
   "devDependencies": {
-    "concurrently": "^7.6.0",
-    "esbuild": "^0.25.0",
+    "concurrently": "^10.0.3",
+    "esbuild": "^0.28.1",
     "jsdom": "^29.1.1",
     "vitest": "^4.1.9"
   }
