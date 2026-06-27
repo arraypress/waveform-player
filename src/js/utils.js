@@ -82,7 +82,7 @@ export function parseDataAttributes(element) {
         const raw = element.dataset[dataKey];
         if (!raw) return;
         try { options[optKey] = JSON.parse(raw); }
-        catch (e) { console.warn(`Invalid ${dataKey} JSON:`, e); }
+        catch (e) { console.warn(`[WaveformPlayer] Invalid ${dataKey} JSON:`, e); }
     };
 
     // Core attributes. `data-src` is a shorthand alias for `data-url`;

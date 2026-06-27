@@ -46,7 +46,7 @@ function autoInit() {
             new WaveformPlayer(element);
             element.dataset.waveformInitialized = 'true';
         } catch (error) {
-            console.error('Failed to initialize WaveformPlayer:', error, element);
+            console.error('[WaveformPlayer] Failed to initialize:', error, element);
         }
     });
 }

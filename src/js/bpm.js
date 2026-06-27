@@ -60,7 +60,7 @@ export function detectBPM(buffer) {
 
         return detectedBPM - 1; // Calibration offset
     } catch (e) {
-        console.warn('BPM detection failed:', e);
+        console.warn('[WaveformPlayer] BPM detection failed:', e);
         return null;
     }
 }

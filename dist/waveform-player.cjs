@@ -56,7 +56,7 @@ function parseDataAttributes(element) {
     try {
       options[optKey] = JSON.parse(raw);
     } catch (e) {
-      console.warn(`Invalid ${dataKey} JSON:`, e);
+      console.warn(`[WaveformPlayer] Invalid ${dataKey} JSON:`, e);
     }
   };
   if (element.dataset.src) options.url = element.dataset.src;
@@ -516,7 +516,7 @@ function detectBPM(buffer) {
     }
     return detectedBPM - 1;
   } catch (e) {
-    console.warn("BPM detection failed:", e);
+    console.warn("[WaveformPlayer] BPM detection failed:", e);
     return null;
   }
 }
@@ -772,7 +772,7 @@ var WaveformPlayer = class _WaveformPlayer {
   constructor(container, options = {}) {
     this.container = typeof container === "string" ? document.querySelector(container) : container;
     if (!this.container) {
-      throw new Error("WaveformPlayer: Container element not found");
+      throw new Error("[WaveformPlayer] Container element not found");
     }
     const dataOptions = parseDataAttributes(this.container);
     const userOptions = { ...options };
@@ -871,7 +871,7 @@ var WaveformPlayer = class _WaveformPlayer {
             });
           }
         }).catch((error) => {
-          console.error("Failed to load audio:", error);
+          console.error("[WaveformPlayer] Failed to load audio:", error);
         });
       }
     });
@@ -1351,7 +1351,7 @@ var WaveformPlayer = class _WaveformPlayer {
             this.updateBPMDisplay();
           }
         } catch (error) {
-          console.warn("Using placeholder waveform:", error);
+          console.warn("[WaveformPlayer] Using placeholder waveform:", error);
           this.waveformData = generatePlaceholderWaveform(this.options.samples);
         }
       }
@@ -1525,7 +1525,7 @@ var WaveformPlayer = class _WaveformPlayer {
     }
     this.options.markers.forEach((marker, index) => {
       if (marker.time > duration) {
-        console.warn(`Marker "${marker.label}" at ${marker.time}s exceeds audio duration of ${duration}s`);
+        console.warn(`[WaveformPlayer] Marker "${marker.label}" at ${marker.time}s exceeds audio duration of ${duration}s`);
         return;
       }
       const position = marker.time / duration * 100;
@@ -1690,7 +1690,7 @@ var WaveformPlayer = class _WaveformPlayer {
    */
   onError(error) {
     if (this.isDestroying) return;
-    console.error("Audio error:", error);
+    console.error("[WaveformPlayer] Audio error:", error);
     this.hasError = true;
     this.setLoading(false);
     if (this.errorEl) {
@@ -2095,7 +2095,7 @@ var WaveformPlayer = class _WaveformPlayer {
       const result = await generateWaveform(url, samples);
       return result.peaks;
     } catch (error) {
-      console.error("Failed to generate waveform:", error);
+      console.error("[WaveformPlayer] Failed to generate waveform:", error);
       throw error;
     }
   }
@@ -2158,7 +2158,7 @@ function autoInit() {
       new WaveformPlayer(element);
       element.dataset.waveformInitialized = "true";
     } catch (error) {
-      console.error("Failed to initialize WaveformPlayer:", error, element);
+      console.error("[WaveformPlayer] Failed to initialize:", error, element);
     }
   });
 }

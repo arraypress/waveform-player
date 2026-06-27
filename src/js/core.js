@@ -56,7 +56,7 @@ export class WaveformPlayer {
             : container;
 
         if (!this.container) {
-            throw new Error('WaveformPlayer: Container element not found');
+            throw new Error('[WaveformPlayer] Container element not found');
         }
 
         // Parse data attributes if present
@@ -189,7 +189,7 @@ export class WaveformPlayer {
                         this.play()?.catch(() => {});
                     }
                 }).catch(error => {
-                    console.error('Failed to load audio:', error);
+                    console.error('[WaveformPlayer] Failed to load audio:', error);
                 });
             }
         });
@@ -792,7 +792,7 @@ export class WaveformPlayer {
                         this.updateBPMDisplay();
                     }
                 } catch (error) {
-                    console.warn('Using placeholder waveform:', error);
+                    console.warn('[WaveformPlayer] Using placeholder waveform:', error);
                     this.waveformData = generatePlaceholderWaveform(this.options.samples);
                 }
             }
@@ -1015,7 +1015,7 @@ export class WaveformPlayer {
         this.options.markers.forEach((marker, index) => {
             // Skip markers that are beyond the audio duration
             if (marker.time > duration) {
-                console.warn(`Marker "${marker.label}" at ${marker.time}s exceeds audio duration of ${duration}s`);
+                console.warn(`[WaveformPlayer] Marker "${marker.label}" at ${marker.time}s exceeds audio duration of ${duration}s`);
                 return;
             }
 
@@ -1235,7 +1235,7 @@ export class WaveformPlayer {
         // Ignore errors during destruction
         if (this.isDestroying) return;
 
-        console.error('Audio error:', error);
+        console.error('[WaveformPlayer] Audio error:', error);
         this.hasError = true;
         this.setLoading(false);
 
@@ -1731,7 +1731,7 @@ export class WaveformPlayer {
             const result = await generateWaveform(url, samples);
             return result.peaks;
         } catch (error) {
-            console.error('Failed to generate waveform:', error);
+            console.error('[WaveformPlayer] Failed to generate waveform:', error);
             throw error;
         }
     }
