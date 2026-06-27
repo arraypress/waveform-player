@@ -95,10 +95,9 @@ export async function generateWaveform(url, samples = 200, shouldDetectBPM = fal
         }
 
         return {peaks, bpm};
-    } catch (error) {
-        console.error('Failed to generate waveform:', error);
-        throw error;
     } finally {
+        // Error (if any) propagates to the caller, which decides how to log /
+        // recover; the context is always closed either way.
         if (audioContext) audioContext.close();
     }
 }

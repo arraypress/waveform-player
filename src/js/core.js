@@ -806,7 +806,7 @@ export class WaveformPlayer {
                 this.options.onLoad(this);
             }
         } catch (error) {
-            console.error('Failed to load audio:', error);
+            // onError() is the single funnel for surfacing + logging errors.
             this.onError(error);
         } finally {
             this.setLoading(false);

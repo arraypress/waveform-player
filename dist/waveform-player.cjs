@@ -588,9 +588,6 @@ async function generateWaveform(url, samples = 200, shouldDetectBPM = false) {
       bpm = detectBPM(audioBuffer);
     }
     return { peaks, bpm };
-  } catch (error) {
-    console.error("Failed to generate waveform:", error);
-    throw error;
   } finally {
     if (audioContext) audioContext.close();
   }
@@ -1365,7 +1362,6 @@ var WaveformPlayer = class _WaveformPlayer {
         this.options.onLoad(this);
       }
     } catch (error) {
-      console.error("Failed to load audio:", error);
       this.onError(error);
     } finally {
       this.setLoading(false);
