@@ -175,10 +175,16 @@ export interface WaveformPlayerOptions {
 	onTimeUpdate?: WaveformTimeUpdateHandler | null;
 }
 
-/** `detail` of `waveformplayer:play | pause | ended | ready`. */
+/** `detail` of `waveformplayer:play | pause | ready | destroy`. */
 export interface WaveformLifecycleEventDetail {
 	player: WaveformPlayer;
 	url: string;
+}
+
+/** `detail` of `waveformplayer:ended` — lifecycle plus the final time. */
+export interface WaveformEndedEventDetail extends WaveformLifecycleEventDetail {
+	currentTime: number;
+	duration: number;
 }
 
 /** `detail` of `waveformplayer:timeupdate`. */
@@ -198,6 +204,10 @@ export interface WaveformTrackDetail {
 	subtitle: string | null;
 	artist?: string;
 	artwork: string | null;
+	/** Chapter markers for the track (forwarded so controllers don't re-fetch). */
+	markers?: WaveformMarker[];
+	/** Pre-computed peaks for the track, if any. */
+	waveform?: WaveformPeaks;
 	id: string;
 	player: WaveformPlayer;
 }
@@ -216,7 +226,8 @@ export interface WaveformPlayerEventMap {
 	'waveformplayer:ready': CustomEvent<WaveformLifecycleEventDetail>;
 	'waveformplayer:play': CustomEvent<WaveformLifecycleEventDetail>;
 	'waveformplayer:pause': CustomEvent<WaveformLifecycleEventDetail>;
-	'waveformplayer:ended': CustomEvent<WaveformLifecycleEventDetail>;
+	'waveformplayer:destroy': CustomEvent<WaveformLifecycleEventDetail>;
+	'waveformplayer:ended': CustomEvent<WaveformEndedEventDetail>;
 	'waveformplayer:timeupdate': CustomEvent<WaveformTimeUpdateEventDetail>;
 	'waveformplayer:request-play': CustomEvent<WaveformRequestEventDetail>;
 	'waveformplayer:request-pause': CustomEvent<WaveformRequestEventDetail>;

@@ -31,6 +31,20 @@ All notable changes to this project will be documented in this file.
   vertical canvas gradient. Both work via constructor options, `data-*`
   attributes (gradients as a JSON array), and the React/Astro wrappers.
 
+- **Lifecycle + event-contract completeness** (so controllers/analytics stop
+  reaching into internals):
+  - `waveformplayer:destroy` event — the symmetric counterpart to
+    `:ready`; lets listeners release references on teardown.
+  - `loadTrack(url, title, subtitle, { autoplay: false })` — load / restore /
+    enqueue without forcing playback.
+  - `waveformplayer:ended` now carries `{ currentTime, duration }`, and is
+    synthesized in `external` mode when progress reaches the end (fires once).
+  - `request-play` / `request-pause` / `request-seek` detail now includes
+    `markers` and `waveform`, so controllers don't re-fetch them.
+  - `parseDataAttributes` now reads `data-audio-mode`, `data-show-markers`,
+    `data-accessible-seek`, `data-seek-label`, `data-play-icon`,
+    `data-pause-icon` (previously silently inert on every auto-init path).
+
 ### Fixed (additional)
 
 - Type hygiene in `audio.js`: cast the `webkitAudioContext` fallback (silences

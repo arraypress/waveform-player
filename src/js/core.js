@@ -797,8 +797,11 @@ export class WaveformPlayer {
         // Load the new track
         await this.load(url);
 
-        // Auto-play the new track
-        this.play().catch(() => {});
+        // Auto-play the new track unless the caller opted out — lets a
+        // controller load/restore/enqueue without forcing playback.
+        if (options.autoplay !== false) {
+            this.play()?.catch(() => {});
+        }
     }
 
     // ============================================
@@ -1070,6 +1073,8 @@ export class WaveformPlayer {
         // Ignore during destruction
         if (this.isDestroying) return;
 
+        const duration = this.audio.duration;
+
         this.progress = 0;
         this.audio.currentTime = 0;
         this.drawWaveform();
@@ -1079,10 +1084,11 @@ export class WaveformPlayer {
             this.currentTimeEl.textContent = '0:00';
         }
 
-        // Dispatch ended event
+        // Dispatch ended event — carries the final time so listeners (e.g.
+        // analytics) don't have to reach into player.audio.
         this.container.dispatchEvent(new CustomEvent('waveformplayer:ended', {
             bubbles: true,
-            detail: {player: this, url: this.options.url}
+            detail: {player: this, url: this.options.url, currentTime: duration, duration}
         }));
 
         this.onPause();
@@ -1313,6 +1319,8 @@ export class WaveformPlayer {
             subtitle: this.options.subtitle,
             artist:   this.options.artist,
             artwork:  this.options.artwork,
+            markers:  this.options.markers,
+            waveform: this.options.waveform,
             id:       this.id,
             player:   this
         };
@@ -1385,6 +1393,21 @@ export class WaveformPlayer {
         // impossible across audioModes.
         if (this.options.onTimeUpdate) this.options.onTimeUpdate(currentTime, duration, this);
 
+        // External mode has no <audio> 'ended' event — synthesize one when the
+        // controller's progress reaches the end (fires once per playthrough).
+        if (this.progress >= 1) {
+            if (!this._extEnded) {
+                this._extEnded = true;
+                this.container.dispatchEvent(new CustomEvent('waveformplayer:ended', {
+                    bubbles: true,
+                    detail: {player: this, url: this.options.url, currentTime: duration, duration}
+                }));
+                if (this.options.onEnd) this.options.onEnd(this);
+            }
+        } else {
+            this._extEnded = false;
+        }
+
         this.updateSeekAccessibility();
     }
 
@@ -1451,6 +1474,13 @@ export class WaveformPlayer {
     destroy() {
         // Set a flag to indicate we're destroying
         this.isDestroying = true;
+
+        // Let listeners (analytics, controllers) release their references
+        // before teardown — the symmetric counterpart to waveformplayer:ready.
+        this.container.dispatchEvent(new CustomEvent('waveformplayer:destroy', {
+            bubbles: true,
+            detail: {player: this, url: this.options.url}
+        }));
 
         // Stop playback and animations
         this.pause();

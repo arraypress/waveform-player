@@ -128,6 +128,52 @@ describe('destroy() teardown', () => {
 	});
 });
 
+describe('lifecycle + external events', () => {
+	it('dispatches waveformplayer:destroy on destroy()', () => {
+		const { el, player } = mount();
+		let ev = null;
+		el.addEventListener('waveformplayer:destroy', (e) => { ev = e; });
+		player.destroy();
+		expect(ev).toBeTruthy();
+		expect(ev.detail.player).toBe(player);
+	});
+
+	it('synthesizes waveformplayer:ended in external mode at progress 1 (once, with final time)', () => {
+		const { el, player } = track(mount());
+		let count = 0, detail = null;
+		el.addEventListener('waveformplayer:ended', (e) => { count++; detail = e.detail; });
+
+		player.setProgress(60, 120);
+		expect(count).toBe(0);
+		player.setProgress(120, 120);
+		expect(count).toBe(1);
+		expect(detail).toMatchObject({ currentTime: 120, duration: 120 });
+		player.setProgress(120, 120); // still ended — no re-fire
+		expect(count).toBe(1);
+		player.setProgress(10, 120);  // rewound — arm again
+		player.setProgress(120, 120);
+		expect(count).toBe(2);
+	});
+
+	it('forwards markers + waveform in the request-play detail', () => {
+		const markers = [{ time: 5, label: 'A' }];
+		const { el, player } = track(mount({ markers, waveform: [0.1, 0.5, 0.9] }));
+		let detail = null;
+		el.addEventListener('waveformplayer:request-play', (e) => { detail = e.detail; });
+		player.play();
+		expect(detail.markers).toEqual(markers);
+		expect(detail.waveform).toEqual([0.1, 0.5, 0.9]);
+	});
+
+	it('loadTrack({autoplay:false}) loads without playing', async () => {
+		const { el, player } = track(mount());
+		let requested = false;
+		el.addEventListener('waveformplayer:request-play', () => { requested = true; });
+		await player.loadTrack('x.mp3', 'T', 'S', { autoplay: false, waveform: [0.2, 0.6] });
+		expect(requested).toBe(false);
+	});
+});
+
 describe('drawing options (barRadius + gradient)', () => {
 	it('renders every style with barRadius + gradient color stops without throwing', () => {
 		for (const waveformStyle of ['bars', 'mirror', 'blocks', 'dots', 'line', 'seekbar']) {

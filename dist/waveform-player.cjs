@@ -1340,8 +1340,10 @@ var WaveformPlayer = class _WaveformPlayer {
     }
     this.options.markers = options.markers || [];
     await this.load(url);
-    this.play().catch(() => {
-    });
+    if (options.autoplay !== false) {
+      this.play()?.catch(() => {
+      });
+    }
   }
   // ============================================
   // Visualization
@@ -1545,6 +1547,7 @@ var WaveformPlayer = class _WaveformPlayer {
    */
   onEnded() {
     if (this.isDestroying) return;
+    const duration = this.audio.duration;
     this.progress = 0;
     this.audio.currentTime = 0;
     this.drawWaveform();
@@ -1553,7 +1556,7 @@ var WaveformPlayer = class _WaveformPlayer {
     }
     this.container.dispatchEvent(new CustomEvent("waveformplayer:ended", {
       bubbles: true,
-      detail: { player: this, url: this.options.url }
+      detail: { player: this, url: this.options.url, currentTime: duration, duration }
     }));
     this.onPause();
     if (this.options.onEnd) {
@@ -1740,6 +1743,8 @@ var WaveformPlayer = class _WaveformPlayer {
       subtitle: this.options.subtitle,
       artist: this.options.artist,
       artwork: this.options.artwork,
+      markers: this.options.markers,
+      waveform: this.options.waveform,
       id: this.id,
       player: this
     };
@@ -1801,6 +1806,18 @@ var WaveformPlayer = class _WaveformPlayer {
       detail: { player: this, currentTime, duration, progress: this.progress, url: this.options.url }
     }));
     if (this.options.onTimeUpdate) this.options.onTimeUpdate(currentTime, duration, this);
+    if (this.progress >= 1) {
+      if (!this._extEnded) {
+        this._extEnded = true;
+        this.container.dispatchEvent(new CustomEvent("waveformplayer:ended", {
+          bubbles: true,
+          detail: { player: this, url: this.options.url, currentTime: duration, duration }
+        }));
+        if (this.options.onEnd) this.options.onEnd(this);
+      }
+    } else {
+      this._extEnded = false;
+    }
     this.updateSeekAccessibility();
   }
   /**
@@ -1858,6 +1875,10 @@ var WaveformPlayer = class _WaveformPlayer {
    */
   destroy() {
     this.isDestroying = true;
+    this.container.dispatchEvent(new CustomEvent("waveformplayer:destroy", {
+      bubbles: true,
+      detail: { player: this, url: this.options.url }
+    }));
     this.pause();
     this.stopSmoothUpdate();
     this._ac?.abort();
