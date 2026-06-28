@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.13.2] — 2026-06-28
+
+### Fixed
+
+- **Minimal play button glyph size now actually applies.** `.waveform-btn svg`
+  (16px) had equal specificity but *later* source order than the minimal-button
+  rule, so it silently won — the glyph was pinned at 16px no matter what the
+  minimal rule said (1.13.0/1.13.1 changes had no visible effect). The rule is
+  now `.waveform-btn.waveform-btn-minimal svg` (higher specificity) at 34px.
+
 ## [1.13.1] — 2026-06-28
 
 ### Changed

@@ -74,9 +74,12 @@
     transform: none;
 }
 
-.waveform-btn-minimal svg {
-    width: 36px;
-    height: 36px;
+/* NOTE: must out-specify `.waveform-btn svg { width:16px }` below — that rule
+   has equal specificity but later source order, so it was pinning the minimal
+   glyph to 16px. The compound `.waveform-btn.waveform-btn-minimal` wins. */
+.waveform-btn.waveform-btn-minimal svg {
+    width: 34px;
+    height: 34px;
 }
 
 .waveform-btn:disabled {
