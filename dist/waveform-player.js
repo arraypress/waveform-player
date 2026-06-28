@@ -2154,7 +2154,7 @@
   };
 
   // src/js/index.js
-  WaveformPlayer.utils = { formatTime, extractTitleFromUrl, escapeHtml, isSafeHref };
+  WaveformPlayer.utils = { formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes };
   var isBrowser = () => typeof window !== "undefined" && typeof document !== "undefined";
   function autoInit() {
     if (!isBrowser()) return;

@@ -329,6 +329,12 @@ export declare class WaveformPlayer {
 		escapeHtml(str: unknown): string;
 		/** Whether a URL uses a safe (`http`/`https`/relative) scheme. */
 		isSafeHref(url: string): boolean;
+		/**
+		 * Parse every recognised `data-*` attribute off an element into a
+		 * sparse options object (the player's full declarative contract).
+		 * Lets wrappers inherit the complete option surface without drifting.
+		 */
+		parseDataAttributes(element: HTMLElement): Partial<WaveformPlayerOptions>;
 	};
 }
 
