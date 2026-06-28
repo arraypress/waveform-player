@@ -316,6 +316,29 @@ describe('bpm option', () => {
 	});
 });
 
+describe('runtime theme switching', () => {
+	afterEach(() => {
+		document.documentElement.removeAttribute('data-theme');
+		document.documentElement.className = '';
+	});
+
+	it('re-detects the theme and updates auto colors on refreshTheme()', () => {
+		const { player } = mount({ title: 'X' }); // auto theme (no colorPreset)
+		const before = player.options.waveformColor;
+		document.documentElement.setAttribute('data-theme', 'light');
+		player.refreshTheme();
+		expect(player.options.waveformColor).not.toBe(before);
+	});
+
+	it('leaves an explicit colorPreset untouched when the theme changes', () => {
+		const { player } = mount({ colorPreset: 'dark' });
+		const before = player.options.waveformColor;
+		document.documentElement.setAttribute('data-theme', 'light');
+		player.refreshTheme();
+		expect(player.options.waveformColor).toBe(before);
+	});
+});
+
 describe('static getPeaksUrl', () => {
 	it('swaps a known audio extension for .json', () => {
 		expect(WaveformPlayer.getPeaksUrl('https://x.com/a.mp3')).toBe('https://x.com/a.json');

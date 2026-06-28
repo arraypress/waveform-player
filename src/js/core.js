@@ -16,7 +16,7 @@ import {
     escapeHtml
 } from './utils.js';
 
-import {DEFAULT_OPTIONS, STYLE_DEFAULTS, getColorPreset} from './themes.js';
+import {DEFAULT_OPTIONS, STYLE_DEFAULTS, getColorPreset, COLOR_PRESETS} from './themes.js';
 
 // Keyboard seek steps (seconds) for the accessible slider.
 const SEEK_STEP_SECONDS = 5;
@@ -75,10 +75,17 @@ export class WaveformPlayer {
         // Apply color preset (auto-detect if not specified)
         const preset = getColorPreset(this.options.colorPreset);
 
+        // Track auto-theme state so the player can re-detect on a runtime light/
+        // dark switch. Only colours the user LEFT UNSET follow the preset; an
+        // explicit colorPreset or hand-set colour is never overridden.
+        this._autoTheme = this.options.colorPreset == null || !COLOR_PRESETS[this.options.colorPreset];
+        this._presetKeys = [];
+
         // Apply preset colors only if individual colors aren't explicitly set
         for (const [key, value] of Object.entries(preset)) {
             if (this.options[key] === null || this.options[key] === undefined) {
                 this.options[key] = value;
+                this._presetKeys.push(key);
             }
         }
 
@@ -115,6 +122,9 @@ export class WaveformPlayer {
 
         // Add to instances
         WaveformPlayer.instances.set(this.id, this);
+
+        // Re-detect the theme on runtime light/dark switches (shared watcher).
+        WaveformPlayer._watchTheme();
 
         // Initialize
         this.init();
@@ -1386,6 +1396,72 @@ export class WaveformPlayer {
             this.bpmValueEl.textContent = Math.round(bpm);
             this.bpmEl.style.display = 'inline-flex';
         }
+    }
+
+    /**
+     * Re-detect the page theme and re-apply auto colours + redraw, so an
+     * auto-themed player adapts to a runtime light/dark switch (not just the
+     * value present on load). No-op when the player uses an explicit
+     * `colorPreset` or hand-set colours. Driven by the shared theme watcher.
+     * @public
+     */
+    refreshTheme() {
+        if (!this._autoTheme || !this._presetKeys || !this._presetKeys.length) return;
+        const preset = getColorPreset(this.options.colorPreset);
+        let changed = false;
+        for (const key of this._presetKeys) {
+            if (this.options[key] !== preset[key]) {
+                this.options[key] = preset[key];
+                changed = true;
+            }
+        }
+        if (changed) this._applyThemeColors();
+    }
+
+    /**
+     * Push the current resolved colours onto the live DOM (button border/icon,
+     * title, subtitle, time, BPM) and redraw the waveform.
+     * @private
+     */
+    _applyThemeColors() {
+        const o = this.options;
+        if (this.playBtn) {
+            this.playBtn.style.borderColor = o.buttonColor;
+            this.playBtn.style.color = o.buttonColor;
+        }
+        if (this.titleEl) this.titleEl.style.color = o.textColor;
+        if (this.subtitleEl) this.subtitleEl.style.color = o.textSecondaryColor;
+        this.container.querySelectorAll('.waveform-time, .waveform-bpm').forEach((el) => {
+            el.style.color = o.textSecondaryColor;
+        });
+        if (this.canvas) this.drawWaveform();
+    }
+
+    /**
+     * Lazily install ONE shared watcher that re-detects the theme for every
+     * auto-themed instance when the document theme changes — a class/attribute
+     * flip on `<html>`/`<body>` (Tailwind `dark`, `data-theme`,
+     * `data-color-scheme`) or an OS `prefers-color-scheme` change. Event-driven
+     * (MutationObserver + matchMedia), never a timer.
+     * @private
+     */
+    static _watchTheme() {
+        if (WaveformPlayer._themeWatch || typeof document === 'undefined') return;
+        const refresh = () => requestAnimationFrame(() => {
+            WaveformPlayer.instances.forEach((p) => {
+                try { p.refreshTheme(); } catch (e) { /* ignore */ }
+            });
+        });
+        const opts = {attributes: true, attributeFilter: ['class', 'data-theme', 'data-color-scheme', 'style']};
+        const obs = new MutationObserver(refresh);
+        obs.observe(document.documentElement, opts);
+        if (document.body) obs.observe(document.body, opts);
+        let mq = null;
+        try {
+            mq = window.matchMedia('(prefers-color-scheme: dark)');
+            mq.addEventListener('change', refresh);
+        } catch (e) { /* no matchMedia */ }
+        WaveformPlayer._themeWatch = {obs, mq, refresh};
     }
 
     /**

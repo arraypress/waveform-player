@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.13.0] — 2026-06-28
+
+### Added
+
+- **Live theme switching.** Auto-themed players (no explicit `colorPreset` or
+  hand-set colours) now re-detect the page theme and redraw on a *runtime*
+  light/dark switch — a class/attribute flip on `<html>`/`<body>` (Tailwind
+  `dark`, `data-theme`, `data-color-scheme`) or an OS `prefers-color-scheme`
+  change. Previously the palette was fixed at load, so a toggle left the player
+  stuck in the old theme (invisible waveform/buttons). Event-driven (one shared
+  `MutationObserver` + `matchMedia`, no polling), with a public `refreshTheme()`
+  to trigger it manually. Explicit presets/colours are never overridden.
+
 ## [1.12.1] — 2026-06-28
 
 ### Changed
