@@ -138,6 +138,7 @@ export function parseDataAttributes(element) {
     setNum('barRadius');
     if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
     if (element.dataset.layout) options.layout = element.dataset.layout;
+    if (element.dataset.buttonStyle) options.buttonStyle = element.dataset.buttonStyle;
 
     // Color preset
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;

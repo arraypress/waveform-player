@@ -133,6 +133,12 @@ export interface WaveformPlayerOptions {
 	 * @default 'default'
 	 */
 	layout?: 'default' | 'preview';
+	/**
+	 * Play/pause button style. `'minimal'` renders a bare glyph with no circle —
+	 * the look sample-pack and beat stores use in preview grids.
+	 * @default 'circle'
+	 */
+	buttonStyle?: 'circle' | 'minimal';
 	/** Show transport controls. @default true */
 	showControls?: boolean;
 	/** Show the info (title/subtitle) block. @default true */

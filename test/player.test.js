@@ -288,6 +288,19 @@ describe('preview layout', () => {
 	});
 });
 
+describe('button style', () => {
+	it('renders a bare (minimal) button when buttonStyle is "minimal"', () => {
+		const { el } = mount({ buttonStyle: 'minimal' });
+		expect(el.querySelector('.waveform-btn-minimal')).toBeTruthy();
+	});
+
+	it('renders the default circle button otherwise', () => {
+		const { el } = mount({});
+		expect(el.querySelector('.waveform-btn')).toBeTruthy();
+		expect(el.querySelector('.waveform-btn-minimal')).toBeNull();
+	});
+});
+
 describe('static getPeaksUrl', () => {
 	it('swaps a known audio extension for .json', () => {
 		expect(WaveformPlayer.getPeaksUrl('https://x.com/a.mp3')).toBe('https://x.com/a.json');

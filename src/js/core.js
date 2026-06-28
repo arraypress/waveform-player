@@ -233,7 +233,7 @@ export class WaveformPlayer {
 
         // Build play button HTML (conditional)
         const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn" aria-label="Play/Pause" style="
+        <button class="waveform-btn${this.options.buttonStyle === 'minimal' ? ' waveform-btn-minimal' : ''}" aria-label="Play/Pause" style="
             border-color: ${this.options.buttonColor};
             color: ${this.options.buttonColor};
         ">

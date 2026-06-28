@@ -174,6 +174,10 @@ export const DEFAULT_OPTIONS = {
     // waveform and the meta row (time / speed / BPM) is trimmed — ideal for
     // sample-pack sample previews and dense grids.
     layout: 'default',
+    // Play/pause button style. 'circle' = bordered circle (default).
+    // 'minimal' = a bare play/pause glyph with no circle — the look sample-pack
+    // and beat stores use in their preview grids.
+    buttonStyle: 'circle',
 
     // Default waveform style
     waveformStyle: 'mirror',

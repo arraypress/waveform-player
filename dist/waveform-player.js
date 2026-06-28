@@ -61,6 +61,7 @@
     setNum("barRadius");
     if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
     if (element.dataset.layout) options.layout = element.dataset.layout;
+    if (element.dataset.buttonStyle) options.buttonStyle = element.dataset.buttonStyle;
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;
     if (element.dataset.waveformColor) options.waveformColor = parseColorValue(element.dataset.waveformColor);
     if (element.dataset.progressColor) options.progressColor = parseColorValue(element.dataset.progressColor);
@@ -677,6 +678,10 @@
     // waveform and the meta row (time / speed / BPM) is trimmed — ideal for
     // sample-pack sample previews and dense grids.
     layout: "default",
+    // Play/pause button style. 'circle' = bordered circle (default).
+    // 'minimal' = a bare play/pause glyph with no circle — the look sample-pack
+    // and beat stores use in their preview grids.
+    buttonStyle: "circle",
     // Default waveform style
     waveformStyle: "mirror",
     barWidth: 2,
@@ -900,7 +905,7 @@
         this.container.classList.add("waveform-layout-preview");
       }
       const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn" aria-label="Play/Pause" style="
+        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="Play/Pause" style="
             border-color: ${this.options.buttonColor};
             color: ${this.options.buttonColor};
         ">
