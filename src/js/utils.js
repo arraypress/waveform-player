@@ -137,6 +137,7 @@ export function parseDataAttributes(element) {
     setNum('barSpacing');
     setNum('barRadius');
     if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
+    if (element.dataset.layout) options.layout = element.dataset.layout;
 
     // Color preset
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;

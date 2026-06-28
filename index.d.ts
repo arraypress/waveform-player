@@ -127,6 +127,12 @@ export interface WaveformPlayerOptions {
 	// ── Layout / UI toggles ───────────────────────────────────────
 	/** Play-button alignment. @default 'auto' */
 	buttonAlign?: ButtonAlign;
+	/**
+	 * Player layout. `'preview'` centers the title under the waveform and trims
+	 * the meta row (time/speed/BPM) — ideal for sample-pack previews.
+	 * @default 'default'
+	 */
+	layout?: 'default' | 'preview';
 	/** Show transport controls. @default true */
 	showControls?: boolean;
 	/** Show the info (title/subtitle) block. @default true */

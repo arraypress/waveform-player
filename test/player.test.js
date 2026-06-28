@@ -271,6 +271,23 @@ describe('drawing options (barRadius + gradient)', () => {
 	});
 });
 
+describe('preview layout', () => {
+	it('adds the waveform-layout-preview class when layout is "preview"', () => {
+		const { el } = mount({ layout: 'preview', title: 'Demo', subtitle: 'Pack' });
+		expect(el.classList.contains('waveform-layout-preview')).toBe(true);
+	});
+
+	it('does not add the class for the default layout', () => {
+		const { el } = mount({ title: 'Demo' });
+		expect(el.classList.contains('waveform-layout-preview')).toBe(false);
+	});
+
+	it('still renders the title element in preview layout', () => {
+		const { el } = mount({ layout: 'preview', title: 'Demo' });
+		expect(el.querySelector('.waveform-title')).toBeTruthy();
+	});
+});
+
 describe('static getPeaksUrl', () => {
 	it('swaps a known audio extension for .json', () => {
 		expect(WaveformPlayer.getPeaksUrl('https://x.com/a.mp3')).toBe('https://x.com/a.json');

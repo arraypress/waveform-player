@@ -224,6 +224,13 @@ export class WaveformPlayer {
             }
         }
 
+        // Compact 'preview' layout: centered title under the waveform with the
+        // meta row trimmed. Set via the `layout` option / data-layout="preview".
+        const isPreview = this.options.layout === 'preview';
+        if (isPreview) {
+            this.container.classList.add('waveform-layout-preview');
+        }
+
         // Build play button HTML (conditional)
         const buttonHTML = this.options.showControls ? `
         <button class="waveform-btn" aria-label="Play/Pause" style="
@@ -251,7 +258,7 @@ export class WaveformPlayer {
           <span class="waveform-title" style="color: ${this.options.textColor};"></span>
           ${this.options.subtitle ? `<span class="waveform-subtitle" style="color: ${this.options.textSecondaryColor};">${this.options.subtitle}</span>` : ''}
         </div>
-        <div style="display: flex; align-items: center; gap: 1rem;">
+        <div class="waveform-meta" style="display: flex; align-items: center; gap: 1rem;">
           ${this.options.showBPM ? `
             <span class="waveform-bpm" style="color: ${this.options.textSecondaryColor}; display: none;">
               <span class="bpm-value">--</span> BPM

@@ -3,6 +3,10 @@
     font-family: inherit;
     color: inherit;
     line-height: var(--waveform-line-height, 1.4);
+    /* Neutral accent for the keyboard-focus ring + active states. Monochrome
+       by default (shadcn-style); set to a brand hue to re-tint, e.g.
+       `.waveform-player { --wfp-accent: #a855f7; }` for the classic violet. */
+    --wfp-accent: #71717a;
 }
 
 .waveform-player * {
@@ -302,13 +306,13 @@
 }
 
 .speed-option.active {
-    background: rgba(168, 85, 247, 0.2);
-    color: #a855f7;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
     font-weight: 600;
 }
 
 .waveform-player.waveform-focused {
-    outline: 2px solid rgba(168, 85, 247, 0.5);
+    outline: 2px solid var(--wfp-accent);
     outline-offset: 2px;
     border-radius: 4px;
 }
@@ -320,8 +324,26 @@
 
 /* Only show focus indicator when keyboard navigating (not clicking) */
 .waveform-player:focus-visible {
-    outline: 1px solid rgba(168, 85, 247, 0.3);
+    outline: 1px solid var(--wfp-accent);
     outline-offset: 1px;
+}
+
+/* ==========================================================================
+   'preview' layout — compact, centered title under the waveform, trimmed
+   meta row. Ideal for sample-pack previews and dense grids.
+   ========================================================================== */
+.waveform-layout-preview .waveform-meta {
+    display: none !important;
+}
+
+.waveform-layout-preview .waveform-info {
+    justify-content: center;
+}
+
+.waveform-layout-preview .waveform-text {
+    flex: 0 1 auto;
+    align-items: center;
+    text-align: center;
 }
 
 /* Remove the class-based focus indicator since we're using :focus-visible */

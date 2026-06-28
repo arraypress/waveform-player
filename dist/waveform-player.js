@@ -60,6 +60,7 @@
     setNum("barSpacing");
     setNum("barRadius");
     if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
+    if (element.dataset.layout) options.layout = element.dataset.layout;
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;
     if (element.dataset.waveformColor) options.waveformColor = parseColorValue(element.dataset.waveformColor);
     if (element.dataset.progressColor) options.progressColor = parseColorValue(element.dataset.progressColor);
@@ -671,6 +672,11 @@
     playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
     // Layout Options
     buttonAlign: "auto",
+    // Player layout. 'default' = play button + waveform with a left-aligned
+    // info row below. 'preview' = compact: the title is centered under the
+    // waveform and the meta row (time / speed / BPM) is trimmed — ideal for
+    // sample-pack sample previews and dense grids.
+    layout: "default",
     // Default waveform style
     waveformStyle: "mirror",
     barWidth: 2,
@@ -889,6 +895,10 @@
           buttonAlign = "center";
         }
       }
+      const isPreview = this.options.layout === "preview";
+      if (isPreview) {
+        this.container.classList.add("waveform-layout-preview");
+      }
       const buttonHTML = this.options.showControls ? `
         <button class="waveform-btn" aria-label="Play/Pause" style="
             border-color: ${this.options.buttonColor};
@@ -913,7 +923,7 @@
           <span class="waveform-title" style="color: ${this.options.textColor};"></span>
           ${this.options.subtitle ? `<span class="waveform-subtitle" style="color: ${this.options.textSecondaryColor};">${this.options.subtitle}</span>` : ""}
         </div>
-        <div style="display: flex; align-items: center; gap: 1rem;">
+        <div class="waveform-meta" style="display: flex; align-items: center; gap: 1rem;">
           ${this.options.showBPM ? `
             <span class="waveform-bpm" style="color: ${this.options.textSecondaryColor}; display: none;">
               <span class="bpm-value">--</span> BPM

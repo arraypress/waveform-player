@@ -169,6 +169,11 @@ export const DEFAULT_OPTIONS = {
 
     // Layout Options
     buttonAlign: 'auto',
+    // Player layout. 'default' = play button + waveform with a left-aligned
+    // info row below. 'preview' = compact: the title is centered under the
+    // waveform and the meta row (time / speed / BPM) is trimmed — ideal for
+    // sample-pack sample previews and dense grids.
+    layout: 'default',
 
     // Default waveform style
     waveformStyle: 'mirror',
