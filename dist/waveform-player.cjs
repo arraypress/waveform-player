@@ -104,6 +104,7 @@ function parseDataAttributes(element) {
   setBool("showTime");
   setBool("showHoverTime");
   setBool("showBPM", "showBpm");
+  setNum("bpm");
   setBool("singlePlay");
   setBool("playOnSeek");
   if (element.dataset.title) options.title = element.dataset.title;
@@ -734,6 +735,9 @@ var DEFAULT_OPTIONS = {
   showTime: true,
   showHoverTime: false,
   showBPM: false,
+  // Known BPM to display in the badge (with showBPM). Wins over auto-detection
+  // — set it when peaks are pre-generated so the tempo still shows. null = auto.
+  bpm: null,
   singlePlay: true,
   playOnSeek: true,
   enableMediaSession: true,
@@ -1018,6 +1022,7 @@ var WaveformPlayer = class _WaveformPlayer {
     this.speedBtn = this.container.querySelector(".speed-btn");
     this.speedMenu = this.container.querySelector(".speed-menu");
     this.resizeCanvas();
+    this.updateBPMDisplay();
   }
   /**
    * Create audio element
@@ -1823,8 +1828,9 @@ var WaveformPlayer = class _WaveformPlayer {
    * @private
    */
   updateBPMDisplay() {
-    if (this.bpmEl && this.bpmValueEl && this.detectedBPM) {
-      this.bpmValueEl.textContent = Math.round(this.detectedBPM);
+    const bpm = this.options.bpm || this.detectedBPM;
+    if (this.bpmEl && this.bpmValueEl && bpm) {
+      this.bpmValueEl.textContent = Math.round(bpm);
       this.bpmEl.style.display = "inline-flex";
     }
   }

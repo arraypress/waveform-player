@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.12.0] — 2026-06-28
+
+### Added
+
+- **`bpm` option** (`data-bpm`). Show a known BPM in the badge (with `showBPM`)
+  without decoding the audio — ideal when peaks are pre-generated but the tempo
+  is known (e.g. sample-pack previews). A supplied value wins over detection.
+
+### Fixed
+
+- **Minimal button no longer shifts the waveform on play/pause.** The
+  `buttonStyle: 'minimal'` button was auto-width, so swapping the play glyph
+  (optically nudged 1px) for the pause glyph changed its width — moving the
+  adjacent waveform and re-sampling its bars on every toggle. It's now a fixed
+  box, so the canvas stays put.
+
 ## [1.11.0] — 2026-06-28
 
 ### Added

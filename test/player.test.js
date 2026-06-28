@@ -301,6 +301,21 @@ describe('button style', () => {
 	});
 });
 
+describe('bpm option', () => {
+	it('shows a caller-supplied bpm in the badge immediately (no decode)', () => {
+		const { el } = mount({ showBPM: true, bpm: 128 });
+		const badge = el.querySelector('.waveform-bpm');
+		expect(badge.style.display).toBe('inline-flex');
+		expect(el.querySelector('.bpm-value').textContent).toBe('128');
+	});
+
+	it('keeps the badge hidden when no bpm is known', () => {
+		const { el } = mount({ showBPM: true });
+		const badge = el.querySelector('.waveform-bpm');
+		expect(badge.style.display).toBe('none');
+	});
+});
+
 describe('static getPeaksUrl', () => {
 	it('swaps a known audio extension for .json', () => {
 		expect(WaveformPlayer.getPeaksUrl('https://x.com/a.mp3')).toBe('https://x.com/a.json');

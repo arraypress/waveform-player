@@ -149,6 +149,8 @@ export interface WaveformPlayerOptions {
 	showHoverTime?: boolean;
 	/** Show detected BPM. @default false */
 	showBPM?: boolean;
+	/** Known BPM shown in the badge (with `showBPM`); wins over auto-detection. */
+	bpm?: number;
 
 	// ── Behaviour ─────────────────────────────────────────────────
 	/** Begin playback on load. @default false */

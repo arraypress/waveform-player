@@ -164,6 +164,7 @@ export function parseDataAttributes(element) {
     setBool('showTime');
     setBool('showHoverTime');
     setBool('showBPM', 'showBpm');
+    setNum('bpm');
     setBool('singlePlay');
     setBool('playOnSeek');
 

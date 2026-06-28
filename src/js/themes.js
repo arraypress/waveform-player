@@ -209,6 +209,9 @@ export const DEFAULT_OPTIONS = {
     showTime: true,
     showHoverTime: false,
     showBPM: false,
+    // Known BPM to display in the badge (with showBPM). Wins over auto-detection
+    // — set it when peaks are pre-generated so the tempo still shows. null = auto.
+    bpm: null,
     singlePlay: true,
     playOnSeek: true,
     enableMediaSession: true,

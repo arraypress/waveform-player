@@ -326,6 +326,9 @@ export class WaveformPlayer {
 
         // Set canvas size
         this.resizeCanvas();
+
+        // Show a caller-supplied BPM immediately (no audio decode required).
+        this.updateBPMDisplay();
     }
 
     /**
@@ -1375,8 +1378,12 @@ export class WaveformPlayer {
      * @private
      */
     updateBPMDisplay() {
-        if (this.bpmEl && this.bpmValueEl && this.detectedBPM) {
-            this.bpmValueEl.textContent = Math.round(this.detectedBPM);
+        // A caller-supplied `bpm` wins over auto-detection — useful when peaks
+        // are pre-generated (so the audio is never decoded) but the BPM is known
+        // anyway, e.g. sample-pack previews where the tempo is in the metadata.
+        const bpm = this.options.bpm || this.detectedBPM;
+        if (this.bpmEl && this.bpmValueEl && bpm) {
+            this.bpmValueEl.textContent = Math.round(bpm);
             this.bpmEl.style.display = 'inline-flex';
         }
     }
