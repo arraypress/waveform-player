@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.13.2] — 2026-06-28
+## [1.14.0] — 2026-06-28
+
+### Added
+
+- **`buttonSize` option** (+ `data-button-size`) to size the play/pause button.
+  A number is treated as px; a string (e.g. `'4rem'`) is used verbatim. It sets
+  a new `--wfp-btn-size` CSS variable that scales **both** button styles —
+  `circle` and `minimal`, box *and* glyph — proportionally from a single value,
+  so there are no per-style magic numbers left to drift. The default reproduces
+  the prior 36px sizing exactly. Forwarded by the Astro/React wrappers.
 
 ### Fixed
 
@@ -10,7 +19,8 @@ All notable changes to this project will be documented in this file.
   (16px) had equal specificity but *later* source order than the minimal-button
   rule, so it silently won — the glyph was pinned at 16px no matter what the
   minimal rule said (1.13.0/1.13.1 changes had no visible effect). The rule is
-  now `.waveform-btn.waveform-btn-minimal svg` (higher specificity) at 34px.
+  now `.waveform-btn.waveform-btn-minimal svg` (higher specificity), and both
+  button styles derive their size from `--wfp-btn-size`.
 
 ## [1.13.1] — 2026-06-28
 

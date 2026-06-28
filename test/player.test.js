@@ -339,6 +339,35 @@ describe('runtime theme switching', () => {
 	});
 });
 
+describe('buttonSize', () => {
+	it('sets --wfp-btn-size in px from a number', () => {
+		const { el } = mount({ buttonSize: 64 });
+		expect(el.querySelector('.waveform-btn').getAttribute('style')).toContain('--wfp-btn-size: 64px');
+	});
+
+	it('passes a unit string through verbatim', () => {
+		const { el } = mount({ buttonSize: '4rem' });
+		expect(el.querySelector('.waveform-btn').getAttribute('style')).toContain('--wfp-btn-size: 4rem');
+	});
+
+	it('omits the variable by default (stylesheet default applies)', () => {
+		const { el } = mount({});
+		expect(el.querySelector('.waveform-btn').getAttribute('style')).not.toContain('--wfp-btn-size');
+	});
+
+	it('reads data-button-size (number → px)', () => {
+		const host = document.createElement('div');
+		host.setAttribute('data-waveform-player', '');
+		host.setAttribute('data-url', '/a.mp3');
+		host.setAttribute('data-button-size', '48');
+		host.setAttribute('data-audio-mode', 'external');
+		document.body.appendChild(host);
+		const player = new WaveformPlayer(host);
+		expect(host.querySelector('.waveform-btn').getAttribute('style')).toContain('--wfp-btn-size: 48px');
+		player.destroy();
+	});
+});
+
 describe('static getPeaksUrl', () => {
 	it('swaps a known audio extension for .json', () => {
 		expect(WaveformPlayer.getPeaksUrl('https://x.com/a.mp3')).toBe('https://x.com/a.json');

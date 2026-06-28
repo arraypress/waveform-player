@@ -139,6 +139,13 @@ export interface WaveformPlayerOptions {
 	 * @default 'circle'
 	 */
 	buttonStyle?: 'circle' | 'minimal';
+	/**
+	 * Play/pause button size. A number is treated as px; a string (e.g. `'4rem'`)
+	 * is used verbatim. Sets the `--wfp-btn-size` CSS variable, scaling both the
+	 * `circle` and `minimal` styles — box and glyph — proportionally.
+	 * @default null
+	 */
+	buttonSize?: number | string | null;
 	/** Show transport controls. @default true */
 	showControls?: boolean;
 	/** Show the info (title/subtitle) block. @default true */

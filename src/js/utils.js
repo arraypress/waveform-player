@@ -139,6 +139,12 @@ export function parseDataAttributes(element) {
     if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
     if (element.dataset.layout) options.layout = element.dataset.layout;
     if (element.dataset.buttonStyle) options.buttonStyle = element.dataset.buttonStyle;
+    // buttonSize: a bare number is px (data-button-size="64"); a unit string
+    // (e.g. "4rem") is kept verbatim.
+    if (element.dataset.buttonSize) {
+        const bs = element.dataset.buttonSize;
+        options.buttonSize = /^\d+(\.\d+)?$/.test(bs.trim()) ? parseFloat(bs) : bs;
+    }
 
     // Color preset
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;

@@ -62,6 +62,10 @@
     if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
     if (element.dataset.layout) options.layout = element.dataset.layout;
     if (element.dataset.buttonStyle) options.buttonStyle = element.dataset.buttonStyle;
+    if (element.dataset.buttonSize) {
+      const bs = element.dataset.buttonSize;
+      options.buttonSize = /^\d+(\.\d+)?$/.test(bs.trim()) ? parseFloat(bs) : bs;
+    }
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;
     if (element.dataset.waveformColor) options.waveformColor = parseColorValue(element.dataset.waveformColor);
     if (element.dataset.progressColor) options.progressColor = parseColorValue(element.dataset.progressColor);
@@ -686,6 +690,11 @@
     // 'minimal' = a bare play/pause glyph with no circle — the look sample-pack
     // and beat stores use in their preview grids.
     buttonStyle: "circle",
+    // Play/pause button size. null = the stylesheet default (36px circle /
+    // proportional minimal). A number is treated as px; a string (e.g. '4rem')
+    // is used verbatim. Sets the `--wfp-btn-size` CSS var, which scales BOTH
+    // styles — box and glyph — proportionally.
+    buttonSize: null,
     // Default waveform style
     waveformStyle: "mirror",
     barWidth: 2,
@@ -919,6 +928,7 @@
         <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="Play/Pause" style="
             border-color: ${this.options.buttonColor};
             color: ${this.options.buttonColor};
+            ${this.options.buttonSize != null ? `--wfp-btn-size: ${typeof this.options.buttonSize === "number" ? `${this.options.buttonSize}px` : this.options.buttonSize};` : ""}
         ">
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>

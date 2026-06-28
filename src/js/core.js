@@ -246,6 +246,7 @@ export class WaveformPlayer {
         <button class="waveform-btn${this.options.buttonStyle === 'minimal' ? ' waveform-btn-minimal' : ''}" aria-label="Play/Pause" style="
             border-color: ${this.options.buttonColor};
             color: ${this.options.buttonColor};
+            ${this.options.buttonSize != null ? `--wfp-btn-size: ${typeof this.options.buttonSize === 'number' ? `${this.options.buttonSize}px` : this.options.buttonSize};` : ''}
         ">
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>

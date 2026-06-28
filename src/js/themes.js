@@ -181,6 +181,11 @@ export const DEFAULT_OPTIONS = {
     // 'minimal' = a bare play/pause glyph with no circle — the look sample-pack
     // and beat stores use in their preview grids.
     buttonStyle: 'circle',
+    // Play/pause button size. null = the stylesheet default (36px circle /
+    // proportional minimal). A number is treated as px; a string (e.g. '4rem')
+    // is used verbatim. Sets the `--wfp-btn-size` CSS var, which scales BOTH
+    // styles — box and glyph — proportionally.
+    buttonSize: null,
 
     // Default waveform style
     waveformStyle: 'mirror',

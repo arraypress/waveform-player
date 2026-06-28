@@ -27,11 +27,15 @@
     position: relative;
 }
 
-/* Play button */
+/* Play button.
+   Size knob: set `--wfp-btn-size` (via the `buttonSize` option /
+   `data-button-size`) to scale BOTH button styles — box AND glyph —
+   proportionally. Defaults to 36px; every dimension below derives from it so
+   there is a single source of truth (no per-style magic numbers to drift). */
 .waveform-btn {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
+    width: var(--wfp-btn-size, 36px);
+    height: var(--wfp-btn-size, 36px);
+    min-width: var(--wfp-btn-size, 36px);
     border-radius: 50%;
     border: 2px solid currentColor;
     background: transparent;
@@ -59,11 +63,11 @@
        nudged 1px) for the pause glyph would otherwise change the button's
        auto width, shifting the adjacent waveform — and re-sampling its bars —
        on every play/pause. Fixed width keeps the canvas (and bars) stable.
-       Sized so the bare glyph reads at the same visual weight as the 36px
-       circle button (the glyph, not a ring, is the whole control here). */
-    width: 2.5rem;
-    height: 2.5rem;
-    min-width: 2.5rem;
+       Sized (1.1×) so the bare glyph reads at the same visual weight as the
+       circle button — the glyph, not a ring, is the whole control here. */
+    width: calc(var(--wfp-btn-size, 36px) * 1.1);
+    height: calc(var(--wfp-btn-size, 36px) * 1.1);
+    min-width: calc(var(--wfp-btn-size, 36px) * 1.1);
     border: none;
     border-radius: 0;
     opacity: 0.7;
@@ -78,8 +82,8 @@
    has equal specificity but later source order, so it was pinning the minimal
    glyph to 16px. The compound `.waveform-btn.waveform-btn-minimal` wins. */
 .waveform-btn.waveform-btn-minimal svg {
-    width: 34px;
-    height: 34px;
+    width: calc(var(--wfp-btn-size, 36px) * 0.94);
+    height: calc(var(--wfp-btn-size, 36px) * 0.94);
 }
 
 .waveform-btn:disabled {
@@ -97,8 +101,8 @@
 }
 
 .waveform-btn svg {
-    width: 16px;
-    height: 16px;
+    width: calc(var(--wfp-btn-size, 36px) * 0.45);
+    height: calc(var(--wfp-btn-size, 36px) * 0.45);
     fill: currentColor;
     display: block;
 }
