@@ -4,8 +4,7 @@
     color: inherit;
     line-height: var(--waveform-line-height, 1.4);
     /* Neutral accent for the keyboard-focus ring + active states. Monochrome
-       by default (shadcn-style); set to a brand hue to re-tint, e.g.
-       `.waveform-player { --wfp-accent: #a855f7; }` for the classic violet. */
+       by default (shadcn-style); override this variable to re-tint it. */
     --wfp-accent: #71717a;
 }
 
