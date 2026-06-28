@@ -1,6 +1,6 @@
 {
   "name": "@arraypress/waveform-player",
-  "version": "1.13.1",
+  "version": "1.14.0",
   "description": "Lightweight, customizable audio player with waveform visualization",
   "type": "module",
   "types": "./index.d.ts",
