@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.13.1] — 2026-06-28
+
+### Changed
+
+- **Minimal play button** (`buttonStyle: 'minimal'`) now renders the bare
+  play/pause glyph at the same visual size as the default circle button — the
+  glyph was noticeably smaller than the ring it replaces. Larger fixed box
+  (2.5rem) + 36px glyph; still a fixed width so the waveform never shifts on
+  play/pause.
+
 ## [1.13.0] — 2026-06-28
 
 ### Added

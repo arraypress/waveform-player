@@ -58,10 +58,12 @@
     /* A FIXED box is essential: toggling the play glyph (which is optically
        nudged 1px) for the pause glyph would otherwise change the button's
        auto width, shifting the adjacent waveform — and re-sampling its bars —
-       on every play/pause. Fixed width keeps the canvas (and bars) stable. */
-    width: 2.25rem;
-    height: 2.25rem;
-    min-width: 2.25rem;
+       on every play/pause. Fixed width keeps the canvas (and bars) stable.
+       Sized so the bare glyph reads at the same visual weight as the 36px
+       circle button (the glyph, not a ring, is the whole control here). */
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 2.5rem;
     border: none;
     border-radius: 0;
     opacity: 0.7;
@@ -73,8 +75,8 @@
 }
 
 .waveform-btn-minimal svg {
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
 }
 
 .waveform-btn:disabled {
