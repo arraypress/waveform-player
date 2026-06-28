@@ -2,6 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.11.0] — 2026-06-28
+
+### Added
+
+- **`buttonStyle` option** (`'circle' | 'minimal'`, plus `data-button-style`).
+  `'minimal'` renders a bare play/pause glyph with no circle — the look
+  sample-pack and beat stores use in their preview grids. Composes with the
+  `preview` layout.
+
+### Changed
+
+- **Default look refresh.** The `mirror` style now uses `barSpacing: 2`
+  (distinct thin bars rather than a solid fill); the default `barRadius` is `1`
+  (soft caps), default `samples` is `256` (more source fidelity — resampled to
+  fit the bar pitch), and default `height` is `64`. Players that set these
+  explicitly are unaffected.
+
+## [1.10.0] — 2026-06-28
+
+### Added
+
+- **`preview` layout** (`layout: 'preview'` / `data-layout="preview"`) — centers
+  the title under the waveform and trims the meta row, for sample-pack previews
+  and dense grids.
+
+### Changed
+
+- **Monochrome by default (shadcn).** The keyboard-focus ring and speed-menu
+  active state are now neutral, driven by a new `--wfp-accent` CSS variable
+  (default zinc). Set `--wfp-accent` to a brand hue to re-tint.
+
+## [1.9.0] — 2026-06-28
+
+### Added
+
+- **`WaveformPlayer.utils.parseDataAttributes`** exposed on the utils bridge, so
+  wrappers (waveform-bar, waveform-playlist) can read the player's full `data-*`
+  option surface off a host element without re-implementing — and drifting
+  from — the contract.
+
 ## [1.8.0] — 2026-06-27
 
 ### Added

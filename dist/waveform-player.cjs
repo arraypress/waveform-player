@@ -683,8 +683,11 @@ function getColorPreset(presetName) {
 var DEFAULT_OPTIONS = {
   // Core settings
   url: "",
-  height: 60,
-  samples: 200,
+  height: 64,
+  // Source peak resolution. The drawer resamples these to fit
+  // canvasWidth / (barWidth + barSpacing) bars, so this is fidelity headroom,
+  // not the visible bar count.
+  samples: 256,
   preload: "metadata",
   // Audio mode — 'self' = player owns the <audio> element (default, current
   // behavior). 'external' = player is a visualization-only surface; no audio
@@ -711,8 +714,8 @@ var DEFAULT_OPTIONS = {
   waveformStyle: "mirror",
   barWidth: 2,
   barSpacing: 0,
-  // Rounded bar caps (px). 0 = square (default). Applies to bars/mirror.
-  barRadius: 0,
+  // Rounded bar caps (px). 0 = square; 1 = soft caps (default). Applies to bars/mirror.
+  barRadius: 1,
   // Color preset: null = auto-detect, 'dark' = force dark, 'light' = force light
   colorPreset: null,
   // Individual color overrides (null means use preset)
@@ -763,7 +766,7 @@ var DEFAULT_OPTIONS = {
 };
 var STYLE_DEFAULTS = {
   bars: { barWidth: 3, barSpacing: 1 },
-  mirror: { barWidth: 2, barSpacing: 0 },
+  mirror: { barWidth: 2, barSpacing: 2 },
   line: { barWidth: 2, barSpacing: 0 },
   blocks: { barWidth: 4, barSpacing: 2 },
   dots: { barWidth: 3, barSpacing: 3 },
