@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.12.1] — 2026-06-28
+
+### Changed
+
+- **Larger `minimal` button glyph.** The bare play/pause glyph read too small;
+  bumped the fixed button box to 2.25rem and the icon to 28px (still a fixed
+  box, so it doesn't shift the waveform on play/pause).
+
 ## [1.12.0] — 2026-06-28
 
 ### Added
