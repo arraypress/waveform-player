@@ -76,7 +76,7 @@ export interface WaveformPlayerOptions {
 	url?: string;
 	/** Shorthand alias for {@link url} (`data-src`). The canonical name wins if both are set. */
 	src?: string;
-	/** Waveform height in pixels. @default 60 */
+	/** Waveform height in pixels. @default 64 */
 	height?: number;
 	/** Source peak resolution for live decode (ignored when `waveform` peaks are
 	 *  supplied); resampled to fit the visible bars. @default 1800 */
@@ -97,7 +97,7 @@ export interface WaveformPlayerOptions {
 	barWidth?: number;
 	/** Gap between bars in pixels (style-dependent default). */
 	barSpacing?: number;
-	/** Rounded bar-cap radius in pixels (bars/mirror). `0` = square. @default 0 */
+	/** Rounded bar-cap radius in pixels (bars/mirror). `0` = square. @default 1 */
 	barRadius?: number;
 
 	// ── Colours ───────────────────────────────────────────────────

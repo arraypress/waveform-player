@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+
+- **`index.d.ts` `@default` JSDoc synced with the runtime.** The hand-written
+  type file still annotated `height` as `@default 60` and `barRadius` as
+  `@default 0`; `DEFAULT_OPTIONS` is `64` and `1`. Corrected so IDE tooltips
+  match actual behaviour. Documentation-only — no type or runtime change.
+
 ## [1.15.0] — 2026-06-30
 
 ### Fixed
