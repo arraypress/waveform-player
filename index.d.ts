@@ -78,7 +78,8 @@ export interface WaveformPlayerOptions {
 	src?: string;
 	/** Waveform height in pixels. @default 60 */
 	height?: number;
-	/** Number of peak samples to extract when decoding. @default 200 */
+	/** Source peak resolution for live decode (ignored when `waveform` peaks are
+	 *  supplied); resampled to fit the visible bars. @default 1800 */
 	samples?: number;
 	/** `<audio>` preload hint. @default 'metadata' */
 	preload?: AudioPreload;

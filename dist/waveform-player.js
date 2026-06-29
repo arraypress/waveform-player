@@ -543,7 +543,6 @@
   // src/js/audio.js
   function extractPeaks(buffer, samples = 200) {
     const sampleSize = buffer.length / samples;
-    const sampleStep = ~~(sampleSize / 10) || 1;
     const channels = buffer.numberOfChannels;
     const peaks = [];
     for (let c = 0; c < channels; c++) {
@@ -553,7 +552,7 @@
         const end = ~~(start + sampleSize);
         let min = 0;
         let max = 0;
-        for (let j = start; j < end; j += sampleStep) {
+        for (let j = start; j < end; j++) {
           const value = chan[j];
           if (value > max) max = value;
           if (value < min) min = value;
@@ -664,10 +663,12 @@
     // Core settings
     url: "",
     height: 64,
-    // Source peak resolution. The drawer resamples these to fit
-    // canvasWidth / (barWidth + barSpacing) bars, so this is fidelity headroom,
-    // not the visible bar count.
-    samples: 256,
+    // Source peak resolution for LIVE decode (ignored when peaks are supplied).
+    // The drawer resamples these to fit canvasWidth / (barWidth + barSpacing)
+    // bars, so this is fidelity headroom, not the visible bar count. 1800 (the
+    // SoundCloud/WaveformGen figure) keeps wide / high-DPI waveforms crisp; the
+    // every-frame scan means a higher value costs no extra extraction time.
+    samples: 1800,
     preload: "metadata",
     // Audio mode — 'self' = player owns the <audio> element (default, current
     // behavior). 'external' = player is a visualization-only surface; no audio

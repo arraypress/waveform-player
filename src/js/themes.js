@@ -152,10 +152,12 @@ export const DEFAULT_OPTIONS = {
     // Core settings
     url: '',
     height: 64,
-    // Source peak resolution. The drawer resamples these to fit
-    // canvasWidth / (barWidth + barSpacing) bars, so this is fidelity headroom,
-    // not the visible bar count.
-    samples: 256,
+    // Source peak resolution for LIVE decode (ignored when peaks are supplied).
+    // The drawer resamples these to fit canvasWidth / (barWidth + barSpacing)
+    // bars, so this is fidelity headroom, not the visible bar count. 1800 (the
+    // SoundCloud/WaveformGen figure) keeps wide / high-DPI waveforms crisp; the
+    // every-frame scan means a higher value costs no extra extraction time.
+    samples: 1800,
     preload: 'metadata',
 
     // Audio mode — 'self' = player owns the <audio> element (default, current

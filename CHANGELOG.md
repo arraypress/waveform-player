@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.15.0] — 2026-06-30
+
+### Fixed
+
+- **Live-decoded waveforms are now accurate.** `extractPeaks` inspected only
+  ~1 in 10 frames per window (a real-time speed shortcut), which missed
+  transients and made the waveform *shape* shift noticeably when the sample
+  count changed. It now scans **every frame** — matching WaveformGen's offline
+  output exactly (same shape, not just same amplitude), so a live decode and a
+  pre-generated `.json` render identically. `decodeAudioData` dominates the
+  cost, so the full scan is effectively free.
+
+### Changed
+
+- **`samples` default raised 256 → 1800** (the SoundCloud / WaveformGen figure).
+  It is the source peak resolution for live decode only (ignored when `waveform`
+  peaks are supplied), resampled down to the visible bar count. At 256, any
+  waveform wider than ~256 bars — common on wide or high-DPI displays — was
+  upsampled and looked blurry; 1800 keeps it crisp. Paired with the every-frame
+  scan it costs no extra extraction time. Override with `samples` /
+  `data-samples`.
+
 ## [1.14.0] — 2026-06-28
 
 ### Added

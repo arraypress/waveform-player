@@ -10,11 +10,12 @@ import {clamp} from './utils.js';
  * Extract peaks from a decoded audio buffer for waveform visualization.
  *
  * Divides the buffer into `samples` equal-width windows and, within each
- * window, finds the largest absolute amplitude. To keep large files fast the
- * inner loop strides through every 10th frame (`sampleStep`) rather than
- * inspecting every frame. Across multiple channels the per-window peaks are
- * merged by taking the loudest channel, then the whole array is normalized so
- * the maximum peak becomes 1 (a silent buffer is returned unscaled).
+ * window, finds the largest absolute amplitude by inspecting every frame (so
+ * transients are never missed and the shape is stable across sample counts —
+ * matching WaveformGen's offline output). Across multiple channels the
+ * per-window peaks are merged by taking the loudest channel, then the whole
+ * array is normalized so the maximum peak becomes 1 (a silent buffer is
+ * returned unscaled).
  *
  * @param {AudioBuffer} buffer - Decoded audio buffer to analyse.
  * @param {number} [samples=200] - Number of peak windows (output array length).
@@ -22,7 +23,6 @@ import {clamp} from './utils.js';
  */
 export function extractPeaks(buffer, samples = 200) {
     const sampleSize = buffer.length / samples;
-    const sampleStep = ~~(sampleSize / 10) || 1;
     const channels = buffer.numberOfChannels;
     const peaks = [];
 
@@ -36,7 +36,12 @@ export function extractPeaks(buffer, samples = 200) {
             let min = 0;
             let max = 0;
 
-            for (let j = start; j < end; j += sampleStep) {
+            // Scan EVERY frame in the window. Previously this stepped by
+            // sampleSize/10 (~10 samples/window) for speed, but that misses
+            // transients and makes the shape change with the sample count.
+            // decodeAudioData dominates the cost, so a full scan is worth it —
+            // and it now matches WaveformGen's offline output exactly.
+            for (let j = start; j < end; j++) {
                 const value = chan[j];
                 if (value > max) max = value;
                 if (value < min) min = value;
