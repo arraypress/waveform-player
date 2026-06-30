@@ -4,6 +4,30 @@
  */
 
 /**
+ * Default number of peak windows extracted per track. Shared by the runtime
+ * peak extraction and `DEFAULT_OPTIONS.samples` so they can't silently drift,
+ * and matched to @arraypress/waveform-gen's offline default (1800) for parity.
+ * @type {number}
+ */
+export const DEFAULT_SAMPLES = 1800;
+
+/**
+ * Largest value in an array, via a loop — NOT `Math.max(...arr)`, whose
+ * argument spread throws `RangeError: Maximum call stack size exceeded` for
+ * very large arrays (~1e5+ entries). Returns `-Infinity` for an empty array,
+ * matching `Math.max()`.
+ * @param {number[]} values - Numbers to scan.
+ * @returns {number} The maximum value (`-Infinity` if empty).
+ */
+export function maxOf(values) {
+    let max = -Infinity;
+    for (let i = 0; i < values.length; i++) {
+        if (values[i] > max) max = values[i];
+    }
+    return max;
+}
+
+/**
  * Escape a string for safe interpolation into HTML, preventing injection when
  * building markup with template strings. `null`/`undefined` become `''`.
  * @param {*} str - Value to escape.

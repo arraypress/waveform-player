@@ -3,7 +3,7 @@
  * @description Color presets and default options for WaveformPlayer
  */
 
-import {perceivedBrightness} from './utils.js';
+import {perceivedBrightness, DEFAULT_SAMPLES} from './utils.js';
 
 /**
  * Does `<html>` or `<body>` explicitly signal the given colour scheme via a
@@ -157,7 +157,7 @@ export const DEFAULT_OPTIONS = {
     // bars, so this is fidelity headroom, not the visible bar count. 1800 (the
     // SoundCloud/WaveformGen figure) keeps wide / high-DPI waveforms crisp; the
     // every-frame scan means a higher value costs no extra extraction time.
-    samples: 1800,
+    samples: DEFAULT_SAMPLES,
     preload: 'metadata',
 
     // Audio mode — 'self' = player owns the <audio> element (default, current
@@ -215,6 +215,11 @@ export const DEFAULT_OPTIONS = {
     showInfo: true,
     showTime: true,
     showHoverTime: false,
+    // Show a draggable circle handle + hover brightness-lift on the SEEKBAR
+    // style only (it's meaningless on a waveform, where the fill-edge is the
+    // playhead). Off by default; the bar turns it on. Drag-to-scrub works
+    // regardless of this.
+    seekHandle: false,
     showBPM: false,
     // Known BPM to display in the badge (with showBPM). Wins over auto-detection
     // — set it when peaks are pre-generated so the tempo still shows. null = auto.

@@ -155,6 +155,8 @@ export interface WaveformPlayerOptions {
 	showTime?: boolean;
 	/** Show a time tooltip on hover. @default false */
 	showHoverTime?: boolean;
+	/** Show a draggable circle handle + hover brightness on the seekbar style (hover/drag); the bar enables it. Drag-to-scrub works regardless. @default false */
+	seekHandle?: boolean;
 	/** Show detected BPM. @default false */
 	showBPM?: boolean;
 	/** Known BPM shown in the badge (with `showBPM`); wins over auto-detection. */

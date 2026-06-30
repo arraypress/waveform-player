@@ -429,9 +429,10 @@ export function drawDots(ctx, canvas, peaks, progress, options) {
 
 /**
  * Draw seekbar style - a simple rounded progress bar with no waveform.
- * Renders a pill-shaped background track, a glowing pill-shaped filled portion
- * (clamped to at least one full pill width so it never collapses), and a draggable
- * circular handle/thumb at the playhead with a drop shadow and inner accent dot.
+ * Renders a pill-shaped background track, a clean pill-shaped filled portion
+ * (clamped to at least one full pill width so it never collapses), and a
+ * draggable circular handle/thumb at the playhead (clamped so it never clips
+ * at the track ends).
  * The `peaks` argument is accepted for signature parity but is unused by this style.
  * @param {CanvasRenderingContext2D} ctx - Canvas 2D context to draw into.
  * @param {HTMLCanvasElement} canvas - Canvas element (provides device-pixel dimensions).
@@ -446,6 +447,7 @@ export function drawSeekbar(ctx, canvas, peaks, progress, options) {
     const centerY = height / 2;
     const barHeight = 4; // Height of the seekbar in pixels
     const borderRadius = barHeight / 2;
+    const active = !!options.seekActive; // hovering or dragging the seekbar
 
     ctx.clearRect(0, 0, width, height);
 
@@ -456,44 +458,23 @@ export function drawSeekbar(ctx, canvas, peaks, progress, options) {
     capsulePath(ctx, borderRadius, width, centerY, barHeight);
     ctx.fill();
 
-    // Draw progress
+    // Draw progress — slightly dimmed at rest, full-bright on hover / drag.
+    // With a monochrome palette there's no hue to swap (Spotify goes
+    // white→green), so the hover cue is a brightness lift plus the handle
+    // appearing. The draggable handle is a DOM element
+    // (`.waveform-seek-handle`), not drawn here — so it's always a perfect
+    // circle and can grow on direct hover via CSS.
     if (progress > 0) {
         const progressWidth = Math.max(borderRadius * 2, progress * width);
 
-        // Add subtle glow effect
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = options.progressColor;
-
+        // Brightness lift on hover/drag is only meaningful when the handle is
+        // enabled (the bar); a standalone seekbar stays at full progress.
+        ctx.save();
+        ctx.globalAlpha = options.seekHandle && !active ? 0.7 : 1;
         ctx.fillStyle = options.progressColor || 'rgba(255, 255, 255, 0.9)';
-
-        // Rounded progress fill
         capsulePath(ctx, borderRadius, progressWidth, centerY, barHeight);
         ctx.fill();
-
-        ctx.shadowBlur = 0;
-
-        // Draw progress handle/thumb
-        const handleRadius = 8;
-        const handleX = progressWidth;
-
-        // Handle shadow
-        ctx.shadowBlur = 4;
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-        ctx.shadowOffsetY = 2;
-
-        // Handle circle
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(handleX, centerY, handleRadius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Handle inner circle (for depth)
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetY = 0;
-        ctx.fillStyle = options.progressColor || 'rgba(255, 255, 255, 0.9)';
-        ctx.beginPath();
-        ctx.arc(handleX, centerY, handleRadius * 0.4, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.restore();
     }
 }
 

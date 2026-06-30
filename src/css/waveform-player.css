@@ -296,6 +296,32 @@
     z-index: 1000;
 }
 
+/* Draggable seek handle — a DOM circle over the playhead, shown only on
+   hover / drag, that grows on direct hover / while dragging. A DOM element
+   (not canvas-drawn) so it's always a perfect circle and animates smoothly. */
+.waveform-seek-handle {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    pointer-events: none;
+    z-index: 6;
+}
+.waveform-seek-handle.is-visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+.waveform-seek-handle.is-active {
+    transform: translate(-50%, -50%) scale(1.25);
+}
+
 /* Focus styles for accessibility */
 .waveform-btn:focus-visible {
     outline: 2px solid currentColor;

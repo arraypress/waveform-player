@@ -25,6 +25,14 @@ __export(index_exports, {
 module.exports = __toCommonJS(index_exports);
 
 // src/js/utils.js
+var DEFAULT_SAMPLES = 1800;
+function maxOf(values) {
+  let max = -Infinity;
+  for (let i = 0; i < values.length; i++) {
+    if (values[i] > max) max = values[i];
+  }
+  return max;
+}
 function escapeHtml(str) {
   return String(str == null ? "" : str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
@@ -451,33 +459,19 @@ function drawSeekbar(ctx, canvas, peaks, progress, options) {
   const centerY = height / 2;
   const barHeight = 4;
   const borderRadius = barHeight / 2;
+  const active = !!options.seekActive;
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = options.color || "rgba(255, 255, 255, 0.2)";
   capsulePath(ctx, borderRadius, width, centerY, barHeight);
   ctx.fill();
   if (progress > 0) {
     const progressWidth = Math.max(borderRadius * 2, progress * width);
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = options.progressColor;
+    ctx.save();
+    ctx.globalAlpha = options.seekHandle && !active ? 0.7 : 1;
     ctx.fillStyle = options.progressColor || "rgba(255, 255, 255, 0.9)";
     capsulePath(ctx, borderRadius, progressWidth, centerY, barHeight);
     ctx.fill();
-    ctx.shadowBlur = 0;
-    const handleRadius = 8;
-    const handleX = progressWidth;
-    ctx.shadowBlur = 4;
-    ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
-    ctx.shadowOffsetY = 2;
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.arc(handleX, centerY, handleRadius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.fillStyle = options.progressColor || "rgba(255, 255, 255, 0.9)";
-    ctx.beginPath();
-    ctx.arc(handleX, centerY, handleRadius * 0.4, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.restore();
   }
 }
 var DRAWING_STYLES = {
@@ -566,7 +560,7 @@ function detectOnsets(channelData, sampleRate) {
 }
 
 // src/js/audio.js
-function extractPeaks(buffer, samples = 200) {
+function extractPeaks(buffer, samples = DEFAULT_SAMPLES) {
   const sampleSize = buffer.length / samples;
   const channels = buffer.numberOfChannels;
   const peaks = [];
@@ -588,10 +582,10 @@ function extractPeaks(buffer, samples = 200) {
       }
     }
   }
-  const maxPeak = Math.max(...peaks);
+  const maxPeak = maxOf(peaks);
   return maxPeak > 0 ? peaks.map((peak) => peak / maxPeak) : peaks;
 }
-async function generateWaveform(url, samples = 200, shouldDetectBPM = false) {
+async function generateWaveform(url, samples = DEFAULT_SAMPLES, shouldDetectBPM = false) {
   let audioContext;
   try {
     const AudioCtx = window.AudioContext || /** @type {any} */
@@ -611,7 +605,7 @@ async function generateWaveform(url, samples = 200, shouldDetectBPM = false) {
     if (audioContext) audioContext.close();
   }
 }
-function generatePlaceholderWaveform(samples = 200) {
+function generatePlaceholderWaveform(samples = DEFAULT_SAMPLES) {
   const data = [];
   for (let i = 0; i < samples; i++) {
     const base = Math.random() * 0.5 + 0.3;
@@ -621,7 +615,7 @@ function generatePlaceholderWaveform(samples = 200) {
   return data;
 }
 function normalizePeaks(peaks, targetMax = 0.95) {
-  const maxPeak = Math.max(...peaks);
+  const maxPeak = maxOf(peaks);
   if (maxPeak === 0 || maxPeak > targetMax) return peaks;
   const scaleFactor = targetMax / maxPeak;
   return peaks.map((peak) => peak * scaleFactor);
@@ -693,7 +687,7 @@ var DEFAULT_OPTIONS = {
   // bars, so this is fidelity headroom, not the visible bar count. 1800 (the
   // SoundCloud/WaveformGen figure) keeps wide / high-DPI waveforms crisp; the
   // every-frame scan means a higher value costs no extra extraction time.
-  samples: 1800,
+  samples: DEFAULT_SAMPLES,
   preload: "metadata",
   // Audio mode — 'self' = player owns the <audio> element (default, current
   // behavior). 'external' = player is a visualization-only surface; no audio
@@ -744,6 +738,11 @@ var DEFAULT_OPTIONS = {
   showInfo: true,
   showTime: true,
   showHoverTime: false,
+  // Show a draggable circle handle + hover brightness-lift on the SEEKBAR
+  // style only (it's meaningless on a waveform, where the fill-edge is the
+  // playhead). Off by default; the bar turns it on. Drag-to-scrub works
+  // regardless of this.
+  seekHandle: false,
   showBPM: false,
   // Known BPM to display in the badge (with showBPM). Wins over auto-detection
   // — set it when peaks are pre-generated so the tempo still shows. null = auto.
@@ -1339,7 +1338,56 @@ var WaveformPlayer = class _WaveformPlayer {
       this.audio.addEventListener("error", (e) => this.onError(e));
     }
     this.canvas.addEventListener("click", (e) => this.handleCanvasClick(e));
+    this._dragging = false;
+    this._seekHover = false;
+    this._handleNear = false;
+    this.canvas.addEventListener("pointerenter", () => {
+      this._seekHover = true;
+      this.drawWaveform();
+      this._updateSeekHandle();
+    });
+    this.canvas.addEventListener("pointerleave", () => {
+      this._seekHover = false;
+      this._handleNear = false;
+      if (!this._dragging) this._hideHoverTip();
+      this.drawWaveform();
+      this._updateSeekHandle();
+    });
+    this.canvas.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      this._dragging = true;
+      try {
+        this.canvas.setPointerCapture(e.pointerId);
+      } catch (err) {
+      }
+      this._scrubTo(e.clientX);
+    });
+    this.canvas.addEventListener("pointermove", (e) => {
+      if (this._dragging) {
+        this._scrubTo(e.clientX);
+        return;
+      }
+      const rect = this.canvas.getBoundingClientRect();
+      if (rect.width) {
+        this._handleNear = Math.abs(e.clientX - rect.left - this.progress * rect.width) <= 10;
+        this._updateSeekHandle();
+      }
+    });
+    const endDrag = (e) => {
+      if (!this._dragging) return;
+      this._dragging = false;
+      try {
+        this.canvas.releasePointerCapture(e.pointerId);
+      } catch (err) {
+      }
+      this._seekFromPointer(e.clientX);
+      if (!this._seekHover) this._hideHoverTip();
+      this._updateSeekHandle();
+    };
+    this.canvas.addEventListener("pointerup", endDrag);
+    this.canvas.addEventListener("pointercancel", endDrag);
     this.setupHoverTime();
+    this.setupSeekHandle();
     this.resizeHandler = debounce(() => this.resizeCanvas(), 100);
     window.addEventListener("resize", this.resizeHandler);
   }
@@ -1548,7 +1596,8 @@ var WaveformPlayer = class _WaveformPlayer {
       ...this.options,
       waveformStyle: this.options.waveformStyle || "bars",
       color: this.options.waveformColor,
-      progressColor: this.options.progressColor
+      progressColor: this.options.progressColor,
+      seekActive: this._seekHover || this._dragging
     });
   }
   /**
@@ -1678,20 +1727,77 @@ var WaveformPlayer = class _WaveformPlayer {
     this.seekEl.appendChild(tip);
     this.hoverTimeEl = tip;
     this.seekEl.addEventListener("pointermove", (e) => {
-      const dur = this.getSeekDuration();
-      if (!dur) {
-        tip.style.opacity = "0";
-        return;
-      }
-      const rect = this.canvas.getBoundingClientRect();
-      const pct = clamp((e.clientX - rect.left) / rect.width);
-      tip.textContent = formatTime(pct * dur);
-      tip.style.left = pct * 100 + "%";
-      tip.style.opacity = "1";
+      if (!this._dragging) this._updateHoverTip(e.clientX);
     });
     this.seekEl.addEventListener("pointerleave", () => {
-      tip.style.opacity = "0";
+      if (!this._dragging) this._hideHoverTip();
     });
+  }
+  /**
+   * Position + fill the hover-time tooltip for a given client-X. Shared by
+   * hover and drag-scrub. No-op when the tooltip isn't enabled
+   * (`showHoverTime` off).
+   * @param {number} clientX - Pointer client-X coordinate.
+   * @private
+   */
+  _updateHoverTip(clientX) {
+    const tip = this.hoverTimeEl;
+    if (!tip) return;
+    const dur = this.getSeekDuration();
+    if (!dur) {
+      tip.style.opacity = "0";
+      return;
+    }
+    const rect = this.canvas.getBoundingClientRect();
+    const pct = clamp((clientX - rect.left) / rect.width);
+    tip.textContent = formatTime(pct * dur);
+    tip.style.left = pct * 100 + "%";
+    tip.style.opacity = "1";
+  }
+  /** Hide the hover-time tooltip. @private */
+  _hideHoverTip() {
+    if (this.hoverTimeEl) this.hoverTimeEl.style.opacity = "0";
+  }
+  /**
+   * Visually preview a seek during a drag — moves the playhead + handle +
+   * tooltip to the cursor WITHOUT touching the audio (playback continues; the
+   * real seek is committed on release).
+   * @param {number} clientX - Pointer client-X coordinate.
+   * @private
+   */
+  _scrubTo(clientX) {
+    const rect = this.canvas.getBoundingClientRect();
+    if (!rect.width) return;
+    this.progress = clamp((clientX - rect.left) / rect.width);
+    this.drawWaveform();
+    this._updateSeekHandle();
+    this._updateHoverTip(clientX);
+  }
+  /**
+   * Create the draggable seek handle — a DOM circle over the playhead, shown
+   * only on hover / drag (Spotify-style). Pointer-events are off so it never
+   * blocks the canvas scrub; size + visibility are CSS.
+   * @private
+   */
+  setupSeekHandle() {
+    if (!this.options.seekHandle || this.options.waveformStyle !== "seekbar" || !this.seekEl) return;
+    const h = document.createElement("div");
+    h.className = "waveform-seek-handle";
+    h.setAttribute("aria-hidden", "true");
+    this.seekEl.appendChild(h);
+    this.seekHandleEl = h;
+  }
+  /**
+   * Position the seek handle at the current progress and toggle its
+   * visibility (hover / drag) + expanded (drag / direct-hover) classes.
+   * @private
+   */
+  _updateSeekHandle() {
+    const h = this.seekHandleEl;
+    if (!h) return;
+    h.style.left = this.progress * 100 + "%";
+    h.classList.toggle("is-visible", this._seekHover || this._dragging);
+    h.classList.toggle("is-active", this._dragging || this._handleNear);
   }
   // ============================================
   // Event Handlers
@@ -1709,9 +1815,23 @@ var WaveformPlayer = class _WaveformPlayer {
    * @fires WaveformPlayer#waveformplayer:request-seek
    */
   handleCanvasClick(event) {
+    this._seekFromPointer(event.clientX);
+  }
+  /**
+   * Seek to a horizontal client-X position over the canvas — shared by
+   * click and drag. In external mode the player has no audio of its own,
+   * so it dispatches a cancelable `waveformplayer:request-seek` with the
+   * target percentage (updating the local visual optimistically); in self
+   * mode it seeks the owned `<audio>` via
+   * {@link WaveformPlayer#seekToPercent}.
+   * @param {number} clientX - Pointer client-X coordinate.
+   * @private
+   * @fires WaveformPlayer#waveformplayer:request-seek
+   */
+  _seekFromPointer(clientX) {
     const rect = this.canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const targetPercent = clamp(x / rect.width);
+    if (!rect.width) return;
+    const targetPercent = clamp((clientX - rect.left) / rect.width);
     if (this.options.audioMode === "external") {
       this._requestSeek(targetPercent);
       return;
@@ -1893,10 +2013,12 @@ var WaveformPlayer = class _WaveformPlayer {
    */
   updateProgress() {
     if (!this.audio || !this.audio.duration) return;
+    if (this._dragging) return;
     const newProgress = this.audio.currentTime / this.audio.duration;
     if (Math.abs(newProgress - this.progress) > 1e-3) {
       this.progress = newProgress;
       this.drawWaveform();
+      this._updateSeekHandle();
     }
     if (this.currentTimeEl) {
       this.currentTimeEl.textContent = formatTime(this.audio.currentTime);
@@ -2308,7 +2430,7 @@ var WaveformPlayer = class _WaveformPlayer {
    * @param {number} samples - Number of samples
    * @returns {Promise<number[]>} Waveform peak data
    */
-  static async generateWaveformData(url, samples = 200) {
+  static async generateWaveformData(url, samples = DEFAULT_SAMPLES) {
     try {
       const result = await generateWaveform(url, samples);
       return result.peaks;

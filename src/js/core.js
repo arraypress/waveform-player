@@ -13,7 +13,8 @@ import {
     mergeOptions,
     debounce,
     clamp,
-    escapeHtml
+    escapeHtml,
+    DEFAULT_SAMPLES
 } from './utils.js';
 
 import {DEFAULT_OPTIONS, STYLE_DEFAULTS, getColorPreset, COLOR_PRESETS} from './themes.js';
@@ -729,13 +730,70 @@ export class WaveformPlayer {
             this.audio.addEventListener('error', (e) => this.onError(e));
         }
 
-        // Canvas interactions — seek-on-click. In external mode the
-        // canvas click dispatches a `waveformplayer:request-seek` event
-        // so the controller can position its own audio element.
+        // Canvas interactions — click + drag to seek. pointerdown starts a
+        // scrub (with pointer capture so moves keep flowing if the cursor
+        // leaves the canvas), pointermove updates it while held, pointerup /
+        // pointercancel end it. The click handler stays for keyboard/synthetic
+        // compatibility. In external mode each seek dispatches a cancelable
+        // `waveformplayer:request-seek` so the controller positions its audio.
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
+        this._dragging = false;
+        this._seekHover = false;
+        this._handleNear = false;
+
+        // Hover state — reveals the handle + lifts the seekbar brightness. A
+        // redraw is needed because the canvas has no CSS :hover of its own.
+        this.canvas.addEventListener('pointerenter', () => {
+            this._seekHover = true;
+            this.drawWaveform();
+            this._updateSeekHandle();
+        });
+        this.canvas.addEventListener('pointerleave', () => {
+            this._seekHover = false;
+            this._handleNear = false;
+            if (!this._dragging) this._hideHoverTip();
+            this.drawWaveform();
+            this._updateSeekHandle();
+        });
+
+        // Drag = a VISUAL scrub: the playhead previews the cursor while the
+        // audio keeps playing untouched (a per-move seek glitches the audio and
+        // fights the progress loop). The real seek is committed once, on
+        // release. updateProgress() bails while _dragging so playback can't drag
+        // the handle off the cursor.
+        this.canvas.addEventListener('pointerdown', (e) => {
+            if (e.pointerType === 'mouse' && e.button !== 0) return; // primary / touch only
+            this._dragging = true;
+            try { this.canvas.setPointerCapture(e.pointerId); } catch (err) { /* unsupported */ }
+            this._scrubTo(e.clientX);
+        });
+        this.canvas.addEventListener('pointermove', (e) => {
+            if (this._dragging) {
+                this._scrubTo(e.clientX);
+                return;
+            }
+            // Hover (not dragging): grow the handle when the cursor is over it.
+            const rect = this.canvas.getBoundingClientRect();
+            if (rect.width) {
+                this._handleNear = Math.abs((e.clientX - rect.left) - this.progress * rect.width) <= 10;
+                this._updateSeekHandle();
+            }
+        });
+        const endDrag = (e) => {
+            if (!this._dragging) return;
+            this._dragging = false;
+            try { this.canvas.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+            this._seekFromPointer(e.clientX); // commit the seek now — audio jumps once
+            if (!this._seekHover) this._hideHoverTip();
+            this._updateSeekHandle();
+        };
+        this.canvas.addEventListener('pointerup', endDrag);
+        this.canvas.addEventListener('pointercancel', endDrag);
 
         // Hover-time tooltip over the waveform (when showHoverTime is on).
         this.setupHoverTime();
+        // Draggable seek handle (DOM circle, shown on hover / drag).
+        this.setupSeekHandle();
 
         // Window resize - store handler for cleanup
         this.resizeHandler = debounce(() => this.resizeCanvas(), 100);
@@ -1008,7 +1066,8 @@ export class WaveformPlayer {
             ...this.options,
             waveformStyle: this.options.waveformStyle || 'bars',
             color: this.options.waveformColor,
-            progressColor: this.options.progressColor
+            progressColor: this.options.progressColor,
+            seekActive: this._seekHover || this._dragging
         });
     }
 
@@ -1168,16 +1227,86 @@ export class WaveformPlayer {
         this.seekEl.appendChild(tip);
         this.hoverTimeEl = tip;
 
+        // Hover updates the tip; the drag handlers also call _updateHoverTip so
+        // the time follows the playhead while scrubbing (Spotify-style). The
+        // guard avoids a double-update when a drag is in progress (the canvas
+        // pointermove already drives it then).
         this.seekEl.addEventListener('pointermove', (e) => {
-            const dur = this.getSeekDuration();
-            if (!dur) { tip.style.opacity = '0'; return; }
-            const rect = this.canvas.getBoundingClientRect();
-            const pct = clamp((e.clientX - rect.left) / rect.width);
-            tip.textContent = formatTime(pct * dur);
-            tip.style.left = (pct * 100) + '%';
-            tip.style.opacity = '1';
+            if (!this._dragging) this._updateHoverTip(e.clientX);
         });
-        this.seekEl.addEventListener('pointerleave', () => { tip.style.opacity = '0'; });
+        this.seekEl.addEventListener('pointerleave', () => {
+            if (!this._dragging) this._hideHoverTip();
+        });
+    }
+
+    /**
+     * Position + fill the hover-time tooltip for a given client-X. Shared by
+     * hover and drag-scrub. No-op when the tooltip isn't enabled
+     * (`showHoverTime` off).
+     * @param {number} clientX - Pointer client-X coordinate.
+     * @private
+     */
+    _updateHoverTip(clientX) {
+        const tip = this.hoverTimeEl;
+        if (!tip) return;
+        const dur = this.getSeekDuration();
+        if (!dur) { tip.style.opacity = '0'; return; }
+        const rect = this.canvas.getBoundingClientRect();
+        const pct = clamp((clientX - rect.left) / rect.width);
+        tip.textContent = formatTime(pct * dur);
+        tip.style.left = (pct * 100) + '%';
+        tip.style.opacity = '1';
+    }
+
+    /** Hide the hover-time tooltip. @private */
+    _hideHoverTip() {
+        if (this.hoverTimeEl) this.hoverTimeEl.style.opacity = '0';
+    }
+
+    /**
+     * Visually preview a seek during a drag — moves the playhead + handle +
+     * tooltip to the cursor WITHOUT touching the audio (playback continues; the
+     * real seek is committed on release).
+     * @param {number} clientX - Pointer client-X coordinate.
+     * @private
+     */
+    _scrubTo(clientX) {
+        const rect = this.canvas.getBoundingClientRect();
+        if (!rect.width) return;
+        this.progress = clamp((clientX - rect.left) / rect.width);
+        this.drawWaveform();
+        this._updateSeekHandle();
+        this._updateHoverTip(clientX);
+    }
+
+    /**
+     * Create the draggable seek handle — a DOM circle over the playhead, shown
+     * only on hover / drag (Spotify-style). Pointer-events are off so it never
+     * blocks the canvas scrub; size + visibility are CSS.
+     * @private
+     */
+    setupSeekHandle() {
+        // Only the seekbar style — on a real waveform the fill-edge already is
+        // the playhead, so a floating dot is just noise.
+        if (!this.options.seekHandle || this.options.waveformStyle !== 'seekbar' || !this.seekEl) return;
+        const h = document.createElement('div');
+        h.className = 'waveform-seek-handle';
+        h.setAttribute('aria-hidden', 'true');
+        this.seekEl.appendChild(h);
+        this.seekHandleEl = h;
+    }
+
+    /**
+     * Position the seek handle at the current progress and toggle its
+     * visibility (hover / drag) + expanded (drag / direct-hover) classes.
+     * @private
+     */
+    _updateSeekHandle() {
+        const h = this.seekHandleEl;
+        if (!h) return;
+        h.style.left = (this.progress * 100) + '%';
+        h.classList.toggle('is-visible', this._seekHover || this._dragging);
+        h.classList.toggle('is-active', this._dragging || this._handleNear);
     }
 
     // ============================================
@@ -1197,15 +1326,24 @@ export class WaveformPlayer {
      * @fires WaveformPlayer#waveformplayer:request-seek
      */
     handleCanvasClick(event) {
-        // In external mode the player has no audio of its own —
-        // dispatch a cancelable `waveformplayer:request-seek` event
-        // with the target percentage so the controller can seek its
-        // own audio. Locally we just update the visual progress so
-        // the canvas paints the new position immediately (the
-        // controller's progress event will reconcile shortly after).
+        this._seekFromPointer(event.clientX);
+    }
+
+    /**
+     * Seek to a horizontal client-X position over the canvas — shared by
+     * click and drag. In external mode the player has no audio of its own,
+     * so it dispatches a cancelable `waveformplayer:request-seek` with the
+     * target percentage (updating the local visual optimistically); in self
+     * mode it seeks the owned `<audio>` via
+     * {@link WaveformPlayer#seekToPercent}.
+     * @param {number} clientX - Pointer client-X coordinate.
+     * @private
+     * @fires WaveformPlayer#waveformplayer:request-seek
+     */
+    _seekFromPointer(clientX) {
         const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const targetPercent = clamp(x / rect.width);
+        if (!rect.width) return;
+        const targetPercent = clamp((clientX - rect.left) / rect.width);
 
         if (this.options.audioMode === 'external') {
             this._requestSeek(targetPercent);
@@ -1442,12 +1580,16 @@ export class WaveformPlayer {
         // Self-mode only — external mode receives progress via
         // setProgress() from the controller and never calls this.
         if (!this.audio || !this.audio.duration) return;
+        // While dragging, the playhead previews the cursor — don't let playback
+        // move it (the audio keeps playing; the seek commits on release).
+        if (this._dragging) return;
 
         const newProgress = this.audio.currentTime / this.audio.duration;
 
         if (Math.abs(newProgress - this.progress) > 0.001) {
             this.progress = newProgress;
             this.drawWaveform();
+            this._updateSeekHandle();
         }
 
         if (this.currentTimeEl) {
@@ -1937,7 +2079,7 @@ export class WaveformPlayer {
      * @param {number} samples - Number of samples
      * @returns {Promise<number[]>} Waveform peak data
      */
-    static async generateWaveformData(url, samples = 200) {
+    static async generateWaveformData(url, samples = DEFAULT_SAMPLES) {
         try {
             const result = await generateWaveform(url, samples);
             return result.peaks;

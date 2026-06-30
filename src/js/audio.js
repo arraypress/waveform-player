@@ -4,7 +4,7 @@
  */
 
 import {detectBPM} from './bpm.js';
-import {clamp} from './utils.js';
+import {clamp, maxOf, DEFAULT_SAMPLES} from './utils.js';
 
 /**
  * Extract peaks from a decoded audio buffer for waveform visualization.
@@ -18,10 +18,10 @@ import {clamp} from './utils.js';
  * returned unscaled).
  *
  * @param {AudioBuffer} buffer - Decoded audio buffer to analyse.
- * @param {number} [samples=200] - Number of peak windows (output array length).
+ * @param {number} [samples=1800] - Number of peak windows (output array length).
  * @returns {number[]} Array of `samples` normalized peak values in the 0-1 range.
  */
-export function extractPeaks(buffer, samples = 200) {
+export function extractPeaks(buffer, samples = DEFAULT_SAMPLES) {
     const sampleSize = buffer.length / samples;
     const channels = buffer.numberOfChannels;
     const peaks = [];
@@ -56,7 +56,7 @@ export function extractPeaks(buffer, samples = 200) {
     }
 
     // Normalize peaks
-    const maxPeak = Math.max(...peaks);
+    const maxPeak = maxOf(peaks);
     return maxPeak > 0 ? peaks.map(peak => peak / maxPeak) : peaks;
 }
 
@@ -71,13 +71,13 @@ export function extractPeaks(buffer, samples = 200) {
  * callers can fall back to a placeholder waveform.
  *
  * @param {string} url - Audio file URL to fetch and decode.
- * @param {number} [samples=200] - Number of peak windows to extract.
+ * @param {number} [samples=1800] - Number of peak windows to extract.
  * @param {boolean} [shouldDetectBPM=false] - Whether to run BPM detection on the decoded buffer.
  * @returns {Promise<{peaks: number[], bpm: (number|null)}>} Resolves with the
  *   normalized peaks and the detected BPM (`null` when detection is disabled or fails).
  * @throws {Error} Re-throws any fetch/decode error after logging it.
  */
-export async function generateWaveform(url, samples = 200, shouldDetectBPM = false) {
+export async function generateWaveform(url, samples = DEFAULT_SAMPLES, shouldDetectBPM = false) {
     // Created lazily so the finally block can always close it — browsers
     // hard-cap live AudioContexts (~6 in Chrome), so leaking one per failed
     // decode would break every subsequent player on the page.
@@ -115,10 +115,10 @@ export async function generateWaveform(url, samples = 200, shouldDetectBPM = fal
  * variation across the array, clamped to the 0.1-1 range so the result always
  * looks like a plausible waveform rather than pure noise.
  *
- * @param {number} [samples=200] - Number of bars (output array length).
+ * @param {number} [samples=1800] - Number of bars (output array length).
  * @returns {number[]} Array of `samples` pseudo-random peak values in the 0.1-1 range.
  */
-export function generatePlaceholderWaveform(samples = 200) {
+export function generatePlaceholderWaveform(samples = DEFAULT_SAMPLES) {
     const data = [];
     for (let i = 0; i < samples; i++) {
         const base = Math.random() * 0.5 + 0.3;
@@ -142,7 +142,7 @@ export function generatePlaceholderWaveform(samples = 200) {
  * @private
  */
 function normalizePeaks(peaks, targetMax = 0.95) {
-    const maxPeak = Math.max(...peaks);
+    const maxPeak = maxOf(peaks);
 
     // Don't normalize if already loud enough or silent
     if (maxPeak === 0 || maxPeak > targetMax) return peaks;
