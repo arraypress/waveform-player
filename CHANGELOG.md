@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **Hover-time tooltip.** With `showHoverTime: true` (`data-show-hover-time`), a
+  tooltip follows the pointer over the waveform showing the time at that
+  position. The option was previously parsed but did nothing — it's now wired up
+  (works in both self and external modes).
+- **Active markers.** As playback passes a marker, the player highlights it and
+  reveals its label automatically — it drives the existing `setActiveMarker()`
+  from the progress loop (self and external modes), so chaptered tracks and DJ
+  cues light up as you reach them.
 - **Artwork fallback.** When the `artwork` image fails to load (404 / broken
   URL), the player now shows a muted music-note placeholder tile instead of the
   browser's broken-image icon.

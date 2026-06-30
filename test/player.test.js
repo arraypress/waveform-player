@@ -379,3 +379,52 @@ describe('static getPeaksUrl', () => {
 		expect(WaveformPlayer.getPeaksUrl('')).toBeUndefined();
 	});
 });
+
+describe('active markers (playhead reaches a marker)', () => {
+	it('highlights the most-recently-passed marker as progress advances', () => {
+		const { el, player } = track(mount({
+			markers: [{ time: 10, label: 'Intro' }, { time: 60, label: 'Drop' }],
+			showTime: false,
+		}));
+		// External mode: duration arrives via setProgress, then markers can render.
+		player.setProgress(0, 120);
+		player.renderMarkers();
+		const markers = el.querySelectorAll('.waveform-marker');
+		expect(markers.length).toBe(2);
+
+		// Before the first marker — none active.
+		player.setProgress(5, 120);
+		expect(markers[0].classList.contains('active')).toBe(false);
+		expect(markers[1].classList.contains('active')).toBe(false);
+
+		// Past the first marker only.
+		player.setProgress(30, 120);
+		expect(markers[0].classList.contains('active')).toBe(true);
+		expect(markers[1].classList.contains('active')).toBe(false);
+
+		// Past the second marker — it takes over.
+		player.setProgress(70, 120);
+		expect(markers[0].classList.contains('active')).toBe(false);
+		expect(markers[1].classList.contains('active')).toBe(true);
+	});
+});
+
+describe('hover-time tooltip', () => {
+	it('adds the tooltip element only when showHoverTime is on', () => {
+		const off = track(mount({ title: 'X' }));
+		expect(off.el.querySelector('.waveform-hover-time')).toBe(null);
+
+		const on = track(mount({ title: 'Y', showHoverTime: true }));
+		expect(on.el.querySelector('.waveform-hover-time')).toBeTruthy();
+	});
+});
+
+describe('artwork fallback', () => {
+	it('swaps a broken artwork URL for the placeholder tile on error', () => {
+		const { el } = track(mount({ artwork: 'does-not-exist.jpg', title: 'X' }));
+		const img = el.querySelector('.waveform-artwork');
+		expect(img).toBeTruthy();
+		img.dispatchEvent(new Event('error'));
+		expect(img.src.startsWith('data:image/svg')).toBe(true);
+	});
+});

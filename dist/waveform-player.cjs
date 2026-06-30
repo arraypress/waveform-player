@@ -788,6 +788,9 @@ var STYLE_DEFAULTS = {
 };
 
 // src/js/core.js
+var ARTWORK_FALLBACK = "data:image/svg+xml," + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="#71717a" fill-opacity="0.15"/><g fill="none" stroke="#a1a1aa" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="17" r="2.2"/><circle cx="17" cy="15" r="2.2"/><path d="M10.2 17V7l9-1.6v9"/></g></svg>'
+);
 var SEEK_STEP_SECONDS = 5;
 var SEEK_PAGE_SECONDS = 10;
 var WaveformPlayer = class _WaveformPlayer {
@@ -845,6 +848,7 @@ var WaveformPlayer = class _WaveformPlayer {
     this.ctx = null;
     this.waveformData = [];
     this.progress = 0;
+    this._activeMarkerIndex = -1;
     this.isPlaying = false;
     this.isLoading = false;
     this.hasError = false;
@@ -1027,6 +1031,11 @@ var WaveformPlayer = class _WaveformPlayer {
     this.titleEl = this.container.querySelector(".waveform-title");
     this.subtitleEl = this.container.querySelector(".waveform-subtitle");
     this.artworkEl = this.container.querySelector(".waveform-artwork");
+    if (this.artworkEl) {
+      this.artworkEl.addEventListener("error", () => {
+        if (!this.artworkEl.src.startsWith("data:")) this.artworkEl.src = ARTWORK_FALLBACK;
+      });
+    }
     this.currentTimeEl = this.container.querySelector(".time-current");
     this.totalTimeEl = this.container.querySelector(".time-total");
     this.bpmEl = this.container.querySelector(".waveform-bpm");
@@ -1329,6 +1338,7 @@ var WaveformPlayer = class _WaveformPlayer {
       this.audio.addEventListener("error", (e) => this.onError(e));
     }
     this.canvas.addEventListener("click", (e) => this.handleCanvasClick(e));
+    this.setupHoverTime();
     this.resizeHandler = debounce(() => this.resizeCanvas(), 100);
     window.addEventListener("resize", this.resizeHandler);
   }
@@ -1572,6 +1582,7 @@ var WaveformPlayer = class _WaveformPlayer {
   renderMarkers() {
     if (!this.markersContainer) return;
     this.markersContainer.innerHTML = "";
+    this._activeMarkerIndex = -1;
     if (!this.options.showMarkers || !this.options.markers?.length) return;
     const duration = this.getSeekDuration();
     if (!duration) {
@@ -1614,6 +1625,64 @@ var WaveformPlayer = class _WaveformPlayer {
     if (!this.markersContainer) return;
     const markers = this.markersContainer.querySelectorAll(".waveform-marker");
     markers.forEach((el, i) => el.classList.toggle("active", i === index));
+  }
+  /**
+   * Highlight the marker the playhead has most recently passed — the rendered
+   * marker with the greatest `time` ≤ the current time — and reveal its label.
+   * Driven from the progress loop; a no-op when there are no markers. Reuses
+   * {@link WaveformPlayer#setActiveMarker}, and only re-applies when the active
+   * marker actually changes.
+   * @private
+   */
+  updateActiveMarker() {
+    if (!this.markersContainer) return;
+    const els = this.markersContainer.querySelectorAll(".waveform-marker");
+    if (!els.length) return;
+    const dur = this.getSeekDuration();
+    const t = dur ? this.progress * dur : 0;
+    let active = -1;
+    let best = -Infinity;
+    els.forEach((el, i) => {
+      const mt = parseFloat(el.getAttribute("data-time"));
+      if (Number.isFinite(mt) && mt <= t + 0.05 && mt > best) {
+        best = mt;
+        active = i;
+      }
+    });
+    if (active !== this._activeMarkerIndex) {
+      this._activeMarkerIndex = active;
+      this.setActiveMarker(active);
+    }
+  }
+  /**
+   * Build a tooltip that follows the pointer over the waveform and shows the
+   * time at that position. Enabled by the `showHoverTime` option; works in both
+   * self and external modes (it only needs {@link WaveformPlayer#getSeekDuration}).
+   * Uses the same pointer-X → percentage math as seeking.
+   * @private
+   */
+  setupHoverTime() {
+    if (!this.options.showHoverTime || !this.seekEl) return;
+    const tip = document.createElement("div");
+    tip.className = "waveform-hover-time";
+    tip.setAttribute("aria-hidden", "true");
+    this.seekEl.appendChild(tip);
+    this.hoverTimeEl = tip;
+    this.seekEl.addEventListener("pointermove", (e) => {
+      const dur = this.getSeekDuration();
+      if (!dur) {
+        tip.style.opacity = "0";
+        return;
+      }
+      const rect = this.canvas.getBoundingClientRect();
+      const pct = clamp((e.clientX - rect.left) / rect.width);
+      tip.textContent = formatTime(pct * dur);
+      tip.style.left = pct * 100 + "%";
+      tip.style.opacity = "1";
+    });
+    this.seekEl.addEventListener("pointerleave", () => {
+      tip.style.opacity = "0";
+    });
   }
   // ============================================
   // Event Handlers
@@ -1833,6 +1902,7 @@ var WaveformPlayer = class _WaveformPlayer {
     if (this.options.onTimeUpdate) {
       this.options.onTimeUpdate(this.audio.currentTime, this.audio.duration, this);
     }
+    this.updateActiveMarker();
     this.updateSeekAccessibility();
   }
   // ============================================
@@ -2069,6 +2139,7 @@ var WaveformPlayer = class _WaveformPlayer {
       this.totalTimeEl.dataset._extDur = String(duration);
     }
     this.drawWaveform?.();
+    this.updateActiveMarker();
     this._emit("waveformplayer:timeupdate", { player: this, currentTime, duration, progress: this.progress, url: this.options.url });
     if (this.options.onTimeUpdate) this.options.onTimeUpdate(currentTime, duration, this);
     if (this.progress >= 1) {

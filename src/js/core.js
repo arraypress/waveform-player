@@ -115,6 +115,7 @@ export class WaveformPlayer {
         this.ctx = null;
         this.waveformData = [];
         this.progress = 0;
+        this._activeMarkerIndex = -1;
         this.isPlaying = false;
         this.isLoading = false;
         this.hasError = false;
@@ -732,6 +733,9 @@ export class WaveformPlayer {
         // so the controller can position its own audio element.
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
 
+        // Hover-time tooltip over the waveform (when showHoverTime is on).
+        this.setupHoverTime();
+
         // Window resize - store handler for cleanup
         this.resizeHandler = debounce(() => this.resizeCanvas(), 100);
         window.addEventListener('resize', this.resizeHandler);
@@ -1046,6 +1050,8 @@ export class WaveformPlayer {
 
         // Always clear existing markers first
         this.markersContainer.innerHTML = '';
+        // Re-sync the active marker on the next progress tick (the DOM was wiped).
+        this._activeMarkerIndex = -1;
 
         if (!this.options.showMarkers || !this.options.markers?.length) return;
 
@@ -1103,6 +1109,62 @@ export class WaveformPlayer {
         if (!this.markersContainer) return;
         const markers = this.markersContainer.querySelectorAll('.waveform-marker');
         markers.forEach((el, i) => el.classList.toggle('active', i === index));
+    }
+
+    /**
+     * Highlight the marker the playhead has most recently passed — the rendered
+     * marker with the greatest `time` ≤ the current time — and reveal its label.
+     * Driven from the progress loop; a no-op when there are no markers. Reuses
+     * {@link WaveformPlayer#setActiveMarker}, and only re-applies when the active
+     * marker actually changes.
+     * @private
+     */
+    updateActiveMarker() {
+        if (!this.markersContainer) return;
+        const els = this.markersContainer.querySelectorAll('.waveform-marker');
+        if (!els.length) return;
+        const dur = this.getSeekDuration();
+        const t = dur ? this.progress * dur : 0;
+        let active = -1;
+        let best = -Infinity;
+        els.forEach((el, i) => {
+            const mt = parseFloat(el.getAttribute('data-time'));
+            if (Number.isFinite(mt) && mt <= t + 0.05 && mt > best) {
+                best = mt;
+                active = i;
+            }
+        });
+        if (active !== this._activeMarkerIndex) {
+            this._activeMarkerIndex = active;
+            this.setActiveMarker(active);
+        }
+    }
+
+    /**
+     * Build a tooltip that follows the pointer over the waveform and shows the
+     * time at that position. Enabled by the `showHoverTime` option; works in both
+     * self and external modes (it only needs {@link WaveformPlayer#getSeekDuration}).
+     * Uses the same pointer-X → percentage math as seeking.
+     * @private
+     */
+    setupHoverTime() {
+        if (!this.options.showHoverTime || !this.seekEl) return;
+        const tip = document.createElement('div');
+        tip.className = 'waveform-hover-time';
+        tip.setAttribute('aria-hidden', 'true');
+        this.seekEl.appendChild(tip);
+        this.hoverTimeEl = tip;
+
+        this.seekEl.addEventListener('pointermove', (e) => {
+            const dur = this.getSeekDuration();
+            if (!dur) { tip.style.opacity = '0'; return; }
+            const rect = this.canvas.getBoundingClientRect();
+            const pct = clamp((e.clientX - rect.left) / rect.width);
+            tip.textContent = formatTime(pct * dur);
+            tip.style.left = (pct * 100) + '%';
+            tip.style.opacity = '1';
+        });
+        this.seekEl.addEventListener('pointerleave', () => { tip.style.opacity = '0'; });
     }
 
     // ============================================
@@ -1392,6 +1454,7 @@ export class WaveformPlayer {
             this.options.onTimeUpdate(this.audio.currentTime, this.audio.duration, this);
         }
 
+        this.updateActiveMarker();
         this.updateSeekAccessibility();
     }
 
@@ -1654,6 +1717,7 @@ export class WaveformPlayer {
             this.totalTimeEl.dataset._extDur = String(duration);
         }
         this.drawWaveform?.();
+        this.updateActiveMarker();
         this._emit('waveformplayer:timeupdate', {player: this, currentTime, duration, progress: this.progress, url: this.options.url});
         // Same (currentTime, duration, player) signature as self mode — the
         // arg order used to be swapped here, which made one shared handler
