@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Artwork fallback.** When the `artwork` image fails to load (404 / broken
+  URL), the player now shows a muted music-note placeholder tile instead of the
+  browser's broken-image icon.
+
 ### Fixed
 
 - **`index.d.ts` `@default` JSDoc synced with the runtime.** The hand-written

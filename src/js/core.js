@@ -18,6 +18,15 @@ import {
 
 import {DEFAULT_OPTIONS, STYLE_DEFAULTS, getColorPreset, COLOR_PRESETS} from './themes.js';
 
+/**
+ * Placeholder shown when an artwork URL fails to load (404 / broken) — a muted
+ * music-note tile, so a missing cover degrades gracefully instead of showing the
+ * browser's broken-image icon. Inline SVG data-URI (no font / network needed).
+ */
+const ARTWORK_FALLBACK = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="#71717a" fill-opacity="0.15"/><g fill="none" stroke="#a1a1aa" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="17" r="2.2"/><circle cx="17" cy="15" r="2.2"/><path d="M10.2 17V7l9-1.6v9"/></g></svg>'
+);
+
 // Keyboard seek steps (seconds) for the accessible slider.
 const SEEK_STEP_SECONDS = 5;
 const SEEK_PAGE_SECONDS = 10;
@@ -325,6 +334,12 @@ export class WaveformPlayer {
         this.titleEl = this.container.querySelector('.waveform-title');
         this.subtitleEl = this.container.querySelector('.waveform-subtitle');
         this.artworkEl = this.container.querySelector('.waveform-artwork');
+        if (this.artworkEl) {
+            // Fall back to the placeholder tile if the cover URL fails to load.
+            this.artworkEl.addEventListener('error', () => {
+                if (!this.artworkEl.src.startsWith('data:')) this.artworkEl.src = ARTWORK_FALLBACK;
+            });
+        }
         this.currentTimeEl = this.container.querySelector('.time-current');
         this.totalTimeEl = this.container.querySelector('.time-total');
         this.bpmEl = this.container.querySelector('.waveform-bpm');

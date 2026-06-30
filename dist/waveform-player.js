@@ -763,6 +763,9 @@
   };
 
   // src/js/core.js
+  var ARTWORK_FALLBACK = "data:image/svg+xml," + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="#71717a" fill-opacity="0.15"/><g fill="none" stroke="#a1a1aa" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="17" r="2.2"/><circle cx="17" cy="15" r="2.2"/><path d="M10.2 17V7l9-1.6v9"/></g></svg>'
+  );
   var SEEK_STEP_SECONDS = 5;
   var SEEK_PAGE_SECONDS = 10;
   var WaveformPlayer = class _WaveformPlayer {
@@ -1002,6 +1005,11 @@
       this.titleEl = this.container.querySelector(".waveform-title");
       this.subtitleEl = this.container.querySelector(".waveform-subtitle");
       this.artworkEl = this.container.querySelector(".waveform-artwork");
+      if (this.artworkEl) {
+        this.artworkEl.addEventListener("error", () => {
+          if (!this.artworkEl.src.startsWith("data:")) this.artworkEl.src = ARTWORK_FALLBACK;
+        });
+      }
       this.currentTimeEl = this.container.querySelector(".time-current");
       this.totalTimeEl = this.container.querySelector(".time-total");
       this.bpmEl = this.container.querySelector(".waveform-bpm");
