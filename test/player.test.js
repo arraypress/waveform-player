@@ -397,15 +397,18 @@ describe('active markers (playhead reaches a marker)', () => {
 		expect(markers[0].classList.contains('active')).toBe(false);
 		expect(markers[1].classList.contains('active')).toBe(false);
 
-		// Past the first marker only.
+		// Past the first marker only — it's highlighted and its label flashes.
 		player.setProgress(30, 120);
 		expect(markers[0].classList.contains('active')).toBe(true);
+		expect(markers[0].classList.contains('show-label')).toBe(true);
 		expect(markers[1].classList.contains('active')).toBe(false);
 
-		// Past the second marker — it takes over.
+		// Past the second marker — it takes over (highlight + label move to it).
 		player.setProgress(70, 120);
 		expect(markers[0].classList.contains('active')).toBe(false);
+		expect(markers[0].classList.contains('show-label')).toBe(false);
 		expect(markers[1].classList.contains('active')).toBe(true);
+		expect(markers[1].classList.contains('show-label')).toBe(true);
 	});
 });
 

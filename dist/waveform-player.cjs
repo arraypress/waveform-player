@@ -849,6 +849,7 @@ var WaveformPlayer = class _WaveformPlayer {
     this.waveformData = [];
     this.progress = 0;
     this._activeMarkerIndex = -1;
+    this._markerLabelTimer = null;
     this.isPlaying = false;
     this.isLoading = false;
     this.hasError = false;
@@ -1583,6 +1584,7 @@ var WaveformPlayer = class _WaveformPlayer {
     if (!this.markersContainer) return;
     this.markersContainer.innerHTML = "";
     this._activeMarkerIndex = -1;
+    clearTimeout(this._markerLabelTimer);
     if (!this.options.showMarkers || !this.options.markers?.length) return;
     const duration = this.getSeekDuration();
     if (!duration) {
@@ -1652,6 +1654,13 @@ var WaveformPlayer = class _WaveformPlayer {
     if (active !== this._activeMarkerIndex) {
       this._activeMarkerIndex = active;
       this.setActiveMarker(active);
+      clearTimeout(this._markerLabelTimer);
+      els.forEach((el, i) => el.classList.toggle("show-label", i === active));
+      if (active >= 0) {
+        this._markerLabelTimer = setTimeout(() => {
+          this.markersContainer?.querySelectorAll(".waveform-marker").forEach((el) => el.classList.remove("show-label"));
+        }, 2500);
+      }
     }
   }
   /**
@@ -2230,6 +2239,7 @@ var WaveformPlayer = class _WaveformPlayer {
     this._emit("waveformplayer:destroy", { player: this, url: this.options.url });
     this.pause();
     this.stopSmoothUpdate();
+    clearTimeout(this._markerLabelTimer);
     this._ac?.abort();
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();

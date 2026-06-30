@@ -268,8 +268,12 @@
     opacity: 1;
 }
 
-/* Reveal the marker's label when the playhead reaches it (active marker). */
-.waveform-marker.active .waveform-marker-tooltip {
+/* Briefly reveal the marker's label when the playhead reaches it. The player
+   adds `.show-label` on activation and removes it after ~2.5s, so the label
+   flashes then fades while the `.active` highlight stays. Override to taste —
+   e.g. `.waveform-marker.active .waveform-marker-tooltip { opacity: 1 }` to keep
+   it on, or `{ opacity: 0 !important }` to disable. */
+.waveform-marker.show-label .waveform-marker-tooltip {
     opacity: 1;
 }
 

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.16.1] — 2026-06-30
+
+### Changed
+
+- **Active-marker label now flashes then fades** instead of staying visible the
+  whole time the playhead is past a marker. When the playhead reaches a marker
+  its label appears for ~2.5s and then fades out, while the highlight stays.
+  Driven by a `.show-label` class the player adds/removes, so it's
+  CSS-overridable: keep it on with
+  `.waveform-marker.active .waveform-marker-tooltip { opacity: 1 }` or hide it
+  with `{ opacity: 0 !important }`.
+
 ## [1.16.0] — 2026-06-30
 
 ### Added

@@ -116,6 +116,7 @@ export class WaveformPlayer {
         this.waveformData = [];
         this.progress = 0;
         this._activeMarkerIndex = -1;
+        this._markerLabelTimer = null;
         this.isPlaying = false;
         this.isLoading = false;
         this.hasError = false;
@@ -1052,6 +1053,7 @@ export class WaveformPlayer {
         this.markersContainer.innerHTML = '';
         // Re-sync the active marker on the next progress tick (the DOM was wiped).
         this._activeMarkerIndex = -1;
+        clearTimeout(this._markerLabelTimer);
 
         if (!this.options.showMarkers || !this.options.markers?.length) return;
 
@@ -1137,6 +1139,17 @@ export class WaveformPlayer {
         if (active !== this._activeMarkerIndex) {
             this._activeMarkerIndex = active;
             this.setActiveMarker(active);
+            // Flash the newly-active marker's label, then let it fade — the
+            // highlight stays. Override via `.waveform-marker.show-label` CSS.
+            clearTimeout(this._markerLabelTimer);
+            els.forEach((el, i) => el.classList.toggle('show-label', i === active));
+            if (active >= 0) {
+                this._markerLabelTimer = setTimeout(() => {
+                    this.markersContainer
+                        ?.querySelectorAll('.waveform-marker')
+                        .forEach((el) => el.classList.remove('show-label'));
+                }, 2500);
+            }
         }
     }
 
@@ -1831,6 +1844,7 @@ export class WaveformPlayer {
         // Stop playback and animations
         this.pause();
         this.stopSmoothUpdate();
+        clearTimeout(this._markerLabelTimer);
 
         // Tear down every document/container/seek listener in one shot.
         this._ac?.abort();
