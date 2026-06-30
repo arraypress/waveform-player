@@ -31,6 +31,10 @@ const ARTWORK_FALLBACK = 'data:image/svg+xml,' + encodeURIComponent(
 const SEEK_STEP_SECONDS = 5;
 const SEEK_PAGE_SECONDS = 10;
 
+// Controls that own their own focus; a click on one of these leaves focus on
+// the control instead of focusing the player container.
+const INTERACTIVE_ELEMENTS = 'button, a[href], input, [role="slider"]';
+
 /**
  * WaveformPlayer - Modern audio player with waveform visualization
  * @class
@@ -445,11 +449,16 @@ export class WaveformPlayer {
     }
 
     /**
-     * Enable keyboard transport controls on the container.
+     * Enable keyboard transport controls scoped to this player.
      *
-     * The container is focusable only after it is clicked (it carries
-     * `tabindex="-1"` until then, and clicking steals focus from sibling
-     * players). While focused it handles: digits 0-9 (seek to that tenth of
+     * The container carries `tabindex="-1"` — focusable by script/click, but
+     * never a tab stop. Clicking a non-interactive area focuses it so the
+     * shortcuts work; clicks on an interactive control (play button, slider)
+     * leave focus on that control. Shortcuts fire only while focus is on the
+     * play button, the waveform seek slider, or the container itself, so other
+     * controls (speed button, markers) keep their own keys. The keydown
+     * listener lives on the container and also catches events bubbling up from
+     * those focused elements. Handled keys: digits 0-9 (seek to that tenth of
      * the track), Space (toggle play), and — in self mode only, since
      * `this.audio` is null in external mode — arrow keys (seek ±5s, volume
      * ±0.1) and `m`/`M` (mute). Listeners use the instance abort signal.
@@ -459,17 +468,13 @@ export class WaveformPlayer {
         // Make container focusable but not in tab order by default
         this.container.setAttribute('tabindex', '-1');
 
-        // Only activate keyboard controls when explicitly focused (clicked)
-        this.container.addEventListener('click', () => {
-            // Remove focus from all other players
-            WaveformPlayer.getAllInstances().forEach(player => {
-                if (player !== this) {
-                    player.container.setAttribute('tabindex', '-1');
-                }
-            });
-            // Make this one focusable
-            this.container.setAttribute('tabindex', '0');
-            this.container.focus();
+        // Clicking the player focuses the container so its shortcuts work — but
+        // only when the click landed on a non-interactive area, so clicks on
+        // the play button / slider keep focus on that control.
+        this.container.addEventListener('click', (e) => {
+            if (!e.target.closest(INTERACTIVE_ELEMENTS)) {
+                this.container.focus();
+            }
         }, {signal: this._ac.signal});
 
         // Keyboard events. In external mode `this.audio` is null, so
@@ -477,7 +482,11 @@ export class WaveformPlayer {
         // owns those). Space (togglePlay) still works because togglePlay
         // routes through the request-play/pause events.
         this.container.addEventListener('keydown', (e) => {
-            if (document.activeElement !== this.container) return;
+            // Only act when focus is on one of these — the play button, the
+            // waveform slider, or the container itself. Other controls (speed
+            // button, markers) keep their own keys.
+            const shortcutEnabledElements = [this.playBtn, this.seekEl, this.container];
+            if (!shortcutEnabledElements.includes(e.target)) return;
 
             const key = e.key;
             const hasAudio = !!this.audio;

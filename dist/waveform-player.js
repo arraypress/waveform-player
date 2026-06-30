@@ -768,6 +768,7 @@
   );
   var SEEK_STEP_SECONDS = 5;
   var SEEK_PAGE_SECONDS = 10;
+  var INTERACTIVE_ELEMENTS = 'button, a[href], input, [role="slider"]';
   var WaveformPlayer = class _WaveformPlayer {
     /** @type {Map<string, WaveformPlayer>} */
     static instances = /* @__PURE__ */ new Map();
@@ -1090,11 +1091,16 @@
       this.updateSpeedUI();
     }
     /**
-     * Enable keyboard transport controls on the container.
+     * Enable keyboard transport controls scoped to this player.
      *
-     * The container is focusable only after it is clicked (it carries
-     * `tabindex="-1"` until then, and clicking steals focus from sibling
-     * players). While focused it handles: digits 0-9 (seek to that tenth of
+     * The container carries `tabindex="-1"` — focusable by script/click, but
+     * never a tab stop. Clicking a non-interactive area focuses it so the
+     * shortcuts work; clicks on an interactive control (play button, slider)
+     * leave focus on that control. Shortcuts fire only while focus is on the
+     * play button, the waveform seek slider, or the container itself, so other
+     * controls (speed button, markers) keep their own keys. The keydown
+     * listener lives on the container and also catches events bubbling up from
+     * those focused elements. Handled keys: digits 0-9 (seek to that tenth of
      * the track), Space (toggle play), and — in self mode only, since
      * `this.audio` is null in external mode — arrow keys (seek ±5s, volume
      * ±0.1) and `m`/`M` (mute). Listeners use the instance abort signal.
@@ -1102,17 +1108,14 @@
      */
     initKeyboardControls() {
       this.container.setAttribute("tabindex", "-1");
-      this.container.addEventListener("click", () => {
-        _WaveformPlayer.getAllInstances().forEach((player) => {
-          if (player !== this) {
-            player.container.setAttribute("tabindex", "-1");
-          }
-        });
-        this.container.setAttribute("tabindex", "0");
-        this.container.focus();
+      this.container.addEventListener("click", (e) => {
+        if (!e.target.closest(INTERACTIVE_ELEMENTS)) {
+          this.container.focus();
+        }
       }, { signal: this._ac.signal });
       this.container.addEventListener("keydown", (e) => {
-        if (document.activeElement !== this.container) return;
+        const shortcutEnabledElements = [this.playBtn, this.seekEl, this.container];
+        if (!shortcutEnabledElements.includes(e.target)) return;
         const key = e.key;
         const hasAudio = !!this.audio;
         const currentTime = hasAudio ? this.audio.currentTime : 0;

@@ -431,3 +431,85 @@ describe('artwork fallback', () => {
 		expect(img.src.startsWith('data:image/svg')).toBe(true);
 	});
 });
+
+describe('focus stability + container-scoped shortcuts', () => {
+	it('keeps focus on the play button when it is activated (no focus-steal to the container)', () => {
+		const { el } = track(mount({ title: 'X' }));
+		const playBtn = el.querySelector('.waveform-btn');
+		playBtn.focus();
+		expect(document.activeElement).toBe(playBtn);
+
+		// Activating the button bubbles a click up to the container; the
+		// container's focus-management click handler must not yank focus
+		// onto itself (the original a11y bug).
+		playBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		expect(document.activeElement).toBe(playBtn);
+	});
+
+	it('toggles play on Space while the waveform slider is focused (shortcut works anywhere in the container)', () => {
+		const { el } = track(mount({ title: 'X' }));
+		const slider = el.querySelector('.waveform-container');
+		let played = 0;
+		el.addEventListener('waveformplayer:request-play', () => { played++; });
+
+		slider.focus();
+		expect(document.activeElement).toBe(slider);
+
+		// The slider is role="slider", not a button, so it does not claim
+		// Space — the keydown bubbles to the container, which toggles play.
+		slider.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+		expect(played).toBe(1);
+	});
+
+	it('starts the player when Space is pressed with the play button focused', () => {
+		const { el } = track(mount({ title: 'X' }));
+		const playBtn = el.querySelector('.waveform-btn');
+		let played = 0;
+		el.addEventListener('waveformplayer:request-play', () => { played++; });
+
+		playBtn.focus();
+		playBtn.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+		expect(played).toBe(1);
+	});
+
+	it('pauses the player when Space is pressed with the play button focused', () => {
+		const { el, player } = track(mount({ title: 'X' }));
+		const playBtn = el.querySelector('.waveform-btn');
+		player.setPlayingState(true); // already playing
+		let paused = 0;
+		el.addEventListener('waveformplayer:request-pause', () => { paused++; });
+
+		playBtn.focus();
+		playBtn.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+		expect(paused).toBe(1);
+	});
+
+	it('focuses the container when a non-interactive area is clicked, so shortcuts work', () => {
+		const { el } = track(mount({ title: 'X' }));
+		let played = 0;
+		el.addEventListener('waveformplayer:request-play', () => { played++; });
+
+		// Click a non-interactive part of the player (the container itself);
+		// focus should land on the container so its shortcuts are armed.
+		el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		expect(document.activeElement).toBe(el);
+
+		el.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+		expect(played).toBe(1);
+	});
+
+	it('still runs non-activation transport keys (mute) while the play button is focused', () => {
+		// Self mode so there is an <audio> element for `m` to act on; the play
+		// button is in the shortcut allowlist, so mute/seek work while it's
+		// focused even though it defers Space to its own native activation.
+		const el = document.createElement('div');
+		document.body.appendChild(el);
+		const player = track(new WaveformPlayer(el, { title: 'X' }));
+		const playBtn = el.querySelector('.waveform-btn');
+		expect(player.audio.muted).toBe(false);
+
+		playBtn.focus();
+		playBtn.dispatchEvent(new KeyboardEvent('keydown', { key: 'm', bubbles: true }));
+		expect(player.audio.muted).toBe(true);
+	});
+});

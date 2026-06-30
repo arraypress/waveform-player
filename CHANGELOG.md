@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.16.2] — 2026-06-30
+
+### Fixed
+
+- **Activating the play button no longer moves keyboard focus to the player
+  wrapper.** Pressing <kbd>Space</kbd>/<kbd>Enter</kbd> (or clicking) on the
+  play button now keeps focus on the button. The container's click handler only
+  takes focus when the click lands on a non-interactive area, so interactive
+  controls keep their own focus.
+
+### Changed
+
+- **Keyboard transport shortcuts now work from the play button and waveform,
+  not just the container.** The shortcut guard fires when focus is on the play
+  button, the waveform seek slider, or the container itself — so
+  <kbd>Space</kbd> toggles play while the waveform is focused. Other controls
+  (speed button, markers) are excluded, so they keep their own keys. The
+  container is also no longer promoted into the tab order on click (it stays
+  `tabindex="-1"`).
+
 ## [1.16.1] — 2026-06-30
 
 ### Changed
