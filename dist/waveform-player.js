@@ -90,6 +90,7 @@
     setBool("showInfo");
     setBool("showTime");
     setBool("showHoverTime");
+    setBool("seekHandle");
     setBool("showBPM", "showBpm");
     setNum("bpm");
     setBool("singlePlay");
