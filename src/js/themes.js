@@ -196,6 +196,11 @@ export const DEFAULT_OPTIONS = {
     // Rounded bar caps (px). 0 = square; 1 = soft caps (default). Applies to bars/mirror.
     barRadius: 1,
 
+    // Gradient axis when waveformColor/progressColor is an array of stops:
+    // 'vertical' (top->bottom canvas gradient), 'horizontal' (hue sweep across the
+    // waveform) or 'diagonal'. Ignored for single colours.
+    waveformGradient: 'vertical',
+
     // Color preset: null = auto-detect, 'dark' = force dark, 'light' = force light
     colorPreset: null,
 

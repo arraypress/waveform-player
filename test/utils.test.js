@@ -164,6 +164,12 @@ describe('parseDataAttributes', () => {
 		plain.dataset.progressColor = '#abcdef';
 		expect(parseDataAttributes(plain).progressColor).toBe('#abcdef');
 	});
+
+	it('reads data-waveform-gradient (gradient axis)', () => {
+		const el = document.createElement('div');
+		el.dataset.waveformGradient = 'horizontal';
+		expect(parseDataAttributes(el).waveformGradient).toBe('horizontal');
+	});
 });
 
 describe('perceivedBrightness', () => {

@@ -99,6 +99,8 @@ export interface WaveformPlayerOptions {
 	barSpacing?: number;
 	/** Rounded bar-cap radius in pixels (bars/mirror). `0` = square. @default 1 */
 	barRadius?: number;
+	/** Gradient axis when waveformColor/progressColor is an array of stops. @default 'vertical' */
+	waveformGradient?: 'vertical' | 'horizontal' | 'diagonal';
 
 	// ── Colours ───────────────────────────────────────────────────
 	/** Force a colour preset, or `null` to auto-detect. @default null */

@@ -157,6 +157,7 @@ export function parseDataAttributes(element) {
     // `data-waveform-style`; the canonical long form wins if both are set.
     if (element.dataset.style) options.waveformStyle = element.dataset.style;
     if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
+    if (element.dataset.waveformGradient) options.waveformGradient = element.dataset.waveformGradient;
     setNum('barWidth');
     setNum('barSpacing');
     setNum('barRadius');

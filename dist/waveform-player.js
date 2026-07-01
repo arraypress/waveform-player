@@ -64,6 +64,7 @@
     if (element.dataset.audioMode) options.audioMode = element.dataset.audioMode;
     if (element.dataset.style) options.waveformStyle = element.dataset.style;
     if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
+    if (element.dataset.waveformGradient) options.waveformGradient = element.dataset.waveformGradient;
     setNum("barWidth");
     setNum("barSpacing");
     setNum("barRadius");
@@ -211,12 +212,20 @@
   }
 
   // src/js/drawing.js
-  function makeFill(ctx, value, height) {
+  function makeFill(ctx, value, canvas, options) {
     if (!Array.isArray(value)) return value;
-    if (value.length === 1) return value[0];
-    const grad = ctx.createLinearGradient(0, 0, 0, height);
-    value.forEach((c, i) => grad.addColorStop(i / (value.length - 1), c));
-    return grad;
+    if (value.length < 2) return value[0];
+    const w = canvas.width;
+    const h = canvas.height;
+    const dir = options && options.waveformGradient;
+    const [x0, y0, x1, y1] = dir === "horizontal" ? [0, 0, w, 0] : dir === "diagonal" ? [0, 0, w, h] : [0, 0, 0, h];
+    try {
+      const grad = ctx.createLinearGradient(x0, y0, x1, y1);
+      value.forEach((c, i) => grad.addColorStop(i / (value.length - 1), c));
+      return grad;
+    } catch (e) {
+      return value[0];
+    }
   }
   function fillBar(ctx, x, y, w, h, radii) {
     const any = Array.isArray(radii) ? radii.some((r) => r > 0) : radii > 0;
@@ -256,8 +265,8 @@
     const height = canvas.height;
     const progressWidth = progress * canvas.width;
     const radii = barRadii(options, dpr);
-    const baseFill = makeFill(ctx, options.color, height);
-    const progFill = makeFill(ctx, options.progressColor, height);
+    const baseFill = makeFill(ctx, options.color, canvas, options);
+    const progFill = makeFill(ctx, options.progressColor, canvas, options);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = baseFill;
     for (let i = 0; i < resampledPeaks.length; i++) {
@@ -293,8 +302,8 @@
     const r = barRadiusPx(options, dpr);
     const topRadii = [r, r, 0, 0];
     const botRadii = [0, 0, r, r];
-    const baseFill = makeFill(ctx, options.color, height);
-    const progFill = makeFill(ctx, options.progressColor, height);
+    const baseFill = makeFill(ctx, options.color, canvas, options);
+    const progFill = makeFill(ctx, options.progressColor, canvas, options);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = baseFill;
     for (let i = 0; i < resampledPeaks.length; i++) {
@@ -325,11 +334,13 @@
     const amplitude = height * 0.35;
     ctx.clearRect(0, 0, width, height);
     const drawCurve = (color, lineWidth, endProgress = 1, addGlow = false) => {
+      const stroke = makeFill(ctx, color, canvas, options);
+      const solid = Array.isArray(color) ? color[color.length - 1] : color;
       if (addGlow) {
         ctx.shadowBlur = 12;
-        ctx.shadowColor = color;
+        ctx.shadowColor = solid;
       }
-      ctx.strokeStyle = color;
+      ctx.strokeStyle = stroke;
       ctx.lineWidth = lineWidth;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
@@ -385,8 +396,8 @@
     const blockGap = 2 * dpr;
     const progressWidth = progress * canvas.width;
     const centerY = height / 2;
-    const baseFill = makeFill(ctx, options.color, height);
-    const progFill = makeFill(ctx, options.progressColor, height);
+    const baseFill = makeFill(ctx, options.color, canvas, options);
+    const progFill = makeFill(ctx, options.progressColor, canvas, options);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < resampledPeaks.length; i++) {
       const x = i * (barWidth + barSpacing);
@@ -413,8 +424,8 @@
     const dotRadius = Math.max(1.5 * dpr, barWidth / 2);
     const progressWidth = progress * canvas.width;
     const centerY = height / 2;
-    const baseFill = makeFill(ctx, options.color, height);
-    const progFill = makeFill(ctx, options.progressColor, height);
+    const baseFill = makeFill(ctx, options.color, canvas, options);
+    const progFill = makeFill(ctx, options.progressColor, canvas, options);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < resampledPeaks.length; i++) {
       const x = i * (barWidth + barSpacing) + barWidth / 2;
@@ -437,14 +448,14 @@
     const borderRadius = barHeight / 2;
     const active = !!options.seekActive;
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = options.color || "rgba(255, 255, 255, 0.2)";
+    ctx.fillStyle = makeFill(ctx, options.color, canvas, options) || "rgba(255, 255, 255, 0.2)";
     capsulePath(ctx, borderRadius, width, centerY, barHeight);
     ctx.fill();
     if (progress > 0) {
       const progressWidth = Math.max(borderRadius * 2, progress * width);
       ctx.save();
       ctx.globalAlpha = options.seekHandle && !active ? 0.7 : 1;
-      ctx.fillStyle = options.progressColor || "rgba(255, 255, 255, 0.9)";
+      ctx.fillStyle = makeFill(ctx, options.progressColor, canvas, options) || "rgba(255, 255, 255, 0.9)";
       capsulePath(ctx, borderRadius, progressWidth, centerY, barHeight);
       ctx.fill();
       ctx.restore();
@@ -697,6 +708,10 @@
     barSpacing: 0,
     // Rounded bar caps (px). 0 = square; 1 = soft caps (default). Applies to bars/mirror.
     barRadius: 1,
+    // Gradient axis when waveformColor/progressColor is an array of stops:
+    // 'vertical' (top->bottom canvas gradient), 'horizontal' (hue sweep across the
+    // waveform) or 'diagonal'. Ignored for single colours.
+    waveformGradient: "vertical",
     // Color preset: null = auto-detect, 'dark' = force dark, 'light' = force light
     colorPreset: null,
     // Individual color overrides (null means use preset)

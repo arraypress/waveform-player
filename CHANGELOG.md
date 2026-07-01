@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Gradient direction.** `waveformColor` / `progressColor` stop arrays now
+  render along a configurable axis — `waveformGradient: 'vertical'` (default,
+  top→bottom), `'horizontal'` (a hue sweep across the whole waveform)
+  or `'diagonal'` (also `data-waveform-gradient`).
+
 ### Changed
 
 - **Live time while scrubbing.** Dragging to seek now updates the time readout

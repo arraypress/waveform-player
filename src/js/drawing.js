@@ -7,22 +7,38 @@ import {resampleData, clamp} from './utils.js';
 
 /**
  * Resolve a fill value that may be a CSS colour string OR an array of colour
- * stops (rendered as a vertical canvas gradient). Bundle-light gradient
- * support: pass e.g. `waveformColor: ['#fafafa', '#71717a']`.
- * A single-element array collapses to that one colour; a multi-element array
- * is spread evenly from top (y=0) to bottom (y=height).
+ * stops (rendered as a canvas gradient). Bundle-light gradient support: pass
+ * e.g. `waveformColor: ['#fafafa', '#71717a']`. A single-element array collapses
+ * to that one colour; a multi-element array is spread evenly along the axis set
+ * by `options.waveformGradient`:
+ *   - `'vertical'`   (default) a canvas-height gradient (colour keyed to
+ *     absolute Y, so short bars occupy only the lower band).
+ *   - `'horizontal'` left -> right across the whole waveform (a hue sweep).
+ *   - `'diagonal'`   top-left -> bottom-right.
  * @private
  * @param {CanvasRenderingContext2D} ctx - Canvas context used to build the gradient.
  * @param {string|string[]} value - A CSS colour string, or an array of colour stops.
- * @param {number} height - Canvas height in device pixels (gradient span).
- * @returns {string|CanvasGradient} The original string, or a vertical linear gradient.
+ * @param {HTMLCanvasElement} canvas - Canvas (provides the device-pixel span).
+ * @param {Object} [options] - Drawing options; reads `waveformGradient`.
+ * @returns {string|CanvasGradient} The original string, or a linear gradient.
  */
-function makeFill(ctx, value, height) {
+function makeFill(ctx, value, canvas, options) {
     if (!Array.isArray(value)) return value;
-    if (value.length === 1) return value[0];
-    const grad = ctx.createLinearGradient(0, 0, 0, height);
-    value.forEach((c, i) => grad.addColorStop(i / (value.length - 1), c));
-    return grad;
+    if (value.length < 2) return value[0];
+    const w = canvas.width;
+    const h = canvas.height;
+    const dir = options && options.waveformGradient;
+    const [x0, y0, x1, y1] =
+        dir === 'horizontal' ? [0, 0, w, 0] :
+        dir === 'diagonal'   ? [0, 0, w, h] :
+                               [0, 0, 0, h];
+    try {
+        const grad = ctx.createLinearGradient(x0, y0, x1, y1);
+        value.forEach((c, i) => grad.addColorStop(i / (value.length - 1), c));
+        return grad;
+    } catch (e) {
+        return value[0]; // a bad stop shouldn't abort the whole render
+    }
 }
 
 /**
@@ -120,8 +136,8 @@ export function drawBars(ctx, canvas, peaks, progress, options) {
     const height = canvas.height;
     const progressWidth = progress * canvas.width;
     const radii = barRadii(options, dpr);
-    const baseFill = makeFill(ctx, options.color, height);
-    const progFill = makeFill(ctx, options.progressColor, height);
+    const baseFill = makeFill(ctx, options.color, canvas, options);
+    const progFill = makeFill(ctx, options.progressColor, canvas, options);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -184,8 +200,8 @@ export function drawMirror(ctx, canvas, peaks, progress, options) {
     const r = barRadiusPx(options, dpr);
     const topRadii = [r, r, 0, 0];   // round the upper cap
     const botRadii = [0, 0, r, r];   // round the lower cap
-    const baseFill = makeFill(ctx, options.color, height);
-    const progFill = makeFill(ctx, options.progressColor, height);
+    const baseFill = makeFill(ctx, options.color, canvas, options);
+    const progFill = makeFill(ctx, options.progressColor, canvas, options);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -252,12 +268,16 @@ export function drawLine(ctx, canvas, peaks, progress, options) {
      * @returns {void}
      */
     const drawCurve = (color, lineWidth, endProgress = 1, addGlow = false) => {
+        // strokeStyle accepts a gradient; shadowColor must be a solid string, so
+        // collapse a stop array to its last stop for the glow.
+        const stroke = makeFill(ctx, color, canvas, options);
+        const solid = Array.isArray(color) ? color[color.length - 1] : color;
         if (addGlow) {
             ctx.shadowBlur = 12;
-            ctx.shadowColor = color;
+            ctx.shadowColor = solid;
         }
 
-        ctx.strokeStyle = color;
+        ctx.strokeStyle = stroke;
         ctx.lineWidth = lineWidth;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -350,8 +370,8 @@ export function drawBlocks(ctx, canvas, peaks, progress, options) {
     const blockGap = 2 * dpr;
     const progressWidth = progress * canvas.width;
     const centerY = height / 2;
-    const baseFill = makeFill(ctx, options.color, height);
-    const progFill = makeFill(ctx, options.progressColor, height);
+    const baseFill = makeFill(ctx, options.color, canvas, options);
+    const progFill = makeFill(ctx, options.progressColor, canvas, options);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -402,8 +422,8 @@ export function drawDots(ctx, canvas, peaks, progress, options) {
     const dotRadius = Math.max(1.5 * dpr, barWidth / 2);
     const progressWidth = progress * canvas.width;
     const centerY = height / 2;
-    const baseFill = makeFill(ctx, options.color, height);
-    const progFill = makeFill(ctx, options.progressColor, height);
+    const baseFill = makeFill(ctx, options.color, canvas, options);
+    const progFill = makeFill(ctx, options.progressColor, canvas, options);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -452,7 +472,7 @@ export function drawSeekbar(ctx, canvas, peaks, progress, options) {
     ctx.clearRect(0, 0, width, height);
 
     // Draw background track
-    ctx.fillStyle = options.color || 'rgba(255, 255, 255, 0.2)';
+    ctx.fillStyle = makeFill(ctx, options.color, canvas, options) || 'rgba(255, 255, 255, 0.2)';
 
     // Rounded background track
     capsulePath(ctx, borderRadius, width, centerY, barHeight);
@@ -471,7 +491,7 @@ export function drawSeekbar(ctx, canvas, peaks, progress, options) {
         // enabled (the bar); a standalone seekbar stays at full progress.
         ctx.save();
         ctx.globalAlpha = options.seekHandle && !active ? 0.7 : 1;
-        ctx.fillStyle = options.progressColor || 'rgba(255, 255, 255, 0.9)';
+        ctx.fillStyle = makeFill(ctx, options.progressColor, canvas, options) || 'rgba(255, 255, 255, 0.9)';
         capsulePath(ctx, borderRadius, progressWidth, centerY, barHeight);
         ctx.fill();
         ctx.restore();
