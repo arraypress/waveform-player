@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.19.2] — 2026-07-02
+
+### Fixed
+
+- **Duplicate scrub time (readout + tooltip).** During a seek-drag both the
+  current-time display and the hover tooltip showed the same target time. The
+  current-time readout now owns the live scrub time and the duplicate tooltip is
+  suppressed while dragging (it still shows when there is no current-time readout
+  to fall back on).
+
+## [1.19.1] — 2026-07-01
+
 ### Changed
 
 - **Accessible playback-speed menu (#11).** The speed selector is now a proper

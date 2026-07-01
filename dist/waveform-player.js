@@ -1846,10 +1846,12 @@
       this.progress = clamp((clientX - rect.left) / rect.width);
       this.drawWaveform();
       this._updateSeekHandle();
-      this._updateHoverTip(clientX);
       const dur = this.getSeekDuration();
       if (dur && this.currentTimeEl) {
         this.currentTimeEl.textContent = formatTime(this.progress * dur);
+        this._hideHoverTip();
+      } else {
+        this._updateHoverTip(clientX);
       }
     }
     /**

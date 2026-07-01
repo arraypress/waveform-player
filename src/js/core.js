@@ -1392,12 +1392,18 @@ export class WaveformPlayer {
         this.progress = clamp((clientX - rect.left) / rect.width);
         this.drawWaveform();
         this._updateSeekHandle();
-        this._updateHoverTip(clientX);
         // Live time readout while scrubbing (Spotify-style): the audio keeps
         // playing at its old position; the display shows where release lands.
         const dur = this.getSeekDuration();
         if (dur && this.currentTimeEl) {
             this.currentTimeEl.textContent = formatTime(this.progress * dur);
+            // The current-time already shows the target — don't also pop the
+            // hover tooltip with the same value (that duplicate is the bug).
+            this._hideHoverTip();
+        } else {
+            // No current-time readout to fall back on — keep the tooltip as the
+            // only scrub feedback.
+            this._updateHoverTip(clientX);
         }
     }
 
