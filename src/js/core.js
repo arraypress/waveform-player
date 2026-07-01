@@ -811,7 +811,9 @@ export class WaveformPlayer {
             this._dragging = false;
             try { this.canvas.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ }
             this._seekFromPointer(e.clientX); // commit the seek now — audio jumps once
-            if (!this._seekHover) this._hideHoverTip();
+            // Hide the drag tooltip on release, unless hover-time keeps it (or
+            // the seekbar handle is being hovered), to avoid a hide/show flicker.
+            if (!this._seekHover && !this.options.showHoverTime) this._hideHoverTip();
             this._updateSeekHandle();
         };
         this.canvas.addEventListener('pointerup', endDrag);
@@ -1240,19 +1242,22 @@ export class WaveformPlayer {
     }
 
     /**
-     * Build a tooltip that follows the pointer over the waveform and shows the
-     * time at that position. Enabled by the `showHoverTime` option; works in both
+     * Build the time tooltip that follows the pointer over the waveform. The
+     * element is always created so **drag-scrub** can show the time you're
+     * dragging to; the *hover* reveal is gated on `showHoverTime`. Works in both
      * self and external modes (it only needs {@link WaveformPlayer#getSeekDuration}).
-     * Uses the same pointer-X → percentage math as seeking.
      * @private
      */
     setupHoverTime() {
-        if (!this.options.showHoverTime || !this.seekEl) return;
+        if (!this.seekEl) return;
         const tip = document.createElement('div');
         tip.className = 'waveform-hover-time';
         tip.setAttribute('aria-hidden', 'true');
         this.seekEl.appendChild(tip);
         this.hoverTimeEl = tip;
+
+        // Without showHoverTime the tip is drag-only — no hover listeners.
+        if (!this.options.showHoverTime) return;
 
         // Hover updates the tip; the drag handlers also call _updateHoverTip so
         // the time follows the playhead while scrubbing (Spotify-style). The
@@ -1304,6 +1309,12 @@ export class WaveformPlayer {
         this.drawWaveform();
         this._updateSeekHandle();
         this._updateHoverTip(clientX);
+        // Live time readout while scrubbing (Spotify-style): the audio keeps
+        // playing at its old position; the display shows where release lands.
+        const dur = this.getSeekDuration();
+        if (dur && this.currentTimeEl) {
+            this.currentTimeEl.textContent = formatTime(this.progress * dur);
+        }
     }
 
     /**

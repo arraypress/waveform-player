@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- **Live time while scrubbing.** Dragging to seek now updates the time readout
+  and a tooltip live at the drag position (Spotify-style) instead of only on
+  release. The tooltip appears on any waveform style during a drag (the seekbar
+  handle stays seekbar-only); `showHoverTime` still governs the hover tooltip.
+
 ## [1.17.0] — 2026-07-01
 
 ### Added

@@ -413,12 +413,19 @@ describe('active markers (playhead reaches a marker)', () => {
 });
 
 describe('hover-time tooltip', () => {
-	it('adds the tooltip element only when showHoverTime is on', () => {
+	it('creates the tooltip element regardless of showHoverTime (drag-scrub uses it)', () => {
+		// Always present so a drag can show the target time; showHoverTime gates
+		// only the hover reveal.
 		const off = track(mount({ title: 'X' }));
-		expect(off.el.querySelector('.waveform-hover-time')).toBe(null);
+		expect(off.el.querySelector('.waveform-hover-time')).toBeTruthy();
 
 		const on = track(mount({ title: 'Y', showHoverTime: true }));
 		expect(on.el.querySelector('.waveform-hover-time')).toBeTruthy();
+	});
+
+	it('has no tooltip when there is no seek surface (accessibleSeek: false)', () => {
+		const none = track(mount({ title: 'Z', accessibleSeek: false }));
+		expect(none.el.querySelector('.waveform-hover-time')).toBe(null);
 	});
 });
 

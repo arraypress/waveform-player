@@ -1368,7 +1368,7 @@
         } catch (err) {
         }
         this._seekFromPointer(e.clientX);
-        if (!this._seekHover) this._hideHoverTip();
+        if (!this._seekHover && !this.options.showHoverTime) this._hideHoverTip();
         this._updateSeekHandle();
       };
       this.canvas.addEventListener("pointerup", endDrag);
@@ -1700,19 +1700,20 @@
       }
     }
     /**
-     * Build a tooltip that follows the pointer over the waveform and shows the
-     * time at that position. Enabled by the `showHoverTime` option; works in both
+     * Build the time tooltip that follows the pointer over the waveform. The
+     * element is always created so **drag-scrub** can show the time you're
+     * dragging to; the *hover* reveal is gated on `showHoverTime`. Works in both
      * self and external modes (it only needs {@link WaveformPlayer#getSeekDuration}).
-     * Uses the same pointer-X → percentage math as seeking.
      * @private
      */
     setupHoverTime() {
-      if (!this.options.showHoverTime || !this.seekEl) return;
+      if (!this.seekEl) return;
       const tip = document.createElement("div");
       tip.className = "waveform-hover-time";
       tip.setAttribute("aria-hidden", "true");
       this.seekEl.appendChild(tip);
       this.hoverTimeEl = tip;
+      if (!this.options.showHoverTime) return;
       this.seekEl.addEventListener("pointermove", (e) => {
         if (!this._dragging) this._updateHoverTip(e.clientX);
       });
@@ -1759,6 +1760,10 @@
       this.drawWaveform();
       this._updateSeekHandle();
       this._updateHoverTip(clientX);
+      const dur = this.getSeekDuration();
+      if (dur && this.currentTimeEl) {
+        this.currentTimeEl.textContent = formatTime(this.progress * dur);
+      }
     }
     /**
      * Create the draggable seek handle — a DOM circle over the playhead, shown
