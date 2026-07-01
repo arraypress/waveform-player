@@ -508,3 +508,18 @@ describe('Space on the focused waveform slider (#10)', () => {
 		expect(plays).toBe(1);
 	});
 });
+
+describe('speed menu a11y (#11)', () => {
+	it('is a role=menu of menuitemradio options and opens via ArrowDown on the trigger', () => {
+		const { el } = mount({ showPlaybackSpeed: true, playbackRates: [0.5, 1, 1.5, 2], title: 'X' });
+		expect(el.querySelector('.speed-menu').getAttribute('role')).toBe('menu');
+		const opts = [...el.querySelectorAll('.speed-option')];
+		expect(opts.length).toBe(4);
+		expect(opts.every((o) => o.getAttribute('role') === 'menuitemradio')).toBe(true);
+		expect(opts.every((o) => o.getAttribute('tabindex') === '-1')).toBe(true);
+		const btn = el.querySelector('.speed-btn');
+		btn.focus();
+		el.querySelector('.waveform-speed').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+		expect(btn.getAttribute('aria-expanded')).toBe('true');
+	});
+});

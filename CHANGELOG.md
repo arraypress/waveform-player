@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **Accessible playback-speed menu (#11).** The speed selector is now a proper
+  `role="menu"` of `menuitemradio` options (`aria-checked` reflects the active
+  rate) with full arrow-key / Home / End navigation and focus management —
+  keyboard- and screen-reader-complete, while keeping the custom styling (no
+  native `<select>`).
+
 ### Fixed
 
 - **Multi-player Media Session hijack.** `navigator.mediaSession` is a single

@@ -295,12 +295,12 @@ export class WaveformPlayer {
           ` : ''}
           ${this.options.showPlaybackSpeed ? `
             <div class="waveform-speed">
-              <button class="speed-btn" aria-label="Playback speed" aria-haspopup="true" aria-expanded="false">
+              <button class="speed-btn" aria-label="Playback speed" aria-haspopup="menu" aria-expanded="false">
                 <span class="speed-value">1x</span>
               </button>
-              <div class="speed-menu" style="display: none;">
+              <div class="speed-menu" role="menu" aria-label="Playback speed" style="display: none;">
                 ${this.options.playbackRates.map(rate =>
-            `<button class="speed-option" data-rate="${rate}">${rate}x</button>`
+            `<button class="speed-option" role="menuitemradio" tabindex="-1" aria-checked="false" data-rate="${rate}">${rate}x</button>`
         ).join('')}
               </div>
             </div>
@@ -427,40 +427,68 @@ export class WaveformPlayer {
 
         if (!speedBtn || !speedMenu) return;
 
-        // Open/close the menu, keeping aria-expanded on the trigger in sync so
-        // assistive tech announces the state. This is a disclosure, not a full
-        // ARIA menu — the options stay plain buttons in the tab order.
+        const options = () => Array.from(speedMenu.querySelectorAll('.speed-option'));
+        const isOpen = () => speedMenu.style.display !== 'none';
+
+        // Open/close the menu (a proper role="menu"): keep aria-expanded in sync
+        // and, on open, move focus into the menu — the checked rate, else the
+        // first option — so arrow keys drive it.
         const setSpeedMenu = (open) => {
             speedMenu.style.display = open ? 'block' : 'none';
             speedBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (open) {
+                const opts = options();
+                (opts.find((o) => o.getAttribute('aria-checked') === 'true') || opts[0])?.focus();
+            }
         };
 
-        // Toggle menu
+        const focusOption = (i) => {
+            const opts = options();
+            if (opts.length) opts[(i + opts.length) % opts.length].focus();
+        };
+
+        const selectOption = (opt) => {
+            this.setPlaybackRate(parseFloat(opt.dataset.rate));
+            setSpeedMenu(false);
+            speedBtn.focus();
+        };
+
+        // Toggle from the trigger.
         speedBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            setSpeedMenu(speedMenu.style.display === 'none');
+            setSpeedMenu(!isOpen());
         }, {signal: this._ac.signal});
 
-        // Close menu when clicking outside
+        // Close when clicking outside.
         document.addEventListener('click', () => setSpeedMenu(false), {signal: this._ac.signal});
 
-        // Handle speed selection — apply the rate, close, and return focus to
-        // the trigger.
+        // Pointer + native-button (Enter/Space on an option) selection.
         speedMenu.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (e.target.classList.contains('speed-option')) {
-                this.setPlaybackRate(parseFloat(e.target.dataset.rate));
-                setSpeedMenu(false);
-                speedBtn.focus();
-            }
+            const opt = e.target.closest('.speed-option');
+            if (opt) selectOption(opt);
         }, {signal: this._ac.signal});
 
-        // Escape closes the menu and restores focus to the trigger, whether
-        // focus is on the button or one of the options.
+        // Keyboard menu: arrows/Home/End roam, Enter/Space select (via the
+        // native button click above), Escape/Tab close. ArrowDown/Up on the
+        // trigger opens and focuses the first/checked option.
         speedBtn.closest('.waveform-speed')?.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && speedMenu.style.display !== 'none') {
-                setSpeedMenu(false);
-                speedBtn.focus();
+            const opts = options();
+            const i = opts.indexOf(document.activeElement);
+            if (!isOpen()) {
+                if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && document.activeElement === speedBtn) {
+                    e.preventDefault();
+                    setSpeedMenu(true);
+                }
+                return;
+            }
+            switch (e.key) {
+                case 'ArrowDown': e.preventDefault(); focusOption(i < 0 ? 0 : i + 1); break;
+                case 'ArrowUp':   e.preventDefault(); focusOption(i < 0 ? opts.length - 1 : i - 1); break;
+                case 'Home':      e.preventDefault(); focusOption(0); break;
+                case 'End':       e.preventDefault(); focusOption(opts.length - 1); break;
+                case 'Escape':    e.preventDefault(); setSpeedMenu(false); speedBtn.focus(); break;
+                case 'Tab':       setSpeedMenu(false); break;
             }
         }, {signal: this._ac.signal});
 
@@ -1808,7 +1836,9 @@ export class WaveformPlayer {
 
         // Update active state in menu
         this.container.querySelectorAll('.speed-option').forEach(btn => {
-            btn.classList.toggle('active', parseFloat(btn.dataset.rate) === this.audio.playbackRate);
+            const on = parseFloat(btn.dataset.rate) === this.audio.playbackRate;
+            btn.classList.toggle('active', on);
+            btn.setAttribute('aria-checked', on ? 'true' : 'false');
         });
     }
 
