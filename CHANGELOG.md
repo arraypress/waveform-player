@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Multi-player Media Session hijack.** `navigator.mediaSession` is a single
+  global, but every player registered its action handlers (and metadata) at
+  *load*, so on a page with several players the last one to load captured the
+  lock-screen controls — play/pause and the scrubber drove the wrong track. A
+  player now (re)claims the handlers **and** metadata when it starts playing, so
+  the lock screen always controls the track you're actually listening to.
+
+## [1.19.0] — 2026-07-01
+
 ### Added
 
 - **Media Session track navigation.** New `onNextTrack` / `onPreviousTrack`

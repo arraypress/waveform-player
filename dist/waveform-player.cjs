@@ -1357,7 +1357,7 @@ var WaveformPlayer = class _WaveformPlayer {
   _updateMediaSession(state) {
     if (!("mediaSession" in navigator) || !this.options.enableMediaSession || !this.audio) return;
     try {
-      if (state === "playing") this._applyMediaMetadata();
+      if (state === "playing") this.initMediaSession();
       navigator.mediaSession.playbackState = state;
       const d = this.audio.duration;
       if (navigator.mediaSession.setPositionState && d && isFinite(d)) {
@@ -1526,7 +1526,6 @@ var WaveformPlayer = class _WaveformPlayer {
       }
       this.drawWaveform();
       this.renderMarkers();
-      this.initMediaSession();
       if (this.options.onLoad) {
         this.options.onLoad(this);
       }

@@ -761,7 +761,10 @@ export class WaveformPlayer {
     _updateMediaSession(state) {
         if (!('mediaSession' in navigator) || !this.options.enableMediaSession || !this.audio) return;
         try {
-            if (state === 'playing') this._applyMediaMetadata();
+            // Claim the (global, singleton) Media Session for THIS player on play —
+            // (re)register our action handlers + metadata so the lock-screen controls
+            // drive the player you're actually listening to, not the last one loaded.
+            if (state === 'playing') this.initMediaSession();
             navigator.mediaSession.playbackState = state;
             const d = this.audio.duration;
             if (navigator.mediaSession.setPositionState && d && isFinite(d)) {
@@ -982,7 +985,6 @@ export class WaveformPlayer {
 
             this.drawWaveform();
             this.renderMarkers();
-            this.initMediaSession();
 
             // Fire callback
             if (this.options.onLoad) {
