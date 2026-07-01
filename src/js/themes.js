@@ -93,23 +93,11 @@ export function detectColorScheme() {
 export const COLOR_PRESETS = {
     dark: {
         waveformColor: 'rgba(255, 255, 255, 0.3)',
-        progressColor: 'rgba(255, 255, 255, 0.9)',
-        buttonColor: 'rgba(255, 255, 255, 0.9)',
-        buttonHoverColor: 'rgba(255, 255, 255, 1)',
-        textColor: '#ffffff',
-        textSecondaryColor: 'rgba(255, 255, 255, 0.6)',
-        backgroundColor: 'rgba(255, 255, 255, 0.03)',
-        borderColor: 'rgba(255, 255, 255, 0.1)'
+        progressColor: 'rgba(255, 255, 255, 0.9)'
     },
     light: {
         waveformColor: 'rgba(0, 0, 0, 0.2)',
-        progressColor: 'rgba(0, 0, 0, 0.8)',
-        buttonColor: 'rgba(0, 0, 0, 0.8)',
-        buttonHoverColor: 'rgba(0, 0, 0, 0.9)',
-        textColor: '#333333',
-        textSecondaryColor: 'rgba(0, 0, 0, 0.6)',
-        backgroundColor: 'rgba(0, 0, 0, 0.02)',
-        borderColor: 'rgba(0, 0, 0, 0.1)'
+        progressColor: 'rgba(0, 0, 0, 0.8)'
     }
 };
 
@@ -204,15 +192,12 @@ export const DEFAULT_OPTIONS = {
     // Color preset: null = auto-detect, 'dark' = force dark, 'light' = force light
     colorPreset: null,
 
-    // Individual color overrides (null means use preset)
+    // Canvas colours (null = inherit the resolved preset; arrays = gradient
+    // stops, see waveformGradient). The DOM chrome (button, title, meta) is
+    // themed via CSS variables (--wfp-button-color / --wfp-text-color /
+    // --wfp-text-secondary-color), not JS options.
     waveformColor: null,
     progressColor: null,
-    buttonColor: null,
-    buttonHoverColor: null,
-    textColor: null,
-    textSecondaryColor: null,
-    backgroundColor: null,
-    borderColor: null,
 
     // Features
     autoplay: false,

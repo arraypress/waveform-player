@@ -177,12 +177,6 @@ export function parseDataAttributes(element) {
     // Individual color customization
     if (element.dataset.waveformColor) options.waveformColor = parseColorValue(element.dataset.waveformColor);
     if (element.dataset.progressColor) options.progressColor = parseColorValue(element.dataset.progressColor);
-    if (element.dataset.buttonColor) options.buttonColor = element.dataset.buttonColor;
-    if (element.dataset.buttonHoverColor) options.buttonHoverColor = element.dataset.buttonHoverColor;
-    if (element.dataset.textColor) options.textColor = element.dataset.textColor;
-    if (element.dataset.textSecondaryColor) options.textSecondaryColor = element.dataset.textSecondaryColor;
-    if (element.dataset.backgroundColor) options.backgroundColor = element.dataset.backgroundColor;
-    if (element.dataset.borderColor) options.borderColor = element.dataset.borderColor;
 
     // Legacy support for old attribute names
     if (element.dataset.color) options.waveformColor = element.dataset.color;

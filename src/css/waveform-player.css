@@ -6,6 +6,20 @@
     /* Neutral accent for the keyboard-focus ring + active states. Monochrome
        by default (shadcn-style); override this variable to re-tint it. */
     --wfp-accent: #71717a;
+
+    /* DOM chrome colours (dark defaults). Override any of these to re-theme the
+       button/text without touching JS. Canvas colours stay JS options. */
+    --wfp-button-color: rgba(255, 255, 255, 0.9);
+    --wfp-text-color: #ffffff;
+    --wfp-text-secondary-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Light theme — the player adds .waveform-theme-light when it detects a light
+   page (or with colorPreset: 'light'). */
+.waveform-player.waveform-theme-light {
+    --wfp-button-color: rgba(0, 0, 0, 0.8);
+    --wfp-text-color: #333333;
+    --wfp-text-secondary-color: rgba(0, 0, 0, 0.6);
 }
 
 .waveform-player * {
@@ -39,7 +53,7 @@
     border-radius: 50%;
     border: 2px solid currentColor;
     background: transparent;
-    color: inherit;
+    color: var(--wfp-button-color, inherit);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -154,6 +168,7 @@
 }
 
 .waveform-title {
+    color: var(--wfp-text-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -161,6 +176,7 @@
 }
 
 .waveform-artist {
+    color: var(--wfp-text-secondary-color);
     font-size: 11px;
     white-space: nowrap;
     overflow: hidden;
@@ -168,6 +184,7 @@
 }
 
 .waveform-time {
+    color: var(--wfp-text-secondary-color);
     font-size: 11px;
     white-space: nowrap;
     flex-shrink: 0;
@@ -175,6 +192,7 @@
 
 /* BPM display */
 .waveform-bpm {
+    color: var(--wfp-text-secondary-color);
     font-size: 11px;
     white-space: nowrap;
     flex-shrink: 0;

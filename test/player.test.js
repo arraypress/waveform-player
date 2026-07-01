@@ -352,7 +352,7 @@ describe('buttonSize', () => {
 
 	it('omits the variable by default (stylesheet default applies)', () => {
 		const { el } = mount({});
-		expect(el.querySelector('.waveform-btn').getAttribute('style')).not.toContain('--wfp-btn-size');
+		expect(el.querySelector('.waveform-btn').getAttribute('style') ?? '').not.toContain('--wfp-btn-size');
 	});
 
 	it('reads data-button-size (number → px)', () => {
@@ -485,5 +485,14 @@ describe('playback speed menu', () => {
 		btn.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
 		expect(menu.style.display).toBe('none');
 		expect(btn.getAttribute('aria-expanded')).toBe('false');
+	});
+});
+
+describe('theme class (CSS-var chrome)', () => {
+	it('adds waveform-theme-light for a light preset, not for dark', () => {
+		const l = mount({ colorPreset: 'light', title: 'X' });
+		expect(l.el.classList.contains('waveform-theme-light')).toBe(true);
+		const d = mount({ colorPreset: 'dark', title: 'X' });
+		expect(d.el.classList.contains('waveform-theme-light')).toBe(false);
 	});
 });

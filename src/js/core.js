@@ -17,7 +17,7 @@ import {
     DEFAULT_SAMPLES
 } from './utils.js';
 
-import {DEFAULT_OPTIONS, STYLE_DEFAULTS, getColorPreset, COLOR_PRESETS} from './themes.js';
+import {DEFAULT_OPTIONS, STYLE_DEFAULTS, getColorPreset, COLOR_PRESETS, detectColorScheme} from './themes.js';
 
 /**
  * Placeholder shown when an artwork URL fails to load (404 / broken) — a muted
@@ -96,6 +96,9 @@ export class WaveformPlayer {
         // explicit colorPreset or hand-set colour is never overridden.
         this._autoTheme = this.options.colorPreset == null || !COLOR_PRESETS[this.options.colorPreset];
         this._presetKeys = [];
+        // Resolved scheme name for the CSS theme class (CSS provides the DOM
+        // chrome colours via --wfp-* variables).
+        this._scheme = (this.options.colorPreset && COLOR_PRESETS[this.options.colorPreset]) ? this.options.colorPreset : detectColorScheme();
 
         // Apply preset colors only if individual colors aren't explicitly set
         for (const [key, value] of Object.entries(preset)) {
@@ -258,14 +261,11 @@ export class WaveformPlayer {
         if (isPreview) {
             this.container.classList.add('waveform-layout-preview');
         }
+        this.container.classList.toggle('waveform-theme-light', this._scheme === 'light');
 
         // Build play button HTML (conditional)
         const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn${this.options.buttonStyle === 'minimal' ? ' waveform-btn-minimal' : ''}" aria-label="Play/Pause" style="
-            border-color: ${this.options.buttonColor};
-            color: ${this.options.buttonColor};
-            ${this.options.buttonSize != null ? `--wfp-btn-size: ${typeof this.options.buttonSize === 'number' ? `${this.options.buttonSize}px` : this.options.buttonSize};` : ''}
-        ">
+        <button class="waveform-btn${this.options.buttonStyle === 'minimal' ? ' waveform-btn-minimal' : ''}" aria-label="Play/Pause"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === 'number' ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ''}>
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
         </button>
@@ -284,12 +284,12 @@ export class WaveformPlayer {
           ">
         ` : ''}
         <div class="waveform-text">
-          <span class="waveform-title" style="color: ${this.options.textColor};"></span>
-          ${this.options.artist ? `<span class="waveform-artist" style="color: ${this.options.textSecondaryColor};">${this.options.artist}</span>` : ''}
+          <span class="waveform-title"></span>
+          ${this.options.artist ? `<span class="waveform-artist">${this.options.artist}</span>` : ''}
         </div>
         <div class="waveform-meta" style="display: flex; align-items: center; gap: 1rem;">
           ${this.options.showBPM ? `
-            <span class="waveform-bpm" style="color: ${this.options.textSecondaryColor}; display: none;">
+            <span class="waveform-bpm" style="display: none;">
               <span class="bpm-value">--</span> BPM
             </span>
           ` : ''}
@@ -306,7 +306,7 @@ export class WaveformPlayer {
             </div>
           ` : ''}
           ${this.options.showTime ? `
-            <span class="waveform-time" style="color: ${this.options.textSecondaryColor};">
+            <span class="waveform-time">
               <span class="time-current">0:00</span> / <span class="time-total">0:00</span>
             </span>
           ` : ''}
@@ -1678,34 +1678,22 @@ export class WaveformPlayer {
      * @public
      */
     refreshTheme() {
-        if (!this._autoTheme || !this._presetKeys || !this._presetKeys.length) return;
+        if (!this._autoTheme) return;
+        this._scheme = detectColorScheme();
         const preset = getColorPreset(this.options.colorPreset);
-        let changed = false;
-        for (const key of this._presetKeys) {
-            if (this.options[key] !== preset[key]) {
-                this.options[key] = preset[key];
-                changed = true;
-            }
+        for (const key of (this._presetKeys || [])) {
+            if (key in preset) this.options[key] = preset[key];
         }
-        if (changed) this._applyThemeColors();
+        this._applyThemeColors();
     }
 
     /**
-     * Push the current resolved colours onto the live DOM (button border/icon,
-     * title, artist, time, BPM) and redraw the waveform.
+     * Sync the theme class (CSS drives the DOM chrome colours via `--wfp-*`
+     * variables) and redraw the canvas with the resolved waveform colours.
      * @private
      */
     _applyThemeColors() {
-        const o = this.options;
-        if (this.playBtn) {
-            this.playBtn.style.borderColor = o.buttonColor;
-            this.playBtn.style.color = o.buttonColor;
-        }
-        if (this.titleEl) this.titleEl.style.color = o.textColor;
-        if (this.artistEl) this.artistEl.style.color = o.textSecondaryColor;
-        this.container.querySelectorAll('.waveform-time, .waveform-bpm').forEach((el) => {
-            el.style.color = o.textSecondaryColor;
-        });
+        this.container.classList.toggle('waveform-theme-light', this._scheme === 'light');
         if (this.canvas) this.drawWaveform();
     }
 

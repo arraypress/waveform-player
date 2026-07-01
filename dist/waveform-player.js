@@ -78,12 +78,6 @@
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;
     if (element.dataset.waveformColor) options.waveformColor = parseColorValue(element.dataset.waveformColor);
     if (element.dataset.progressColor) options.progressColor = parseColorValue(element.dataset.progressColor);
-    if (element.dataset.buttonColor) options.buttonColor = element.dataset.buttonColor;
-    if (element.dataset.buttonHoverColor) options.buttonHoverColor = element.dataset.buttonHoverColor;
-    if (element.dataset.textColor) options.textColor = element.dataset.textColor;
-    if (element.dataset.textSecondaryColor) options.textSecondaryColor = element.dataset.textSecondaryColor;
-    if (element.dataset.backgroundColor) options.backgroundColor = element.dataset.backgroundColor;
-    if (element.dataset.borderColor) options.borderColor = element.dataset.borderColor;
     if (element.dataset.color) options.waveformColor = element.dataset.color;
     if (element.dataset.theme) options.colorPreset = element.dataset.theme;
     setBool("autoplay");
@@ -639,23 +633,11 @@
   var COLOR_PRESETS = {
     dark: {
       waveformColor: "rgba(255, 255, 255, 0.3)",
-      progressColor: "rgba(255, 255, 255, 0.9)",
-      buttonColor: "rgba(255, 255, 255, 0.9)",
-      buttonHoverColor: "rgba(255, 255, 255, 1)",
-      textColor: "#ffffff",
-      textSecondaryColor: "rgba(255, 255, 255, 0.6)",
-      backgroundColor: "rgba(255, 255, 255, 0.03)",
-      borderColor: "rgba(255, 255, 255, 0.1)"
+      progressColor: "rgba(255, 255, 255, 0.9)"
     },
     light: {
       waveformColor: "rgba(0, 0, 0, 0.2)",
-      progressColor: "rgba(0, 0, 0, 0.8)",
-      buttonColor: "rgba(0, 0, 0, 0.8)",
-      buttonHoverColor: "rgba(0, 0, 0, 0.9)",
-      textColor: "#333333",
-      textSecondaryColor: "rgba(0, 0, 0, 0.6)",
-      backgroundColor: "rgba(0, 0, 0, 0.02)",
-      borderColor: "rgba(0, 0, 0, 0.1)"
+      progressColor: "rgba(0, 0, 0, 0.8)"
     }
   };
   function getColorPreset(presetName) {
@@ -714,15 +696,12 @@
     waveformGradient: "vertical",
     // Color preset: null = auto-detect, 'dark' = force dark, 'light' = force light
     colorPreset: null,
-    // Individual color overrides (null means use preset)
+    // Canvas colours (null = inherit the resolved preset; arrays = gradient
+    // stops, see waveformGradient). The DOM chrome (button, title, meta) is
+    // themed via CSS variables (--wfp-button-color / --wfp-text-color /
+    // --wfp-text-secondary-color), not JS options.
     waveformColor: null,
     progressColor: null,
-    buttonColor: null,
-    buttonHoverColor: null,
-    textColor: null,
-    textSecondaryColor: null,
-    backgroundColor: null,
-    borderColor: null,
     // Features
     autoplay: false,
     showControls: true,
@@ -819,6 +798,7 @@
       const preset = getColorPreset(this.options.colorPreset);
       this._autoTheme = this.options.colorPreset == null || !COLOR_PRESETS[this.options.colorPreset];
       this._presetKeys = [];
+      this._scheme = this.options.colorPreset && COLOR_PRESETS[this.options.colorPreset] ? this.options.colorPreset : detectColorScheme();
       for (const [key, value] of Object.entries(preset)) {
         if (this.options[key] === null || this.options[key] === void 0) {
           this.options[key] = value;
@@ -946,12 +926,9 @@
       if (isPreview) {
         this.container.classList.add("waveform-layout-preview");
       }
+      this.container.classList.toggle("waveform-theme-light", this._scheme === "light");
       const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="Play/Pause" style="
-            border-color: ${this.options.buttonColor};
-            color: ${this.options.buttonColor};
-            ${this.options.buttonSize != null ? `--wfp-btn-size: ${typeof this.options.buttonSize === "number" ? `${this.options.buttonSize}px` : this.options.buttonSize};` : ""}
-        ">
+        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="Play/Pause"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === "number" ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ""}>
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
         </button>
@@ -968,12 +945,12 @@
           ">
         ` : ""}
         <div class="waveform-text">
-          <span class="waveform-title" style="color: ${this.options.textColor};"></span>
-          ${this.options.artist ? `<span class="waveform-artist" style="color: ${this.options.textSecondaryColor};">${this.options.artist}</span>` : ""}
+          <span class="waveform-title"></span>
+          ${this.options.artist ? `<span class="waveform-artist">${this.options.artist}</span>` : ""}
         </div>
         <div class="waveform-meta" style="display: flex; align-items: center; gap: 1rem;">
           ${this.options.showBPM ? `
-            <span class="waveform-bpm" style="color: ${this.options.textSecondaryColor}; display: none;">
+            <span class="waveform-bpm" style="display: none;">
               <span class="bpm-value">--</span> BPM
             </span>
           ` : ""}
@@ -990,7 +967,7 @@
             </div>
           ` : ""}
           ${this.options.showTime ? `
-            <span class="waveform-time" style="color: ${this.options.textSecondaryColor};">
+            <span class="waveform-time">
               <span class="time-current">0:00</span> / <span class="time-total">0:00</span>
             </span>
           ` : ""}
@@ -2065,33 +2042,21 @@
      * @public
      */
     refreshTheme() {
-      if (!this._autoTheme || !this._presetKeys || !this._presetKeys.length) return;
+      if (!this._autoTheme) return;
+      this._scheme = detectColorScheme();
       const preset = getColorPreset(this.options.colorPreset);
-      let changed = false;
-      for (const key of this._presetKeys) {
-        if (this.options[key] !== preset[key]) {
-          this.options[key] = preset[key];
-          changed = true;
-        }
+      for (const key of this._presetKeys || []) {
+        if (key in preset) this.options[key] = preset[key];
       }
-      if (changed) this._applyThemeColors();
+      this._applyThemeColors();
     }
     /**
-     * Push the current resolved colours onto the live DOM (button border/icon,
-     * title, artist, time, BPM) and redraw the waveform.
+     * Sync the theme class (CSS drives the DOM chrome colours via `--wfp-*`
+     * variables) and redraw the canvas with the resolved waveform colours.
      * @private
      */
     _applyThemeColors() {
-      const o = this.options;
-      if (this.playBtn) {
-        this.playBtn.style.borderColor = o.buttonColor;
-        this.playBtn.style.color = o.buttonColor;
-      }
-      if (this.titleEl) this.titleEl.style.color = o.textColor;
-      if (this.artistEl) this.artistEl.style.color = o.textSecondaryColor;
-      this.container.querySelectorAll(".waveform-time, .waveform-bpm").forEach((el) => {
-        el.style.color = o.textSecondaryColor;
-      });
+      this.container.classList.toggle("waveform-theme-light", this._scheme === "light");
       if (this.canvas) this.drawWaveform();
     }
     /**

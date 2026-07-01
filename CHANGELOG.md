@@ -17,6 +17,13 @@ All notable changes to this project will be documented in this file.
   `data-artist`, the `.waveform-subtitle` class -> `.waveform-artist`, and the
   `loadTrack(url, title, artist, ...)` parameter). Aligns with the bar/playlist
   and the standard "title + artist" convention. No back-compat alias.
+- **BREAKING — DOM chrome colours moved to CSS variables.** Removed the
+  `buttonColor`, `buttonHoverColor`, `textColor`, `textSecondaryColor`,
+  `backgroundColor` and `borderColor` options (and their `data-*` attributes;
+  the last three were already dead). Theme the button/title/meta text via
+  `--wfp-button-color` / `--wfp-text-color` / `--wfp-text-secondary-color` in
+  CSS instead — the player adds a `.waveform-theme-light` class when it detects
+  a light page. Canvas colours (`waveformColor` / `progressColor`) stay options.
 - **Live time while scrubbing.** Dragging to seek now updates the time readout
   and a tooltip live at the drag position (Spotify-style) instead of only on
   release. The tooltip appears on any waveform style during a drag (the seekbar

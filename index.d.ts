@@ -112,12 +112,8 @@ export interface WaveformPlayerOptions {
 	waveformColor?: string | string[] | null;
 	/** Played-through colour. Also accepts an array of stops for a gradient. */
 	progressColor?: string | string[] | null;
-	buttonColor?: string | null;
-	buttonHoverColor?: string | null;
-	textColor?: string | null;
-	textSecondaryColor?: string | null;
-	backgroundColor?: string | null;
-	borderColor?: string | null;
+	// DOM chrome colours are CSS variables now (--wfp-button-color,
+	// --wfp-text-color, --wfp-text-secondary-color), not options.
 
 	// ── Playback ──────────────────────────────────────────────────
 	/** Initial playback rate. @default 1 */
