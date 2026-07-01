@@ -451,3 +451,32 @@ describe('focus stability on activation', () => {
 		expect(document.activeElement).toBe(el);
 	});
 });
+
+describe('playback speed menu', () => {
+	it('syncs aria-expanded when toggled and closes on selection', () => {
+		const { el } = track(mount({ showPlaybackSpeed: true, title: 'X' }));
+		const btn = el.querySelector('.speed-btn');
+		const menu = el.querySelector('.speed-menu');
+		expect(btn.getAttribute('aria-expanded')).toBe('false');
+
+		btn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		expect(btn.getAttribute('aria-expanded')).toBe('true');
+		expect(menu.style.display).toBe('block');
+
+		el.querySelector('.speed-option').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		expect(btn.getAttribute('aria-expanded')).toBe('false');
+		expect(menu.style.display).toBe('none');
+	});
+
+	it('closes on Escape', () => {
+		const { el } = track(mount({ showPlaybackSpeed: true, title: 'X' }));
+		const btn = el.querySelector('.speed-btn');
+		const menu = el.querySelector('.speed-menu');
+		btn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		expect(menu.style.display).toBe('block');
+
+		btn.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+		expect(menu.style.display).toBe('none');
+		expect(btn.getAttribute('aria-expanded')).toBe('false');
+	});
+});

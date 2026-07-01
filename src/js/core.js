@@ -295,7 +295,7 @@ export class WaveformPlayer {
           ` : ''}
           ${this.options.showPlaybackSpeed ? `
             <div class="waveform-speed">
-              <button class="speed-btn" aria-label="Playback speed">
+              <button class="speed-btn" aria-label="Playback speed" aria-haspopup="true" aria-expanded="false">
                 <span class="speed-value">1x</span>
               </button>
               <div class="speed-menu" style="display: none;">
@@ -414,8 +414,9 @@ export class WaveformPlayer {
 
     /**
      * Wire up the playback-speed menu: toggle it open on the speed button,
-     * close it on any outside click, and apply the chosen rate when a
-     * `.speed-option` is clicked. All listeners are registered against the
+     * close it on outside click or Escape (keeping `aria-expanded` on the
+     * trigger in sync), and apply the chosen rate when a `.speed-option` is
+     * clicked, returning focus to the trigger. All listeners are registered against the
      * instance `AbortController` signal so {@link WaveformPlayer#destroy} tears
      * them down. No-op if the speed elements are absent.
      * @private
@@ -426,24 +427,40 @@ export class WaveformPlayer {
 
         if (!speedBtn || !speedMenu) return;
 
+        // Open/close the menu, keeping aria-expanded on the trigger in sync so
+        // assistive tech announces the state. This is a disclosure, not a full
+        // ARIA menu — the options stay plain buttons in the tab order.
+        const setSpeedMenu = (open) => {
+            speedMenu.style.display = open ? 'block' : 'none';
+            speedBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
+
         // Toggle menu
         speedBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            speedMenu.style.display = speedMenu.style.display === 'none' ? 'block' : 'none';
+            setSpeedMenu(speedMenu.style.display === 'none');
         }, {signal: this._ac.signal});
 
         // Close menu when clicking outside
-        document.addEventListener('click', () => {
-            speedMenu.style.display = 'none';
-        }, {signal: this._ac.signal});
+        document.addEventListener('click', () => setSpeedMenu(false), {signal: this._ac.signal});
 
-        // Handle speed selection
+        // Handle speed selection — apply the rate, close, and return focus to
+        // the trigger.
         speedMenu.addEventListener('click', (e) => {
             e.stopPropagation();
             if (e.target.classList.contains('speed-option')) {
-                const rate = parseFloat(e.target.dataset.rate);
-                this.setPlaybackRate(rate);
-                speedMenu.style.display = 'none';
+                this.setPlaybackRate(parseFloat(e.target.dataset.rate));
+                setSpeedMenu(false);
+                speedBtn.focus();
+            }
+        }, {signal: this._ac.signal});
+
+        // Escape closes the menu and restores focus to the trigger, whether
+        // focus is on the button or one of the options.
+        speedBtn.closest('.waveform-speed')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && speedMenu.style.display !== 'none') {
+                setSpeedMenu(false);
+                speedBtn.focus();
             }
         }, {signal: this._ac.signal});
 

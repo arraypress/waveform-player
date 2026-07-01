@@ -964,7 +964,7 @@
           ` : ""}
           ${this.options.showPlaybackSpeed ? `
             <div class="waveform-speed">
-              <button class="speed-btn" aria-label="Playback speed">
+              <button class="speed-btn" aria-label="Playback speed" aria-haspopup="true" aria-expanded="false">
                 <span class="speed-value">1x</span>
               </button>
               <div class="speed-menu" style="display: none;">
@@ -1063,8 +1063,9 @@
     }
     /**
      * Wire up the playback-speed menu: toggle it open on the speed button,
-     * close it on any outside click, and apply the chosen rate when a
-     * `.speed-option` is clicked. All listeners are registered against the
+     * close it on outside click or Escape (keeping `aria-expanded` on the
+     * trigger in sync), and apply the chosen rate when a `.speed-option` is
+     * clicked, returning focus to the trigger. All listeners are registered against the
      * instance `AbortController` signal so {@link WaveformPlayer#destroy} tears
      * them down. No-op if the speed elements are absent.
      * @private
@@ -1073,19 +1074,27 @@
       const speedBtn = this.container.querySelector(".speed-btn");
       const speedMenu = this.container.querySelector(".speed-menu");
       if (!speedBtn || !speedMenu) return;
+      const setSpeedMenu = (open) => {
+        speedMenu.style.display = open ? "block" : "none";
+        speedBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      };
       speedBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        speedMenu.style.display = speedMenu.style.display === "none" ? "block" : "none";
+        setSpeedMenu(speedMenu.style.display === "none");
       }, { signal: this._ac.signal });
-      document.addEventListener("click", () => {
-        speedMenu.style.display = "none";
-      }, { signal: this._ac.signal });
+      document.addEventListener("click", () => setSpeedMenu(false), { signal: this._ac.signal });
       speedMenu.addEventListener("click", (e) => {
         e.stopPropagation();
         if (e.target.classList.contains("speed-option")) {
-          const rate = parseFloat(e.target.dataset.rate);
-          this.setPlaybackRate(rate);
-          speedMenu.style.display = "none";
+          this.setPlaybackRate(parseFloat(e.target.dataset.rate));
+          setSpeedMenu(false);
+          speedBtn.focus();
+        }
+      }, { signal: this._ac.signal });
+      speedBtn.closest(".waveform-speed")?.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && speedMenu.style.display !== "none") {
+          setSpeedMenu(false);
+          speedBtn.focus();
         }
       }, { signal: this._ac.signal });
       this.updateSpeedUI();

@@ -19,6 +19,11 @@ All notable changes to this project will be documented in this file.
   max (no `RangeError` on very large arrays) and centralised the default sample
   count in a shared `DEFAULT_SAMPLES` (1800) constant so live extraction and
   `DEFAULT_OPTIONS` can't drift.
+- **Playback-speed menu accessibility.** The speed toggle now sets
+  `aria-haspopup` / `aria-expanded` (so the open/closed state is announced),
+  closes on `Escape`, and returns focus to the trigger after a rate is chosen.
+  Kept as a lightweight disclosure — the options remain plain buttons in the
+  tab order, no ARIA-menu machinery.
 
 ### Fixed
 
