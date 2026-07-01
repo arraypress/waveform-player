@@ -725,6 +725,13 @@ export class WaveformPlayer {
                 this.seekTo(details.seekTime);
             }
         });
+
+        // Optional queue navigation — lights up the lock-screen skip-track
+        // buttons. Registered only when a host (bar / playlist) supplies a
+        // callback; a null handler hides the button.
+        const onNext = this.options.onNextTrack, onPrev = this.options.onPreviousTrack;
+        try { navigator.mediaSession.setActionHandler('nexttrack', typeof onNext === 'function' ? () => onNext(this) : null); } catch (e) { /* unsupported */ }
+        try { navigator.mediaSession.setActionHandler('previoustrack', typeof onPrev === 'function' ? () => onPrev(this) : null); } catch (e) { /* unsupported */ }
     }
 
     /**
@@ -852,6 +859,10 @@ export class WaveformPlayer {
         const endDrag = (e) => {
             if (!this._dragging) return;
             this._dragging = false;
+            // The browser fires a click after pointerup on a tap/short drag —
+            // flag it so handleCanvasClick ignores it (a second seek from the
+            // synthetic click's coordinate can snap the playhead, e.g. to 0).
+            this._suppressClick = true;
             try { this.canvas.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ }
             this._seekFromPointer(e.clientX); // commit the seek now — audio jumps once
             // Hide the drag tooltip on release, unless hover-time keeps it (or
@@ -1407,6 +1418,8 @@ export class WaveformPlayer {
      * @fires WaveformPlayer#waveformplayer:request-seek
      */
     handleCanvasClick(event) {
+        // Ignore the synthetic click that trails a pointer drag (see endDrag).
+        if (this._suppressClick) { this._suppressClick = false; return; }
         this._seekFromPointer(event.clientX);
     }
 

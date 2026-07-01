@@ -6,6 +6,27 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **Media Session track navigation.** New `onNextTrack` / `onPreviousTrack`
+  options register lock-screen / Now-Playing **skip-track** buttons (called with
+  the player). Wired automatically by `waveform-bar` (queue) and
+  `waveform-playlist` (track nav).
+
+### Fixed
+
+- **Space starts playback while the waveform itself is focused** (#10). The seek
+  slider swallowed Space, so play/pause only worked when the player root was
+  focused. Reported by @jeryj.
+- **iOS lock-screen metadata.** Media Session metadata was set once at load
+  (iOS ignores that) and `playbackState` was never set — a blank Now-Playing
+  card. It's now re-asserted on play, with `playbackState` + `setPositionState`.
+- **Drag-seek double-fire.** The synthetic click after a pointer drag re-seeked
+  from a stale coordinate, which could snap the playhead (e.g. to the start)
+  near the beginning of a track.
+
+## [1.18.0] — 2026-07-01
+
+### Added
+
 - **Gradient direction.** `waveformColor` / `progressColor` stop arrays now
   render along a configurable axis — `waveformGradient: 'vertical'` (default,
   top→bottom), `'horizontal'` (a hue sweep across the whole waveform)

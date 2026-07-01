@@ -745,7 +745,12 @@
     onPause: null,
     onEnd: null,
     onError: null,
-    onTimeUpdate: null
+    onTimeUpdate: null,
+    // Optional queue navigation — when set, the player registers Media Session
+    // nexttrack/previoustrack handlers (lock-screen skip buttons). Called with
+    // the player instance; wired by waveform-bar / -playlist.
+    onNextTrack: null,
+    onPreviousTrack: null
   };
   var STYLE_DEFAULTS = {
     bars: { barWidth: 3, barSpacing: 1 },
@@ -1291,6 +1296,15 @@
           this.seekTo(details.seekTime);
         }
       });
+      const onNext = this.options.onNextTrack, onPrev = this.options.onPreviousTrack;
+      try {
+        navigator.mediaSession.setActionHandler("nexttrack", typeof onNext === "function" ? () => onNext(this) : null);
+      } catch (e) {
+      }
+      try {
+        navigator.mediaSession.setActionHandler("previoustrack", typeof onPrev === "function" ? () => onPrev(this) : null);
+      } catch (e) {
+      }
     }
     /**
      * Publish the current track's Media Session metadata (lock-screen /
@@ -1393,6 +1407,7 @@
       const endDrag = (e) => {
         if (!this._dragging) return;
         this._dragging = false;
+        this._suppressClick = true;
         try {
           this.canvas.releasePointerCapture(e.pointerId);
         } catch (err) {
@@ -1837,6 +1852,10 @@
      * @fires WaveformPlayer#waveformplayer:request-seek
      */
     handleCanvasClick(event) {
+      if (this._suppressClick) {
+        this._suppressClick = false;
+        return;
+      }
       this._seekFromPointer(event.clientX);
     }
     /**

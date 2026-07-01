@@ -201,6 +201,10 @@ export interface WaveformPlayerOptions {
 	onEnd?: WaveformPlayerHandler | null;
 	onError?: WaveformErrorHandler | null;
 	onTimeUpdate?: WaveformTimeUpdateHandler | null;
+	/** Called when the Media Session "next track" control is used. Registering it shows the lock-screen skip-forward button. */
+	onNextTrack?: WaveformPlayerHandler | null;
+	/** Called when the Media Session "previous track" control is used. */
+	onPreviousTrack?: WaveformPlayerHandler | null;
 }
 
 /** `detail` of `waveformplayer:play | pause | ready | destroy`. */

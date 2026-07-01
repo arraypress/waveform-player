@@ -248,7 +248,13 @@ export const DEFAULT_OPTIONS = {
     onPause: null,
     onEnd: null,
     onError: null,
-    onTimeUpdate: null
+    onTimeUpdate: null,
+
+    // Optional queue navigation — when set, the player registers Media Session
+    // nexttrack/previoustrack handlers (lock-screen skip buttons). Called with
+    // the player instance; wired by waveform-bar / -playlist.
+    onNextTrack: null,
+    onPreviousTrack: null
 };
 
 /**
