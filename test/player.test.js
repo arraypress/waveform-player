@@ -226,8 +226,8 @@ describe('core additions for controllers (v1.8.0)', () => {
 		expect(span.textContent).toContain('<img');
 	});
 
-	it('request-play detail mirrors subtitle into artist', () => {
-		const { el, player } = track(mount({ subtitle: 'DJ Foo' }));
+	it('request-play detail carries the artist', () => {
+		const { el, player } = track(mount({ artist: 'DJ Foo' }));
 		let detail = null;
 		el.addEventListener('waveformplayer:request-play', (e) => { detail = e.detail; });
 		player.play();
@@ -273,7 +273,7 @@ describe('drawing options (barRadius + gradient)', () => {
 
 describe('preview layout', () => {
 	it('adds the waveform-layout-preview class when layout is "preview"', () => {
-		const { el } = mount({ layout: 'preview', title: 'Demo', subtitle: 'Pack' });
+		const { el } = mount({ layout: 'preview', title: 'Demo', artist: 'Pack' });
 		expect(el.classList.contains('waveform-layout-preview')).toBe(true);
 	});
 

@@ -246,7 +246,7 @@ export const DEFAULT_OPTIONS = {
 
     // Content
     title: null,
-    subtitle: null,
+    artist: null,
     artwork: null,
     album: '',
 

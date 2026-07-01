@@ -17,7 +17,7 @@ function updateBuilder() {
         progressColor: getColorWithOpacity('builder-progress', 'builder-progress-opacity'),
         buttonColor: getColorWithOpacity('builder-button', 'builder-button-opacity'),
         title: document.getElementById('builder-title').value || 'Custom Player',
-        subtitle: document.getElementById('builder-subtitle').value || '',
+        artist: document.getElementById('builder-artist').value || '',
         customUrl: document.getElementById('builder-url').value,
         showTime: document.getElementById('builder-showtime').checked,
         showBPM: document.getElementById('builder-showbpm').checked,
@@ -65,12 +65,12 @@ function updateBuilder() {
         if (builderPlayer.titleEl) {
             builderPlayer.titleEl.textContent = config.title;
         }
-        if (builderPlayer.subtitleEl) {
-            if (config.subtitle) {
-                builderPlayer.subtitleEl.textContent = config.subtitle;
-                builderPlayer.subtitleEl.style.display = '';
+        if (builderPlayer.artistEl) {
+            if (config.artist) {
+                builderPlayer.artistEl.textContent = config.artist;
+                builderPlayer.artistEl.style.display = '';
             } else {
-                builderPlayer.subtitleEl.style.display = 'none';
+                builderPlayer.artistEl.style.display = 'none';
             }
         }
 
@@ -96,7 +96,7 @@ function updateBuilder() {
             progressColor: config.progressColor,
             buttonColor: config.buttonColor,
             title: config.title,
-            subtitle: config.subtitle,
+            artist: config.artist,
             showTime: config.showTime,
             showBPM: config.showBPM,
             showPlaybackSpeed: config.showPlaybackSpeed,
@@ -143,7 +143,7 @@ function generateHTMLCode(config, audioUrl) {
     attributes.push(`data-button-color="${config.buttonColor}"`);
 
     if (config.title) attributes.push(`data-title="${config.title}"`);
-    if (config.subtitle) attributes.push(`data-subtitle="${config.subtitle}"`);
+    if (config.artist) attributes.push(`data-artist="${config.artist}"`);
 
     if (!config.showTime) attributes.push(`data-show-time="false"`);
     if (config.showBPM) attributes.push(`data-show-bpm="true"`);
@@ -170,7 +170,7 @@ function generateJavaScriptCode(config, audioUrl) {
     };
 
     if (config.title) options.title = config.title;
-    if (config.subtitle) options.subtitle = config.subtitle;
+    if (config.artist) options.artist = config.artist;
     if (!config.showTime) options.showTime = false;
     if (config.showBPM) options.showBPM = true;
     if (config.showPlaybackSpeed) options.showPlaybackSpeed = true;
@@ -199,8 +199,8 @@ function AudioPlayer() {
             waveformColor: '${config.waveformColor}',
             progressColor: '${config.progressColor}',
             buttonColor: '${config.buttonColor}'${config.title ? `,
-            title: '${config.title}'` : ''}${config.subtitle ? `,
-            subtitle: '${config.subtitle}'` : ''}
+            title: '${config.title}'` : ''}${config.artist ? `,
+            artist: '${config.artist}'` : ''}
         });
         
         return () => player.destroy();
@@ -231,8 +231,8 @@ export default {
       waveformColor: '${config.waveformColor}',
       progressColor: '${config.progressColor}',
       buttonColor: '${config.buttonColor}'${config.title ? `,
-      title: '${config.title}'` : ''}${config.subtitle ? `,
-      subtitle: '${config.subtitle}'` : ''}
+      title: '${config.title}'` : ''}${config.artist ? `,
+      artist: '${config.artist}'` : ''}
     });
   },
   beforeUnmount() {
@@ -273,7 +273,7 @@ function resetPlayer() {
     document.getElementById('builder-button').value = '#ffffff';
     document.getElementById('builder-button-opacity').value = 90;
     document.getElementById('builder-title').value = 'Custom Player';
-    document.getElementById('builder-subtitle').value = '';
+    document.getElementById('builder-artist').value = '';
     document.getElementById('builder-url').value = '';
     document.getElementById('builder-showtime').checked = true;
     document.getElementById('builder-showbpm').checked = false;

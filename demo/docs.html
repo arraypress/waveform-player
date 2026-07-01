@@ -153,7 +153,7 @@
             <pre class="code-block"><code>&lt;div data-waveform-player
      data-url="audio.mp3"
      data-title="Song Title"
-     data-subtitle="Artist Name"
+     data-artist="Artist Name"
      data-waveform-style="mirror"
      data-height="80"&gt;
 &lt;/div&gt;</code></pre>
@@ -299,7 +299,7 @@ const player = new WaveformPlayer('#player', {
                         <td><code>showInfo</code></td>
                         <td>boolean</td>
                         <td>true</td>
-                        <td>Show the info bar (title, subtitle, time, BPM, speed controls). Set to <code>false</code> to
+                        <td>Show the info bar (title, artist, time, BPM, speed controls). Set to <code>false</code> to
                             hide.
                         </td>
                     </tr>
@@ -340,10 +340,10 @@ const player = new WaveformPlayer('#player', {
                         <td>Track title</td>
                     </tr>
                     <tr>
-                        <td><code>subtitle</code></td>
+                        <td><code>artist</code></td>
                         <td>string</td>
                         <td>''</td>
-                        <td>Track subtitle</td>
+                        <td>Track artist</td>
                     </tr>
                     <tr>
                         <td><code>artwork</code></td>
@@ -512,7 +512,7 @@ new WaveformPlayer('#player', {
                 <div data-waveform-player
                      data-url="assets/audio/pluck-wings.mp3"
                      data-title="Auto-detected Theme"
-                     data-subtitle="No configuration needed!">
+                     data-artist="No configuration needed!">
                 </div>
             </div>
         </section>
@@ -593,7 +593,7 @@ new WaveformPlayer('#player', {
 
             <h3>Dynamic Loading</h3>
             <div class="method">
-                <h4><code>loadTrack(url, title, subtitle, options)</code></h4>
+                <h4><code>loadTrack(url, title, artist, options)</code></h4>
                 <p>Load a new track dynamically</p>
                 <pre class="code-block"><code>await player.loadTrack(
     'new-song.mp3',
@@ -994,7 +994,7 @@ registerBlockType('my-plugin/waveform-player', {
             <pre class="code-block"><code>new WaveformPlayer('#player', {
     url: 'audio.mp3',
     title: 'Song Title',
-    subtitle: 'Artist Name',
+    artist: 'Artist Name',
     album: 'Album Name',
     artwork: 'cover.jpg',
     enableMediaSession: true  // Enabled by default

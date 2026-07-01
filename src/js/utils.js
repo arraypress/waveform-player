@@ -202,7 +202,7 @@ export function parseDataAttributes(element) {
 
     // Content and metadata
     if (element.dataset.title) options.title = element.dataset.title;
-    if (element.dataset.subtitle) options.subtitle = element.dataset.subtitle;
+    if (element.dataset.artist) options.artist = element.dataset.artist;
     if (element.dataset.album) options.album = element.dataset.album;
     if (element.dataset.artwork) options.artwork = element.dataset.artwork;
 

@@ -151,7 +151,7 @@ export interface WaveformPlayerOptions {
 	buttonSize?: number | string | null;
 	/** Show transport controls. @default true */
 	showControls?: boolean;
-	/** Show the info (title/subtitle) block. @default true */
+	/** Show the info (title/artist) block. @default true */
 	showInfo?: boolean;
 	/** Show current/total time. @default true */
 	showTime?: boolean;
@@ -188,7 +188,7 @@ export interface WaveformPlayerOptions {
 
 	// ── Content metadata ──────────────────────────────────────────
 	title?: string | null;
-	subtitle?: string | null;
+	artist?: string | null;
 	artwork?: string | null;
 	album?: string;
 	/** Message shown when audio fails to load. @default 'Unable to load audio' */
@@ -233,8 +233,7 @@ export interface WaveformTimeUpdateEventDetail {
 export interface WaveformTrackDetail {
 	url: string;
 	title: string | null;
-	subtitle: string | null;
-	artist?: string;
+	artist: string | null;
 	artwork: string | null;
 	/** Chapter markers for the track (forwarded so controllers don't re-fetch). */
 	markers?: WaveformMarker[];
@@ -305,7 +304,7 @@ export declare class WaveformPlayer {
 	/** Load (or replace) the audio URL and regenerate the waveform. */
 	load(url: string): Promise<void>;
 	/** Load a new track without re-instantiating; updates metadata then plays. */
-	loadTrack(url: string, title?: string | null, subtitle?: string | null, options?: WaveformPlayerOptions): Promise<void>;
+	loadTrack(url: string, title?: string | null, artist?: string | null, options?: WaveformPlayerOptions): Promise<void>;
 	/** Seek to an absolute time in seconds (self mode). */
 	seekTo(seconds: number): void;
 	/** Seek to a fraction of total duration, 0..1 (self mode). */

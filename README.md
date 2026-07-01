@@ -104,7 +104,7 @@ In zero-config markup, pass a gradient as a JSON array: `data-waveform-color='["
 <div data-waveform-player
      data-url="track.mp3"
      data-title="My Song"
-     data-subtitle="Artist Name"
+     data-artist="Artist Name"
      data-waveform-style="mirror"
      data-bar-radius="3"
      data-show-playback-speed="true"
@@ -156,7 +156,7 @@ const player = new WaveformPlayer('#player', {
 | `audioMode`          | `'self' \| 'external'`| `'self'`    | Own the `<audio>`, or delegate (see below)            |
 | `markers`            | `WaveformMarker[]`    | `[]`        | Chapter markers                                        |
 | `showControls`       | `boolean`             | `true`      | Show the play/pause button                             |
-| `showInfo`           | `boolean`             | `true`      | Show title/subtitle/time                               |
+| `showInfo`           | `boolean`             | `true`      | Show title/artist/time                                 |
 | `showPlaybackSpeed`  | `boolean`             | `false`     | Show the speed menu                                    |
 | `showBPM`            | `boolean`             | `false`     | Detect + display BPM                                   |
 | `autoplay`           | `boolean`             | `false`     | Play on load                                           |
@@ -227,7 +227,7 @@ Set `audioMode: 'external'` and the player becomes a visualization-only surface:
 const player = new WaveformPlayer(el, { audioMode: 'external' });
 
 el.addEventListener('waveformplayer:request-play', (e) => {
-  audio.src = e.detail.url;        // e.detail = { url, title, subtitle, artist, artwork, id, player }
+  audio.src = e.detail.url;        // e.detail = { url, title, artist, artwork, id, player }
   audio.play();
 });
 audio.addEventListener('timeupdate', () => player.setProgress(audio.currentTime, audio.duration));
@@ -237,7 +237,7 @@ audio.addEventListener('pause', () => player.setPlayingState(false));
 
 | Event                          | Detail                                              |
 | ------------------------------ | --------------------------------------------------- |
-| `waveformplayer:request-play`  | `{ url, title, subtitle, artist, artwork, id, player }` |
+| `waveformplayer:request-play`  | `{ url, title, artist, artwork, id, player }`        |
 | `waveformplayer:request-pause` | Same shape                                          |
 | `waveformplayer:request-seek`  | Same shape + `{ percent: 0..1 }`                    |
 

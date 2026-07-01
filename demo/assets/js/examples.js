@@ -28,7 +28,7 @@ function controlledVolume(vol) {
 }
 
 // Track Switching
-async function switchTrack(url, title, subtitle, button) {
+async function switchTrack(url, title, artist, button) {
     const player = WaveformPlayer.getInstance('switcher-player');
     if (!player) return;
 
@@ -38,7 +38,7 @@ async function switchTrack(url, title, subtitle, button) {
     button.classList.add('active');
 
     try {
-        await player.loadTrack(url, title, subtitle);
+        await player.loadTrack(url, title, artist);
     } catch (error) {
         console.error('Failed to load track:', error);
         button.classList.remove('active');

@@ -160,7 +160,7 @@
     font-weight: 500;
 }
 
-.waveform-subtitle {
+.waveform-artist {
     font-size: 11px;
     white-space: nowrap;
     overflow: hidden;
@@ -476,7 +476,7 @@
         font-size: 12px;
     }
 
-    .waveform-subtitle,
+    .waveform-artist,
     .waveform-time,
     .waveform-bpm {
         font-size: 10px;

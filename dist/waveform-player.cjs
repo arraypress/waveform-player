@@ -122,7 +122,7 @@ function parseDataAttributes(element) {
   setBool("singlePlay");
   setBool("playOnSeek");
   if (element.dataset.title) options.title = element.dataset.title;
-  if (element.dataset.subtitle) options.subtitle = element.dataset.subtitle;
+  if (element.dataset.artist) options.artist = element.dataset.artist;
   if (element.dataset.album) options.album = element.dataset.album;
   if (element.dataset.artwork) options.artwork = element.dataset.artwork;
   if (element.dataset.waveform) options.waveform = element.dataset.waveform;
@@ -777,7 +777,7 @@ var DEFAULT_OPTIONS = {
   seekLabel: null,
   // Content
   title: null,
-  subtitle: null,
+  artist: null,
   artwork: null,
   album: "",
   // Message shown in the error state when audio fails to load.
@@ -950,7 +950,7 @@ var WaveformPlayer = class _WaveformPlayer {
    *
    * Clears the container, resolves button alignment (`auto` → `bottom` for
    * the `bars` style, `center` otherwise), and conditionally renders the play
-   * button, info row (artwork/title/subtitle), BPM badge, playback-speed
+   * button, info row (artwork/title/artist), BPM badge, playback-speed
    * menu, and time display based on the relevant `show*` options. Caches the
    * canvas, controls, and text elements onto `this`, then sizes the canvas.
    * @private
@@ -994,7 +994,7 @@ var WaveformPlayer = class _WaveformPlayer {
         ` : ""}
         <div class="waveform-text">
           <span class="waveform-title" style="color: ${this.options.textColor};"></span>
-          ${this.options.subtitle ? `<span class="waveform-subtitle" style="color: ${this.options.textSecondaryColor};">${this.options.subtitle}</span>` : ""}
+          ${this.options.artist ? `<span class="waveform-artist" style="color: ${this.options.textSecondaryColor};">${this.options.artist}</span>` : ""}
         </div>
         <div class="waveform-meta" style="display: flex; align-items: center; gap: 1rem;">
           ${this.options.showBPM ? `
@@ -1046,7 +1046,7 @@ var WaveformPlayer = class _WaveformPlayer {
     this.canvas = this.container.querySelector("canvas");
     this.ctx = this.canvas.getContext("2d");
     this.titleEl = this.container.querySelector(".waveform-title");
-    this.subtitleEl = this.container.querySelector(".waveform-subtitle");
+    this.artistEl = this.container.querySelector(".waveform-artist");
     this.artworkEl = this.container.querySelector(".waveform-artwork");
     if (this.artworkEl) {
       this.artworkEl.addEventListener("error", () => {
@@ -1321,7 +1321,7 @@ var WaveformPlayer = class _WaveformPlayer {
     if (!this.audio) return;
     navigator.mediaSession.metadata = new MediaMetadata({
       title: this.options.title || "Unknown Track",
-      artist: this.options.subtitle || "",
+      artist: this.options.artist || "",
       album: this.options.album || "",
       artwork: this.options.artwork ? [
         { src: this.options.artwork, sizes: "512x512", type: "image/jpeg" }
@@ -1511,19 +1511,19 @@ var WaveformPlayer = class _WaveformPlayer {
    *
    * Pauses any current playback, fully resets the audio element (self mode),
    * clears error/marker/progress state, merges the new metadata into
-   * `this.options`, updates the subtitle/artwork DOM, then calls
+   * `this.options`, updates the artist/artwork DOM, then calls
    * {@link WaveformPlayer#load}. Auto-plays the new track unless
    * `options.autoplay === false`.
    * @param {string} url - Audio URL.
    * @param {string|null} [title=null] - Track title; keeps the existing
    *   title when null.
-   * @param {string|null} [subtitle=null] - Track subtitle; pass `''` to hide
-   *   the subtitle row, or null to keep the existing one.
+   * @param {string|null} [artist=null] - Track artist; pass `''` to hide
+   *   the artist row, or null to keep the existing one.
    * @param {Object} [options={}] - Additional options to merge (e.g.
    *   `preload`, `artwork`, `markers`, `autoplay`).
    * @returns {Promise<void>}
    */
-  async loadTrack(url, title = null, subtitle = null, options = {}) {
+  async loadTrack(url, title = null, artist = null, options = {}) {
     if (this.isPlaying) {
       this.pause();
     }
@@ -1546,18 +1546,18 @@ var WaveformPlayer = class _WaveformPlayer {
     this.options = mergeOptions(this.options, {
       url,
       title: title || this.options.title,
-      subtitle: subtitle || this.options.subtitle,
+      artist: artist || this.options.artist,
       ...options
     });
     if (options.preload && this.audio) {
       this.audio.preload = options.preload;
     }
-    if (this.subtitleEl) {
-      if (subtitle) {
-        this.subtitleEl.textContent = subtitle;
-        this.subtitleEl.style.display = "";
-      } else if (subtitle === "") {
-        this.subtitleEl.style.display = "none";
+    if (this.artistEl) {
+      if (artist) {
+        this.artistEl.textContent = artist;
+        this.artistEl.style.display = "";
+      } else if (artist === "") {
+        this.artistEl.style.display = "none";
       }
     }
     if (options.artwork && this.artworkEl) {
@@ -2103,7 +2103,7 @@ var WaveformPlayer = class _WaveformPlayer {
   }
   /**
    * Push the current resolved colours onto the live DOM (button border/icon,
-   * title, subtitle, time, BPM) and redraw the waveform.
+   * title, artist, time, BPM) and redraw the waveform.
    * @private
    */
   _applyThemeColors() {
@@ -2113,7 +2113,7 @@ var WaveformPlayer = class _WaveformPlayer {
       this.playBtn.style.color = o.buttonColor;
     }
     if (this.titleEl) this.titleEl.style.color = o.textColor;
-    if (this.subtitleEl) this.subtitleEl.style.color = o.textSecondaryColor;
+    if (this.artistEl) this.artistEl.style.color = o.textSecondaryColor;
     this.container.querySelectorAll(".waveform-time, .waveform-bpm").forEach((el) => {
       el.style.color = o.textSecondaryColor;
     });
@@ -2230,16 +2230,13 @@ var WaveformPlayer = class _WaveformPlayer {
    * directly: `WaveformBar.play(event.detail)`.
    *
    * @private
-   * @return {{url:string,title:?string,subtitle:?string,artist:?string,artwork:?string,player:WaveformPlayer}}
+   * @return {{url:string,title:?string,artist:?string,artwork:?string,player:WaveformPlayer}}
    */
   _buildTrackDetail() {
     return {
       url: this.options.url,
       title: this.options.title,
-      subtitle: this.options.subtitle,
-      // Core has no separate `artist` option; mirror subtitle so the
-      // published event detail is self-consistent for controllers.
-      artist: this.options.artist || this.options.subtitle,
+      artist: this.options.artist,
       artwork: this.options.artwork,
       markers: this.options.markers,
       waveform: this.options.waveform,

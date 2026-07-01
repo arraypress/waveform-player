@@ -13,6 +13,10 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **BREAKING — renamed the `subtitle` option to `artist`** (`data-subtitle` ->
+  `data-artist`, the `.waveform-subtitle` class -> `.waveform-artist`, and the
+  `loadTrack(url, title, artist, ...)` parameter). Aligns with the bar/playlist
+  and the standard "title + artist" convention. No back-compat alias.
 - **Live time while scrubbing.** Dragging to seek now updates the time readout
   and a tooltip live at the drag position (Spotify-style) instead of only on
   release. The tooltip appears on any waveform style during a drag (the seekbar
@@ -245,7 +249,7 @@ All notable changes to this project will be documented in this file.
   reaching into internals):
   - `waveformplayer:destroy` event — the symmetric counterpart to
     `:ready`; lets listeners release references on teardown.
-  - `loadTrack(url, title, subtitle, { autoplay: false })` — load / restore /
+  - `loadTrack(url, title, artist, { autoplay: false })` — load / restore /
     enqueue without forcing playback.
   - `waveformplayer:ended` now carries `{ currentTime, duration }`, and is
     synthesized in `external` mode when progress reaches the end (fires once).
@@ -267,7 +271,7 @@ All notable changes to this project will be documented in this file.
     `http`/`https`/relative URLs; rejects `javascript:`/`data:` script schemes).
   - `setVolume()` now coerces + guards non-finite input (no more `NaN` reaching
     `audio.volume`).
-  - The `request-*` event detail's `artist` now falls back to `subtitle`, so the
+  - The `request-*` event detail now always includes an `artist` field, so the
     published contract is self-consistent.
 - **`errorText` option** (default `'Unable to load audio'`) — customize/localize
   the message shown when audio fails to load. Escaped before render. Also
@@ -448,7 +452,7 @@ Fully additive. `audioMode` defaults to `'self'` — every existing instance beh
 
 - **JSON Config Files** — Load track configuration from external JSON files via `data-config` attribute
     - Single attribute setup: `<div data-waveform-player data-config="waveforms/track.json"></div>`
-    - JSON supports `url`, `title`, `subtitle`, `artwork`, `album`, `samples`, `peaks`, `markers`, and `meta`
+    - JSON supports `url`, `title`, `artist`, `artwork`, `album`, `samples`, `peaks`, `markers`, and `meta`
     - Priority order: JSON config (base) → data attributes (override) → JS options (override)
     - Config files are cached in memory — subsequent loads of the same file are instant
     - Works with `loadTrack()` via `options.config` for dynamic track loading
@@ -460,7 +464,7 @@ Fully additive. `audioMode` defaults to `'self'` — every existing instance beh
 {
   "url": "audio/track.mp3",
   "title": "Track Title",
-  "subtitle": "Artist Name",
+  "artist": "Artist Name",
   "artwork": "covers/artwork.webp",
   "samples": 200,
   "peaks": [
@@ -521,7 +525,7 @@ npx @arraypress/waveform-gen ./audio/*.mp3 --output ./waveforms/
 ### Features
 
 - **`showControls` option** - Hide the play/pause button for custom UI implementations (`data-show-controls="false"`)
-- **`showInfo` option** - Hide the title, subtitle, time, and metadata bar (`data-show-info="false"`)
+- **`showInfo` option** - Hide the title, artist, time, and metadata bar (`data-show-info="false"`)
 - Both options work via HTML data attributes or JavaScript API
 - Waveform automatically fills the full width when controls are hidden
 
