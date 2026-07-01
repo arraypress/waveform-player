@@ -496,3 +496,15 @@ describe('theme class (CSS-var chrome)', () => {
 		expect(d.el.classList.contains('waveform-theme-light')).toBe(false);
 	});
 });
+
+describe('Space on the focused waveform slider (#10)', () => {
+	it('toggles play when the slider is focused, not only the player root', () => {
+		const { el } = mount({ title: 'X', audioMode: 'external' });
+		const slider = el.querySelector('.waveform-container');
+		let plays = 0;
+		el.addEventListener('waveformplayer:request-play', () => { plays++; });
+		slider.focus();
+		slider.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+		expect(plays).toBe(1);
+	});
+});

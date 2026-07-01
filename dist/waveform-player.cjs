@@ -1184,6 +1184,12 @@ var WaveformPlayer = class _WaveformPlayer {
     this.applySeekLabel();
     this.updateSeekAccessibility();
     this.seekEl.addEventListener("keydown", (e) => {
+      if (e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        e.stopPropagation();
+        this.togglePlay();
+        return;
+      }
       const duration = this.getSeekDuration();
       if (!duration) return;
       const current = this.getSeekCurrentTime();
@@ -1296,14 +1302,7 @@ var WaveformPlayer = class _WaveformPlayer {
   initMediaSession() {
     if (!("mediaSession" in navigator) || !this.options.enableMediaSession) return;
     if (!this.audio) return;
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: this.options.title || "Unknown Track",
-      artist: this.options.artist || "",
-      album: this.options.album || "",
-      artwork: this.options.artwork ? [
-        { src: this.options.artwork, sizes: "512x512", type: "image/jpeg" }
-      ] : []
-    });
+    this._applyMediaMetadata();
     navigator.mediaSession.setActionHandler("play", () => this.play());
     navigator.mediaSession.setActionHandler("pause", () => this.pause());
     navigator.mediaSession.setActionHandler("seekbackward", () => {
@@ -1317,6 +1316,45 @@ var WaveformPlayer = class _WaveformPlayer {
         this.seekTo(details.seekTime);
       }
     });
+  }
+  /**
+   * Publish the current track's Media Session metadata (lock-screen /
+   * Now-Playing title, artist, album, artwork). Idempotent — safe to re-call.
+   * @private
+   */
+  _applyMediaMetadata() {
+    if (!("mediaSession" in navigator) || !this.options.enableMediaSession) return;
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: this.options.title || "Unknown Track",
+      artist: this.options.artist || "",
+      album: this.options.album || "",
+      artwork: this.options.artwork ? [
+        { src: this.options.artwork, sizes: "512x512", type: "image/jpeg" }
+      ] : []
+    });
+  }
+  /**
+   * Sync Media Session playback state + scrubber position on play/pause. iOS
+   * ignores metadata set before the media is active, so we re-assert it on
+   * play — that's what fixes the blank lock-screen card on mobile.
+   * @param {'playing'|'paused'} state
+   * @private
+   */
+  _updateMediaSession(state) {
+    if (!("mediaSession" in navigator) || !this.options.enableMediaSession || !this.audio) return;
+    try {
+      if (state === "playing") this._applyMediaMetadata();
+      navigator.mediaSession.playbackState = state;
+      const d = this.audio.duration;
+      if (navigator.mediaSession.setPositionState && d && isFinite(d)) {
+        navigator.mediaSession.setPositionState({
+          duration: d,
+          playbackRate: this.audio.playbackRate || 1,
+          position: clamp(this.audio.currentTime, 0, d)
+        });
+      }
+    } catch (e) {
+    }
   }
   // ============================================
   // Event Binding
@@ -1907,6 +1945,7 @@ var WaveformPlayer = class _WaveformPlayer {
     this.isPlaying = true;
     this.setPlayButtonState(true);
     this.startSmoothUpdate();
+    this._updateMediaSession("playing");
     this._emit("waveformplayer:play", { player: this, url: this.options.url });
     if (this.options.onPlay) {
       this.options.onPlay(this);
@@ -1925,6 +1964,7 @@ var WaveformPlayer = class _WaveformPlayer {
     this.isPlaying = false;
     this.setPlayButtonState(false);
     this.stopSmoothUpdate();
+    this._updateMediaSession("paused");
     this._emit("waveformplayer:pause", { player: this, url: this.options.url });
     if (this.options.onPause) {
       this.options.onPause(this);

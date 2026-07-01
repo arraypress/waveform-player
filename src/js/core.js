@@ -561,6 +561,17 @@ export class WaveformPlayer {
         this.updateSeekAccessibility();
 
         this.seekEl.addEventListener('keydown', (e) => {
+            // Space toggles play/pause even while the waveform slider is focused —
+            // it's a media control, so play/pause should work here too, not only
+            // when the player root is the active element (restores the pre-a11y
+            // Space path reported in #10).
+            if (e.key === ' ' || e.key === 'Spacebar') {
+                e.preventDefault();
+                e.stopPropagation();
+                this.togglePlay();
+                return;
+            }
+
             const duration = this.getSeekDuration();
             if (!duration) return;
 
@@ -698,15 +709,7 @@ export class WaveformPlayer {
         // Session handlers; ours would conflict with its.
         if (!this.audio) return;
 
-        // Set metadata
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: this.options.title || 'Unknown Track',
-            artist: this.options.artist || '',
-            album: this.options.album || '',
-            artwork: this.options.artwork ? [
-                {src: this.options.artwork, sizes: '512x512', type: 'image/jpeg'}
-            ] : []
-        });
+        this._applyMediaMetadata();
 
         // Set up action handlers
         navigator.mediaSession.setActionHandler('play', () => this.play());
@@ -722,6 +725,46 @@ export class WaveformPlayer {
                 this.seekTo(details.seekTime);
             }
         });
+    }
+
+    /**
+     * Publish the current track's Media Session metadata (lock-screen /
+     * Now-Playing title, artist, album, artwork). Idempotent — safe to re-call.
+     * @private
+     */
+    _applyMediaMetadata() {
+        if (!('mediaSession' in navigator) || !this.options.enableMediaSession) return;
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: this.options.title || 'Unknown Track',
+            artist: this.options.artist || '',
+            album: this.options.album || '',
+            artwork: this.options.artwork ? [
+                {src: this.options.artwork, sizes: '512x512', type: 'image/jpeg'}
+            ] : []
+        });
+    }
+
+    /**
+     * Sync Media Session playback state + scrubber position on play/pause. iOS
+     * ignores metadata set before the media is active, so we re-assert it on
+     * play — that's what fixes the blank lock-screen card on mobile.
+     * @param {'playing'|'paused'} state
+     * @private
+     */
+    _updateMediaSession(state) {
+        if (!('mediaSession' in navigator) || !this.options.enableMediaSession || !this.audio) return;
+        try {
+            if (state === 'playing') this._applyMediaMetadata();
+            navigator.mediaSession.playbackState = state;
+            const d = this.audio.duration;
+            if (navigator.mediaSession.setPositionState && d && isFinite(d)) {
+                navigator.mediaSession.setPositionState({
+                    duration: d,
+                    playbackRate: this.audio.playbackRate || 1,
+                    position: clamp(this.audio.currentTime, 0, d),
+                });
+            }
+        } catch (e) { /* Media Session is best-effort */ }
     }
 
     // ============================================
@@ -1464,6 +1507,10 @@ export class WaveformPlayer {
 
         this.startSmoothUpdate();
 
+        // iOS drops Media Session metadata set before playback begins — re-assert
+        // metadata + playback state now that we're actually playing.
+        this._updateMediaSession('playing');
+
         // Dispatch play event
         this._emit('waveformplayer:play', {player: this, url: this.options.url});
 
@@ -1489,6 +1536,8 @@ export class WaveformPlayer {
         this.setPlayButtonState(false);
 
         this.stopSmoothUpdate();
+
+        this._updateMediaSession('paused');
 
         // Dispatch pause event
         this._emit('waveformplayer:pause', {player: this, url: this.options.url});
