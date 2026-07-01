@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- **Seekbar drag-to-scrub.** Press and drag on the waveform/seekbar to scrub;
+  the seek commits on release, so audio keeps playing during the drag instead
+  of re-seeking on every move.
+- **Opt-in circular seek handle** on the `seekbar` style — `seekHandle`
+  (default `false`, also `data-seek-handle`). A draggable handle that expands on
+  hover; the bar turns it on.
+
+### Changed
+
+- **Hardened peak extraction.** Replaced `Math.max(...peaks)` with a loop-based
+  max (no `RangeError` on very large arrays) and centralised the default sample
+  count in a shared `DEFAULT_SAMPLES` (1800) constant so live extraction and
+  `DEFAULT_OPTIONS` can't drift.
+
+### Fixed
+
+- **Activating a control no longer steals keyboard focus onto the player
+  wrapper.** Clicking/activating the play button — or any interactive control
+  (slider, link, input) — now keeps focus on that control; the container only
+  takes focus when the click lands on a non-interactive area. (Reported in #10.)
+
 ## [1.16.1] — 2026-06-30
 
 ### Changed

@@ -431,3 +431,23 @@ describe('artwork fallback', () => {
 		expect(img.src.startsWith('data:image/svg')).toBe(true);
 	});
 });
+
+describe('focus stability on activation', () => {
+	it('keeps focus on the play button when it is activated (no steal to the container)', () => {
+		const { el } = track(mount({ title: 'X' }));
+		const playBtn = el.querySelector('.waveform-btn');
+		playBtn.focus();
+		expect(document.activeElement).toBe(playBtn);
+
+		// The click bubbles up to the container's focus handler, which must not
+		// pull focus onto the container and off the just-activated button.
+		playBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		expect(document.activeElement).toBe(playBtn);
+	});
+
+	it('still focuses the container when a non-interactive area is clicked', () => {
+		const { el } = track(mount({ title: 'X' }));
+		el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		expect(document.activeElement).toBe(el);
+	});
+});

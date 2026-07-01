@@ -768,6 +768,7 @@
   );
   var SEEK_STEP_SECONDS = 5;
   var SEEK_PAGE_SECONDS = 10;
+  var INTERACTIVE_ELEMENTS = 'button, a[href], input, [role="slider"]';
   var WaveformPlayer = class _WaveformPlayer {
     /** @type {Map<string, WaveformPlayer>} */
     static instances = /* @__PURE__ */ new Map();
@@ -1102,7 +1103,8 @@
      */
     initKeyboardControls() {
       this.container.setAttribute("tabindex", "-1");
-      this.container.addEventListener("click", () => {
+      this.container.addEventListener("click", (e) => {
+        if (e.target.closest(INTERACTIVE_ELEMENTS)) return;
         _WaveformPlayer.getAllInstances().forEach((player) => {
           if (player !== this) {
             player.container.setAttribute("tabindex", "-1");

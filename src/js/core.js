@@ -32,6 +32,12 @@ const ARTWORK_FALLBACK = 'data:image/svg+xml,' + encodeURIComponent(
 const SEEK_STEP_SECONDS = 5;
 const SEEK_PAGE_SECONDS = 10;
 
+// Controls that own their own focus. A click landing on one of these (or a
+// descendant) must leave focus on the control, not pull it onto the player
+// container — otherwise activating the play button/slider steals focus onto the
+// wrapper, moving it off the control the user just operated.
+const INTERACTIVE_ELEMENTS = 'button, a[href], input, [role="slider"]';
+
 /**
  * WaveformPlayer - Modern audio player with waveform visualization
  * @class
@@ -460,8 +466,12 @@ export class WaveformPlayer {
         // Make container focusable but not in tab order by default
         this.container.setAttribute('tabindex', '-1');
 
-        // Only activate keyboard controls when explicitly focused (clicked)
-        this.container.addEventListener('click', () => {
+        // Only activate keyboard controls when explicitly focused (clicked).
+        // Skip when the click landed on an interactive control (play button,
+        // link, slider, input): those own their focus, so pulling it onto the
+        // container would move focus off the control the user just activated.
+        this.container.addEventListener('click', (e) => {
+            if (e.target.closest(INTERACTIVE_ELEMENTS)) return;
             // Remove focus from all other players
             WaveformPlayer.getAllInstances().forEach(player => {
                 if (player !== this) {
