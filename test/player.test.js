@@ -71,6 +71,43 @@ describe('accessible seek slider', () => {
 		expect(seek.detail.percent).toBe(0);
 	});
 
+	it('localizes aria-valuetext with a custom seekValueText template (Spanish)', () => {
+		const { el, player } = track(
+			mount({ showTime: false, seekValueText: '%1$s de %2$s' })
+		);
+		const slider = el.querySelector('.waveform-container');
+
+		player.setProgress(30, 120);
+		expect(slider.getAttribute('aria-valuetext')).toBe('0:30 de 2:00');
+	});
+
+	it('supports reordered positional args in a translated template', () => {
+		// A translation may place the total before the current time; %2$s/%1$s
+		// must resolve independently of source order.
+		const { el, player } = track(
+			mount({ showTime: false, seekValueText: '%2$s en total, %1$s actual' })
+		);
+		const slider = el.querySelector('.waveform-container');
+
+		player.setProgress(30, 120);
+		expect(slider.getAttribute('aria-valuetext')).toBe(
+			'2:00 en total, 0:30 actual'
+		);
+	});
+
+	it('reads seekValueText from the data-seek-value-text attribute', () => {
+		const el = document.createElement('div');
+		el.dataset.seekValueText = '%1$s de %2$s';
+		document.body.appendChild(el);
+		const player = track(
+			new WaveformPlayer(el, { audioMode: 'external', showTime: false })
+		);
+		const slider = el.querySelector('.waveform-container');
+
+		player.setProgress(30, 120);
+		expect(slider.getAttribute('aria-valuetext')).toBe('0:30 de 2:00');
+	});
+
 	it('toggles aria-busy while loading', () => {
 		const { el, player } = track(mount());
 		const slider = el.querySelector('.waveform-container');

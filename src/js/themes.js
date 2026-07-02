@@ -226,8 +226,13 @@ export const DEFAULT_OPTIONS = {
     // (role="slider" + ARIA value attributes + arrow/page/home/end seeking).
     // seekLabel sets the slider's accessible name; when null it falls back
     // to the track title, then 'Seek'.
+    // seekValueText templates the slider's spoken aria-valuetext: %1$s is the
+    // current time and %2$s the total duration (both formatted M:SS). When null
+    // it falls back to '%1$s of %2$s'. Lets consumers localize the connective
+    // text without reformatting the times.
     accessibleSeek: true,
     seekLabel: null,
+    seekValueText: null,
 
     // Content
     title: null,

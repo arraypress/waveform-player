@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Localizable seek value text (`seekValueText`).** New option templating the
+  seek slider's spoken `aria-valuetext`; `%1$s` is the current time and `%2$s`
+  the total duration (both formatted `M:SS`), with sequential `%s` and reordered
+  positional args supported for translation. Defaults to `'%1$s of %2$s'`, so
+  existing output is unchanged. Also settable via `data-seek-value-text`. Lets
+  consumers localize the connective text without reformatting the times.
+
 ## [1.19.3] — 2026-07-02
 
 ### Fixed

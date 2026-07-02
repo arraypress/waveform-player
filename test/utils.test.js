@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
 	formatTime,
+	formatSeekValueText,
 	generateId,
 	mergeOptions,
 	extractTitleFromUrl,
@@ -75,6 +76,30 @@ describe('formatTime', () => {
 		expect(formatTime(-5)).toBe('0:00');
 		expect(formatTime(NaN)).toBe('0:00');
 		expect(formatTime(undefined)).toBe('0:00');
+	});
+});
+
+describe('formatSeekValueText', () => {
+	it('substitutes positional placeholders', () => {
+		expect(formatSeekValueText('%1$s of %2$s', '0:30', '2:00')).toBe(
+			'0:30 of 2:00'
+		);
+	});
+
+	it('substitutes sequential %s placeholders in order', () => {
+		expect(formatSeekValueText('%s / %s', '0:30', '2:00')).toBe(
+			'0:30 / 2:00'
+		);
+	});
+
+	it('resolves reordered positional args independently of source order', () => {
+		expect(formatSeekValueText('%2$s, %1$s', '0:30', '2:00')).toBe(
+			'2:00, 0:30'
+		);
+	});
+
+	it('leaves placeholders with no matching argument intact', () => {
+		expect(formatSeekValueText('%1$s of %2$s', '0:30')).toBe('0:30 of %2$s');
 	});
 });
 

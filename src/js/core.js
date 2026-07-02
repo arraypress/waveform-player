@@ -7,6 +7,7 @@ import {draw} from './drawing.js';
 import {generateWaveform, generatePlaceholderWaveform} from './audio.js';
 import {
     formatTime,
+    formatSeekValueText,
     extractTitleFromUrl,
     generateId,
     parseDataAttributes,
@@ -722,7 +723,11 @@ export class WaveformPlayer {
         this.seekEl.setAttribute('aria-valuenow', String(Math.round(current)));
         this.seekEl.setAttribute(
             'aria-valuetext',
-            `${formatTime(current)} of ${formatTime(duration)}`
+            formatSeekValueText(
+                this.options.seekValueText || '%1$s of %2$s',
+                formatTime(current),
+                formatTime(duration)
+            )
         );
     }
 

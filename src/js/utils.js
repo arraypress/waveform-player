@@ -220,6 +220,7 @@ export function parseDataAttributes(element) {
     // Accessibility
     setBool('accessibleSeek');
     if (element.dataset.seekLabel) options.seekLabel = element.dataset.seekLabel;
+    if (element.dataset.seekValueText) options.seekValueText = element.dataset.seekValueText;
     if (element.dataset.errorText) options.errorText = element.dataset.errorText;
 
     // Custom icons (raw SVG markup)
@@ -227,6 +228,25 @@ export function parseDataAttributes(element) {
     if (element.dataset.pauseIcon) options.pauseIcon = element.dataset.pauseIcon;
 
     return options;
+}
+
+/**
+ * Interpolate a printf-style seek value-text template.
+ *
+ * Substitutes positional (`%1$s`, `%2$s`) and sequential (`%s`) placeholders so
+ * a localized template resolves the same way `sprintf` would — including
+ * templates that reorder the arguments for a given language. Placeholders with
+ * no matching argument are left intact.
+ * @param {string} template - Value-text template, e.g. `'%1$s of %2$s'`.
+ * @param {...string} args  - Replacement values, in order (current, duration).
+ * @returns {string} The interpolated value text.
+ */
+export function formatSeekValueText(template, ...args) {
+    let sequentialIndex = 0;
+    return template.replace(/%(?:(\d+)\$)?s/g, (match, position) => {
+        const index = position ? Number(position) - 1 : sequentialIndex++;
+        return args[index] ?? match;
+    });
 }
 
 /**

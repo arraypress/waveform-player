@@ -103,10 +103,18 @@
     setBool("showMarkers");
     setBool("accessibleSeek");
     if (element.dataset.seekLabel) options.seekLabel = element.dataset.seekLabel;
+    if (element.dataset.seekValueText) options.seekValueText = element.dataset.seekValueText;
     if (element.dataset.errorText) options.errorText = element.dataset.errorText;
     if (element.dataset.playIcon) options.playIcon = element.dataset.playIcon;
     if (element.dataset.pauseIcon) options.pauseIcon = element.dataset.pauseIcon;
     return options;
+  }
+  function formatSeekValueText(template, ...args) {
+    let sequentialIndex = 0;
+    return template.replace(/%(?:(\d+)\$)?s/g, (match, position) => {
+      const index = position ? Number(position) - 1 : sequentialIndex++;
+      return args[index] ?? match;
+    });
   }
   function formatTime(seconds) {
     if (!seconds || isNaN(seconds) || seconds < 0) return "0:00";
@@ -727,8 +735,13 @@
     // (role="slider" + ARIA value attributes + arrow/page/home/end seeking).
     // seekLabel sets the slider's accessible name; when null it falls back
     // to the track title, then 'Seek'.
+    // seekValueText templates the slider's spoken aria-valuetext: %1$s is the
+    // current time and %2$s the total duration (both formatted M:SS). When null
+    // it falls back to '%1$s of %2$s'. Lets consumers localize the connective
+    // text without reformatting the times.
     accessibleSeek: true,
     seekLabel: null,
+    seekValueText: null,
     // Content
     title: null,
     artist: null,
@@ -1315,7 +1328,11 @@
       this.seekEl.setAttribute("aria-valuenow", String(Math.round(current)));
       this.seekEl.setAttribute(
         "aria-valuetext",
-        `${formatTime(current)} of ${formatTime(duration)}`
+        formatSeekValueText(
+          this.options.seekValueText || "%1$s of %2$s",
+          formatTime(current),
+          formatTime(duration)
+        )
       );
     }
     /**

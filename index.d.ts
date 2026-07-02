@@ -181,6 +181,15 @@ export interface WaveformPlayerOptions {
 	accessibleSeek?: boolean;
 	/** Accessible name for the seek slider (falls back to the title, then `'Seek'`). @default null */
 	seekLabel?: string | null;
+	/**
+	 * Template for the seek slider's spoken `aria-valuetext`. `%1$s` is the
+	 * current time and `%2$s` the total duration (both formatted `M:SS`);
+	 * sequential `%s` and reordered positional args are also supported. Lets
+	 * consumers localize the connective text without reformatting the times.
+	 * Falls back to `'%1$s of %2$s'`.
+	 * @default null
+	 */
+	seekValueText?: string | null;
 
 	// ── Content metadata ──────────────────────────────────────────
 	title?: string | null;
