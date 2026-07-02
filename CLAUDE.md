@@ -7,7 +7,7 @@ It is the foundation the rest of the `@arraypress` waveform family builds on.
 - `npm test` — vitest + jsdom (run this before committing).
 - `npm run build` — builds all dist targets (css, iife, esm, cjs, min). `prepublishOnly` runs `test && build`.
 - `npm run size` — gzipped JS/CSS sizes (~10KB JS gzip is the budget; flag regressions).
-- `npm run dev` — watch build for local demo work.
+- `npm run dev` — watch build (rebuilds dist while you test against a local HTML page).
 
 ## Architecture (`src/js/`)
 - `core.js` — the `WaveformPlayer` class (the bulk: DOM build, audio, seek, lifecycle, `loadTrack`).
@@ -30,11 +30,13 @@ It is the foundation the rest of the `@arraypress` waveform family builds on.
 - **`loadTrack` must reset per-track options.** It resets `markers` + `waveformData`, and (since 1.8.1) `this.options.waveform`. `mergeOptions` keeps prior values otherwise, so a track loaded without peaks would redraw the *previous* track's waveform. If you add per-track options (artwork/markers/peaks/bpm), reset them in `loadTrack` too.
 - jsdom has no `AudioContext` → `generateWaveform` falls back to a placeholder; that warning in test output is expected.
 - Canvas redraw is driven by a `ResizeObserver` on the canvas's parent + `resizeCanvas()`; a DOM move doesn't reliably trip it — call `resizeCanvas()` explicitly if you relocate the player.
+- **Seeking needs a Range-capable audio host.** The `<audio>` element seeks via HTTP byte-range requests; an origin that answers `200` with no `Accept-Ranges` (notably Cloudflare Pages **and** Workers Static Assets — both silently ignore ranges) lets the player seek only within already-buffered bytes → short tracks look fine, long tracks snap back to 0. It's the host, not the player. Serve audio from a range-capable origin (R2 / S3 / nginx / any real file server).
 
 ## Ecosystem (siblings in this workspace)
 - **`waveform-bar`** — persistent bottom-bar singleton (`window.WaveformBar.init(config)`); embeds one self-mode player, drives inline `external`-mode players via `data-wb-*` triggers. **Ships no `.d.ts`** — its wrappers hand-declare the config type, so adding a bar config option means updating those wrapper types manually.
 - **`waveform-player-astro` / `-react`** — typed wrappers. Astro emits `data-*`; React passes constructor options. Both **derive their prop types from this package's `WaveformPlayerOptions`** via `Omit<>`, except `style` (which stays the framework's CSS prop — use `waveformStyle` for the visual style).
 - **`waveform-bar-astro` / `-react`** — same pattern for the bar (but pass `config` through verbatim to `init()`).
+- **`waveform-editor`** — in-browser clip editor: trim, fades (5 curve shapes), gain/normalize, auto-trim silence, export WAV / peaks / MP3 (lazy lamejs). Reuses this package's `extractPeaks` + monochrome look; edits are a non-destructive op-list baked via `OfflineAudioContext`. New (v0.1).
 
 ## Publishing (npm, scoped public)
 Order matters — **core first**, then dependents (their peer dep is `@arraypress/waveform-player@^1.x`):
