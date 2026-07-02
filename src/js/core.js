@@ -242,6 +242,7 @@ export class WaveformPlayer {
         // Clear container
         this.container.innerHTML = '';
         this.container.className = 'waveform-player';
+        this.container.style.backgroundColor = this.options.backgroundColor;
 
         // Determine button alignment
         let buttonAlign = this.options.buttonAlign;

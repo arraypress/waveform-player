@@ -943,6 +943,7 @@ var WaveformPlayer = class _WaveformPlayer {
   createDOM() {
     this.container.innerHTML = "";
     this.container.className = "waveform-player";
+    this.container.style.backgroundColor = this.options.backgroundColor;
     let buttonAlign = this.options.buttonAlign;
     if (buttonAlign === "auto") {
       const style = this.options.waveformStyle;

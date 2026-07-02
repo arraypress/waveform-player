@@ -33,6 +33,11 @@ describe('construction', () => {
 		player.destroy();
 		expect(WaveformPlayer.getInstance(player.id)).toBeUndefined();
 	});
+
+	it('applies the backgroundColor option to the player container', () => {
+		const { el } = track(mount({ backgroundColor: '#123456' }));
+		expect(el.style.backgroundColor).toBe('rgb(18, 52, 86)');
+	});
 });
 
 describe('accessible seek slider', () => {
