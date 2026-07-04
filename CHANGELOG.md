@@ -12,6 +12,14 @@ All notable changes to this project will be documented in this file.
   positional args supported for translation. Defaults to `'%1$s of %2$s'`, so
   existing output is unchanged. Also settable via `data-seek-value-text`. Lets
   consumers localize the connective text without reformatting the times.
+- **Localizable UI strings.** The remaining hardcoded English strings are now
+  options (each also settable via `data-*`), so non-English UIs can translate
+  every screen-reader / lock-screen string: `playPauseLabel` (play button
+  `aria-label`, default `'Play/Pause'`), `speedLabel` (speed button + menu
+  `aria-label`, default `'Playback speed'`), `artworkAlt` (artwork `<img>` alt
+  text, default `'Album artwork'`), and `unknownTrackText` (Media Session
+  title fallback when no `title` is set, default `'Unknown Track'`). Defaults
+  reproduce the previous output, so existing behavior is unchanged.
 
 ## [1.19.3] — 2026-07-02
 

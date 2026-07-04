@@ -105,6 +105,10 @@
     if (element.dataset.seekLabel) options.seekLabel = element.dataset.seekLabel;
     if (element.dataset.seekValueText) options.seekValueText = element.dataset.seekValueText;
     if (element.dataset.errorText) options.errorText = element.dataset.errorText;
+    if (element.dataset.playPauseLabel) options.playPauseLabel = element.dataset.playPauseLabel;
+    if (element.dataset.speedLabel) options.speedLabel = element.dataset.speedLabel;
+    if (element.dataset.artworkAlt) options.artworkAlt = element.dataset.artworkAlt;
+    if (element.dataset.unknownTrackText) options.unknownTrackText = element.dataset.unknownTrackText;
     if (element.dataset.playIcon) options.playIcon = element.dataset.playIcon;
     if (element.dataset.pauseIcon) options.pauseIcon = element.dataset.pauseIcon;
     return options;
@@ -749,6 +753,15 @@
     album: "",
     // Message shown in the error state when audio fails to load.
     errorText: "Unable to load audio",
+    // Localizable UI strings (alongside seekLabel / seekValueText / errorText).
+    // These are screen-reader / assistive-tech facing, so translate them for
+    // non-English UIs. playPauseLabel/speedLabel are aria-labels; artworkAlt is
+    // the cover image alt text; unknownTrackText is the Media Session (lock-
+    // screen) title fallback used when no track title is set.
+    playPauseLabel: "Play/Pause",
+    speedLabel: "Playback speed",
+    artworkAlt: "Album artwork",
+    unknownTrackText: "Unknown Track",
     // Icons (SVG)
     playIcon: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>',
     pauseIcon: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>',
@@ -946,7 +959,7 @@
       }
       this.container.classList.toggle("waveform-theme-light", this._scheme === "light");
       const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="Play/Pause"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === "number" ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ""}>
+        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === "number" ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ""}>
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
         </button>
@@ -954,7 +967,7 @@
       const infoHTML = this.options.showInfo ? `
       <div class="waveform-info">
         ${this.options.artwork ? `
-          <img class="waveform-artwork" src="${this.options.artwork}" alt="Album artwork" style="
+          <img class="waveform-artwork" src="${this.options.artwork}" alt="${escapeHtml(this.options.artworkAlt)}" style="
             width: 40px;
             height: 40px;
             border-radius: 4px;
@@ -974,10 +987,10 @@
           ` : ""}
           ${this.options.showPlaybackSpeed ? `
             <div class="waveform-speed">
-              <button class="speed-btn" aria-label="Playback speed" aria-haspopup="menu" aria-expanded="false">
+              <button class="speed-btn" aria-label="${escapeHtml(this.options.speedLabel)}" aria-haspopup="menu" aria-expanded="false">
                 <span class="speed-value">1x</span>
               </button>
-              <div class="speed-menu" role="menu" aria-label="Playback speed" style="display: none;">
+              <div class="speed-menu" role="menu" aria-label="${escapeHtml(this.options.speedLabel)}" style="display: none;">
                 ${this.options.playbackRates.map(
         (rate) => `<button class="speed-option" role="menuitemradio" tabindex="-1" aria-checked="false" data-rate="${rate}">${rate}x</button>`
       ).join("")}
@@ -1374,7 +1387,7 @@
     _applyMediaMetadata() {
       if (!("mediaSession" in navigator) || !this.options.enableMediaSession) return;
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: this.options.title || "Unknown Track",
+        title: this.options.title || this.options.unknownTrackText,
         artist: this.options.artist || "",
         album: this.options.album || "",
         artwork: this.options.artwork ? [

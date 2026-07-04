@@ -156,6 +156,21 @@ describe('parseDataAttributes', () => {
 		expect(o.barRadius).toBe(4);
 	});
 
+	it('reads the localizable UI string data-* attributes', () => {
+		const el = document.createElement('div');
+		Object.assign(el.dataset, {
+			playPauseLabel: 'Reproducir/Pausar',
+			speedLabel: 'Velocidad',
+			artworkAlt: 'Portada',
+			unknownTrackText: 'Pista desconocida',
+		});
+		const o = parseDataAttributes(el);
+		expect(o.playPauseLabel).toBe('Reproducir/Pausar');
+		expect(o.speedLabel).toBe('Velocidad');
+		expect(o.artworkAlt).toBe('Portada');
+		expect(o.unknownTrackText).toBe('Pista desconocida');
+	});
+
 	it('accepts data-src as a shorthand alias for data-url', () => {
 		const a = document.createElement('div');
 		a.dataset.src = 'song.mp3';

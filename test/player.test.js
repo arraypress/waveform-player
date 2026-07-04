@@ -35,6 +35,47 @@ describe('construction', () => {
 	});
 });
 
+describe('localizable UI strings', () => {
+	it('defaults the play button, speed control, and artwork alt to English', () => {
+		const { el } = track(mount({ showPlaybackSpeed: true, artwork: 'cover.jpg' }));
+		expect(el.querySelector('.waveform-btn').getAttribute('aria-label')).toBe('Play/Pause');
+		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('Playback speed');
+		expect(el.querySelector('.speed-menu').getAttribute('aria-label')).toBe('Playback speed');
+		expect(el.querySelector('.waveform-artwork').getAttribute('alt')).toBe('Album artwork');
+	});
+
+	it('localizes the play button, speed control, and artwork alt via options', () => {
+		const { el } = track(mount({
+			showPlaybackSpeed: true,
+			artwork: 'cover.jpg',
+			playPauseLabel: 'Reproducir/Pausar',
+			speedLabel: 'Velocidad',
+			artworkAlt: 'Portada',
+		}));
+		expect(el.querySelector('.waveform-btn').getAttribute('aria-label')).toBe('Reproducir/Pausar');
+		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('Velocidad');
+		expect(el.querySelector('.speed-menu').getAttribute('aria-label')).toBe('Velocidad');
+		expect(el.querySelector('.waveform-artwork').getAttribute('alt')).toBe('Portada');
+	});
+
+	it('reads the localizable labels from data-* attributes', () => {
+		const el = document.createElement('div');
+		el.dataset.showPlaybackSpeed = 'true';
+		el.dataset.playPauseLabel = 'Reproducir/Pausar';
+		el.dataset.speedLabel = 'Velocidad';
+		document.body.appendChild(el);
+		track(new WaveformPlayer(el, { audioMode: 'external' }));
+		expect(el.querySelector('.waveform-btn').getAttribute('aria-label')).toBe('Reproducir/Pausar');
+		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('Velocidad');
+	});
+
+	it('escapes localizable labels to keep the aria-label attribute well-formed', () => {
+		const { el } = track(mount({ playPauseLabel: 'Play "&" Pause' }));
+		// The raw text round-trips through the DOM rather than breaking the attribute.
+		expect(el.querySelector('.waveform-btn').getAttribute('aria-label')).toBe('Play "&" Pause');
+	});
+});
+
 describe('accessible seek slider', () => {
 	it('exposes the waveform as an ARIA slider by default', () => {
 		const { el } = track(mount({ title: 'My Track' }));

@@ -223,6 +223,12 @@ export function parseDataAttributes(element) {
     if (element.dataset.seekValueText) options.seekValueText = element.dataset.seekValueText;
     if (element.dataset.errorText) options.errorText = element.dataset.errorText;
 
+    // Localizable UI strings (screen-reader / lock-screen facing)
+    if (element.dataset.playPauseLabel) options.playPauseLabel = element.dataset.playPauseLabel;
+    if (element.dataset.speedLabel) options.speedLabel = element.dataset.speedLabel;
+    if (element.dataset.artworkAlt) options.artworkAlt = element.dataset.artworkAlt;
+    if (element.dataset.unknownTrackText) options.unknownTrackText = element.dataset.unknownTrackText;
+
     // Custom icons (raw SVG markup)
     if (element.dataset.playIcon) options.playIcon = element.dataset.playIcon;
     if (element.dataset.pauseIcon) options.pauseIcon = element.dataset.pauseIcon;

@@ -190,12 +190,20 @@ export interface WaveformPlayerOptions {
 	 * @default null
 	 */
 	seekValueText?: string | null;
+	/** Accessible label (`aria-label`) for the play/pause button. Localize for non-English UIs. @default 'Play/Pause' */
+	playPauseLabel?: string;
+	/** Accessible label (`aria-label`) for the playback-speed button and menu. Localize for non-English UIs. @default 'Playback speed' */
+	speedLabel?: string;
 
 	// ── Content metadata ──────────────────────────────────────────
 	title?: string | null;
 	artist?: string | null;
 	artwork?: string | null;
 	album?: string;
+	/** Alt text for the artwork image. Localize for non-English UIs. @default 'Album artwork' */
+	artworkAlt?: string;
+	/** Media Session (lock-screen) title fallback used when no track `title` is set. Localize for non-English UIs. @default 'Unknown Track' */
+	unknownTrackText?: string;
 	/** Message shown when audio fails to load. @default 'Unable to load audio' */
 	errorText?: string;
 
