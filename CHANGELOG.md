@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.20.0] — 2026-07-05
+
 ### Added
 
 - **Localizable seek value text (`seekValueText`).** New option templating the
