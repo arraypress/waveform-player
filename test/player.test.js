@@ -265,6 +265,96 @@ describe('lifecycle + external events', () => {
 		await player.loadTrack('third.mp3', 'Third', 'Artist', { autoplay: false, waveform: [0.2, 0.4] });
 		expect(player.options.waveform).toEqual([0.2, 0.4]);
 	});
+
+	it('loadTrack updates existing artwork and alt text', async () => {
+		const { el, player } = track(mount({
+			artwork: 'first-cover.jpg',
+			artworkAlt: 'First cover',
+		}));
+		const img = el.querySelector('.waveform-artwork');
+
+		await player.loadTrack('next.mp3', 'Next', 'Artist', {
+			artwork: 'second-cover.jpg',
+			artworkAlt: 'Second cover',
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-artwork')).toBe(img);
+		expect(img.getAttribute('src')).toBe('second-cover.jpg');
+		expect(img.getAttribute('alt')).toBe('Second cover');
+		expect(player.options.artwork).toBe('second-cover.jpg');
+		expect(player.options.artworkAlt).toBe('Second cover');
+	});
+
+	it('loadTrack updates existing artist text', async () => {
+		const { el, player } = track(mount({ artist: 'First Artist' }));
+		const artistEl = el.querySelector('.waveform-artist');
+
+		await player.loadTrack('next.mp3', 'Next', 'Second Artist', {
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-artist')).toBe(artistEl);
+		expect(artistEl.textContent).toBe('Second Artist');
+		expect(player.options.artist).toBe('Second Artist');
+	});
+
+	it('loadTrack removes existing artist when artist is empty', async () => {
+		const { el, player } = track(mount({ artist: 'Artist' }));
+		expect(el.querySelector('.waveform-artist')).toBeTruthy();
+
+		await player.loadTrack('next.mp3', 'Next', '', {
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-artist')).toBe(null);
+		expect(player.options.artist).toBe(null);
+	});
+
+	it('loadTrack creates artist text when the player was initialized without it', async () => {
+		const { el, player } = track(mount());
+		expect(el.querySelector('.waveform-artist')).toBe(null);
+
+		await player.loadTrack('next.mp3', 'Next', 'Artist', {
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-artist').textContent).toBe('Artist');
+		expect(player.options.artist).toBe('Artist');
+	});
+
+	it('loadTrack removes existing artwork when artwork is empty', async () => {
+		const { el, player } = track(mount({
+			artwork: 'cover.jpg',
+			artworkAlt: 'Cover',
+		}));
+		expect(el.querySelector('.waveform-artwork')).toBeTruthy();
+
+		await player.loadTrack('next.mp3', 'Next', 'Artist', {
+			artwork: null,
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-artwork')).toBe(null);
+		expect(player.options.artwork).toBe(null);
+		expect(player.options.artworkAlt).toBe('');
+	});
+
+	it('loadTrack creates artwork when the player was initialized without it', async () => {
+		const { el, player } = track(mount());
+		expect(el.querySelector('.waveform-artwork')).toBe(null);
+
+		await player.loadTrack('next.mp3', 'Next', 'Artist', {
+			artwork: 'cover.jpg',
+			artworkAlt: 'Cover',
+			autoplay: false,
+		});
+
+		const img = el.querySelector('.waveform-artwork');
+		expect(img).toBeTruthy();
+		expect(img.getAttribute('src')).toBe('cover.jpg');
+		expect(img.getAttribute('alt')).toBe('Cover');
+	});
 });
 
 describe('core additions for controllers (v1.8.0)', () => {
