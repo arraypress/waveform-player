@@ -344,12 +344,7 @@ export class WaveformPlayer {
         this.titleEl = this.container.querySelector('.waveform-title');
         this.artistEl = this.container.querySelector('.waveform-artist');
         this.artworkEl = this.container.querySelector('.waveform-artwork');
-        if (this.artworkEl) {
-            // Fall back to the placeholder tile if the cover URL fails to load.
-            this.artworkEl.addEventListener('error', () => {
-                if (!this.artworkEl.src.startsWith('data:')) this.artworkEl.src = ARTWORK_FALLBACK;
-            });
-        }
+        this.bindArtworkFallback(this.artworkEl);
         this.currentTimeEl = this.container.querySelector('.time-current');
         this.totalTimeEl = this.container.querySelector('.time-total');
         this.bpmEl = this.container.querySelector('.waveform-bpm');
@@ -365,6 +360,109 @@ export class WaveformPlayer {
 
         // Show a caller-supplied BPM immediately (no audio decode required).
         this.updateBPMDisplay();
+    }
+
+    /**
+     * Bind the artwork error fallback to an image element.
+     *
+     * @param {HTMLImageElement|null} img - Artwork image element.
+     * @private
+     */
+    bindArtworkFallback(img) {
+        if (!img) return;
+
+        // Fall back to the placeholder tile if the cover URL fails to load.
+        img.addEventListener('error', () => {
+            if (!img.src.startsWith('data:')) img.src = ARTWORK_FALLBACK;
+        }, {signal: this._ac.signal});
+    }
+
+    /**
+     * Create an artwork image element matching the initial player markup.
+     *
+     * @returns {HTMLImageElement} Artwork image element.
+     * @private
+     */
+    createArtworkElement() {
+        const img = document.createElement('img');
+        img.className = 'waveform-artwork';
+        img.style.width = '40px';
+        img.style.height = '40px';
+        img.style.borderRadius = '4px';
+        img.style.objectFit = 'cover';
+        img.style.flexShrink = '0';
+        this.bindArtworkFallback(img);
+        return img;
+    }
+
+    /**
+     * Create an artist text element matching the initial player markup.
+     *
+     * @returns {HTMLSpanElement} Artist text element.
+     * @private
+     */
+    createArtistElement() {
+        const span = document.createElement('span');
+        span.className = 'waveform-artist';
+        return span;
+    }
+
+    /**
+     * Reconcile artist metadata and markup for the current track.
+     *
+     * @param {string|null} artist - Artist text, or a falsy value to remove it.
+     * @private
+     */
+    syncArtist(artist) {
+        this.options.artist = artist || null;
+
+        if (!this.options.showInfo) return;
+
+        if (!artist) {
+            this.artistEl?.remove();
+            this.artistEl = null;
+            return;
+        }
+
+        if (!this.artistEl) {
+            const titleEl = this.container.querySelector('.waveform-title');
+            if (!titleEl) return;
+            this.artistEl = this.createArtistElement();
+            titleEl.after(this.artistEl);
+        }
+
+        this.artistEl.textContent = artist;
+        this.artistEl.style.display = '';
+    }
+
+    /**
+     * Reconcile artwork metadata and markup for the current track.
+     *
+     * @param {string|null} artwork - Artwork image URL, or a falsy value to remove artwork.
+     * @param {string} artworkAlt - Artwork alt text.
+     * @private
+     */
+    syncArtwork(artwork, artworkAlt = '') {
+        this.options.artwork = artwork || null;
+        this.options.artworkAlt = artworkAlt || '';
+
+        if (!this.options.showInfo) return;
+
+        if (!artwork) {
+            this.artworkEl?.remove();
+            this.artworkEl = null;
+            return;
+        }
+
+        if (!this.artworkEl) {
+            const textEl = this.container.querySelector('.waveform-text');
+            if (!textEl) return;
+            this.artworkEl = this.createArtworkElement();
+            textEl.before(this.artworkEl);
+        }
+
+        this.artworkEl.src = artwork;
+        this.artworkEl.alt = artworkAlt || '';
     }
 
     /**
@@ -1045,10 +1143,13 @@ export class WaveformPlayer {
      * @param {string|null} [artist=null] - Track artist; pass `''` to hide
      *   the artist row, or null to keep the existing one.
      * @param {Object} [options={}] - Additional options to merge (e.g.
-     *   `preload`, `artwork`, `markers`, `autoplay`).
+     *   `preload`, `artwork`, `artworkAlt`, `markers`, `autoplay`).
      * @returns {Promise<void>}
      */
     async loadTrack(url, title = null, artist = null, options = {}) {
+        const hasArtworkOption = Object.prototype.hasOwnProperty.call(options, 'artwork');
+        const hasArtworkAltOption = Object.prototype.hasOwnProperty.call(options, 'artworkAlt');
+
         // Stop current playback and clear state
         if (this.isPlaying) {
             this.pause();
@@ -1079,29 +1180,37 @@ export class WaveformPlayer {
         // Update options (including preload if specified)
         this.options = mergeOptions(this.options, {
             url,
-            title: title || this.options.title,
-            artist: artist || this.options.artist,
+            title: title === null ? this.options.title : title,
+            artist: artist === null ? this.options.artist : artist,
             ...options
         });
+        if (hasArtworkOption) {
+            this.options.artwork = options.artwork || null;
+        }
+        if (hasArtworkAltOption) {
+            this.options.artworkAlt = options.artworkAlt || '';
+        } else if (hasArtworkOption) {
+            this.options.artworkAlt = this.options.artwork ? DEFAULT_OPTIONS.artworkAlt : '';
+        }
 
         // Apply preload setting if it was changed
         if (options.preload && this.audio) {
             this.audio.preload = options.preload;
         }
 
-        // Update UI elements
-        if (this.artistEl) {
-            if (artist) {
-                this.artistEl.textContent = artist;
-                this.artistEl.style.display = '';
-            } else if (artist === '') {
-                this.artistEl.style.display = 'none';
-            }
+        // Update artist only when explicitly provided. A null artist keeps the
+        // existing artist, while an empty string removes it.
+        if (artist !== null) {
+            this.syncArtist(artist);
         }
 
-        // Update artwork if provided
-        if (options.artwork && this.artworkEl) {
-            this.artworkEl.src = options.artwork;
+        // Update artwork when explicitly provided. The caller can pass an empty
+        // value to remove existing artwork from the in-place player.
+        if (hasArtworkOption || hasArtworkAltOption) {
+            this.syncArtwork(
+                hasArtworkOption ? options.artwork : this.options.artwork,
+                hasArtworkAltOption ? options.artworkAlt : this.options.artworkAlt
+            );
         }
 
         // Clear or update markers
