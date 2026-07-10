@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.21.0] — 2026-07-10
+
+### Changed
+
+- **`loadTrack()` now reconciles artist & artwork metadata in place.**
+  Previously `loadTrack()` could only update the artist text or artwork image
+  when the corresponding element already existed, so switching to a track that
+  *added* or *removed* artist/artwork meant destroying and recreating the whole
+  player. It now adds, updates, or removes the artist `<span>` and artwork
+  `<img>` directly (keeping `artworkAlt` in sync), so consumers can swap tracks
+  whose metadata presence differs without tearing down the instance or causing
+  layout churn. Pass an empty artist (`''`) or `artwork: null` to remove them,
+  a value to add or update, or omit them to leave the existing DOM untouched.
+  The artwork error-fallback listener is now bound through the player's abort
+  signal, so `destroy()` tears it down. Thanks @jeryj.
+
 ## [1.20.0] — 2026-07-05
 
 ### Added
