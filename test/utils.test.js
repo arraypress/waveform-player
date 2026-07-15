@@ -156,6 +156,12 @@ describe('parseDataAttributes', () => {
 		expect(o.barRadius).toBe(4);
 	});
 
+	it('reads data-show-artwork-on-play-button', () => {
+		const el = document.createElement('div');
+		el.dataset.showArtworkOnPlayButton = 'true';
+		expect(parseDataAttributes(el).showArtworkOnPlayButton).toBe(true);
+	});
+
 	it('reads the localizable UI string data-* attributes', () => {
 		const el = document.createElement('div');
 		Object.assign(el.dataset, {

@@ -185,6 +185,7 @@ export function parseDataAttributes(element) {
     // Feature flags
     setBool('autoplay');
     setBool('showControls');
+    setBool('showArtworkOnPlayButton');
     setBool('showInfo');
     setBool('showTime');
     setBool('showHoverTime');

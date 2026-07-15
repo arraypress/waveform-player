@@ -76,6 +76,74 @@ describe('localizable UI strings', () => {
 	});
 });
 
+describe('play-button artwork', () => {
+	it('does not render album artwork on the play button by default', () => {
+		const { el } = track(mount({ artwork: 'cover.jpg' }));
+		expect(el.querySelector('.waveform-btn-artwork')).toBe(null);
+		expect(el.querySelector('.waveform-btn').classList.contains('waveform-btn-has-artwork')).toBe(false);
+	});
+
+	it('renders decorative album artwork on the play button when enabled', () => {
+		const { el } = track(mount({
+			artwork: 'cover.jpg',
+			showArtworkOnPlayButton: true,
+		}));
+		const img = el.querySelector('.waveform-btn-artwork');
+		expect(img).toBeTruthy();
+		expect(img.getAttribute('src')).toBe('cover.jpg');
+		expect(img.getAttribute('alt')).toBe('');
+		expect(img.getAttribute('aria-hidden')).toBe('true');
+		expect(el.querySelector('.waveform-btn').classList.contains('waveform-btn-has-artwork')).toBe(true);
+	});
+
+	it('can show play-button artwork without the info row', () => {
+		const { el } = track(mount({
+			artwork: 'cover.jpg',
+			showArtworkOnPlayButton: true,
+			showInfo: false,
+		}));
+		expect(el.querySelector('.waveform-info')).toBe(null);
+		expect(el.querySelector('.waveform-artwork')).toBe(null);
+		expect(el.querySelector('.waveform-btn-artwork').getAttribute('src')).toBe('cover.jpg');
+	});
+
+	it('loadTrack updates and removes the play-button artwork', async () => {
+		const { el, player } = track(mount({
+			artwork: 'first-cover.jpg',
+			showArtworkOnPlayButton: true,
+		}));
+		const img = el.querySelector('.waveform-btn-artwork');
+
+		await player.loadTrack('next.mp3', 'Next', 'Artist', {
+			artwork: 'second-cover.jpg',
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-btn-artwork')).toBe(img);
+		expect(img.getAttribute('src')).toBe('second-cover.jpg');
+
+		await player.loadTrack('third.mp3', 'Third', 'Artist', {
+			artwork: null,
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-btn-artwork')).toBe(null);
+		expect(el.querySelector('.waveform-btn').classList.contains('waveform-btn-has-artwork')).toBe(false);
+	});
+
+	it('loadTrack can toggle play-button artwork for existing artwork', async () => {
+		const { el, player } = track(mount({ artwork: 'cover.jpg' }));
+		expect(el.querySelector('.waveform-btn-artwork')).toBe(null);
+
+		await player.loadTrack('next.mp3', 'Next', 'Artist', {
+			showArtworkOnPlayButton: true,
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-btn-artwork').getAttribute('src')).toBe('cover.jpg');
+	});
+});
+
 describe('accessible seek slider', () => {
 	it('exposes the waveform as an ARIA slider by default', () => {
 		const { el } = track(mount({ title: 'My Track' }));

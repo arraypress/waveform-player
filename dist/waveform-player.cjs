@@ -107,6 +107,7 @@ function parseDataAttributes(element) {
   if (element.dataset.theme) options.colorPreset = element.dataset.theme;
   setBool("autoplay");
   setBool("showControls");
+  setBool("showArtworkOnPlayButton");
   setBool("showInfo");
   setBool("showTime");
   setBool("showHoverTime");
@@ -742,6 +743,9 @@ var DEFAULT_OPTIONS = {
   // Features
   autoplay: false,
   showControls: true,
+  // Display the artwork as a decorative image inside the play/pause button.
+  // Uses the same `artwork` URL and error fallback as the info-row image.
+  showArtworkOnPlayButton: false,
   showInfo: true,
   showTime: true,
   showHoverTime: false,
@@ -983,8 +987,12 @@ var WaveformPlayer = class _WaveformPlayer {
       this.container.classList.add("waveform-layout-preview");
     }
     this.container.classList.toggle("waveform-theme-light", this._scheme === "light");
+    const buttonArtworkHTML = this.options.showArtworkOnPlayButton && this.options.artwork ? `
+          <img class="waveform-btn-artwork" src="${escapeHtml(this.options.artwork)}" alt="" aria-hidden="true">
+        ` : "";
     const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === "number" ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ""}>
+        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}${buttonArtworkHTML ? " waveform-btn-has-artwork" : ""}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === "number" ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ""}>
+          ${buttonArtworkHTML}
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
         </button>
@@ -1051,6 +1059,8 @@ var WaveformPlayer = class _WaveformPlayer {
   </div>
 `;
     this.playBtn = this.container.querySelector(".waveform-btn");
+    this.playButtonArtworkEl = this.container.querySelector(".waveform-btn-artwork");
+    this.bindArtworkFallback(this.playButtonArtworkEl);
     this.canvas = this.container.querySelector("canvas");
     this.ctx = this.canvas.getContext("2d");
     this.titleEl = this.container.querySelector(".waveform-title");
@@ -1099,6 +1109,20 @@ var WaveformPlayer = class _WaveformPlayer {
     return img;
   }
   /**
+   * Create a decorative artwork image for the play button.
+   *
+   * @returns {HTMLImageElement} Play-button artwork image element.
+   * @private
+   */
+  createPlayButtonArtworkElement() {
+    const img = document.createElement("img");
+    img.className = "waveform-btn-artwork";
+    img.alt = "";
+    img.setAttribute("aria-hidden", "true");
+    this.bindArtworkFallback(img);
+    return img;
+  }
+  /**
    * Create an artist text element matching the initial player markup.
    *
    * @returns {HTMLSpanElement} Artist text element.
@@ -1142,6 +1166,7 @@ var WaveformPlayer = class _WaveformPlayer {
   syncArtwork(artwork, artworkAlt = "") {
     this.options.artwork = artwork || null;
     this.options.artworkAlt = artworkAlt || "";
+    this.syncPlayButtonArtwork(this.options.artwork);
     if (!this.options.showInfo) return;
     if (!artwork) {
       this.artworkEl?.remove();
@@ -1156,6 +1181,27 @@ var WaveformPlayer = class _WaveformPlayer {
     }
     this.artworkEl.src = artwork;
     this.artworkEl.alt = artworkAlt || "";
+  }
+  /**
+   * Reconcile the optional decorative artwork layer inside the play button.
+   *
+   * @param {string|null} artwork - Artwork image URL, or a falsy value to remove it.
+   * @private
+   */
+  syncPlayButtonArtwork(artwork) {
+    if (!this.playBtn) return;
+    const showArtwork = Boolean(this.options.showArtworkOnPlayButton && artwork);
+    this.playBtn.classList.toggle("waveform-btn-has-artwork", showArtwork);
+    if (!showArtwork) {
+      this.playButtonArtworkEl?.remove();
+      this.playButtonArtworkEl = null;
+      return;
+    }
+    if (!this.playButtonArtworkEl) {
+      this.playButtonArtworkEl = this.createPlayButtonArtworkElement();
+      this.playBtn.prepend(this.playButtonArtworkEl);
+    }
+    this.playButtonArtworkEl.src = artwork;
   }
   /**
    * Create audio element
@@ -1706,12 +1752,14 @@ var WaveformPlayer = class _WaveformPlayer {
    * @param {string|null} [artist=null] - Track artist; pass `''` to hide
    *   the artist row, or null to keep the existing one.
    * @param {Object} [options={}] - Additional options to merge (e.g.
-   *   `preload`, `artwork`, `artworkAlt`, `markers`, `autoplay`).
+   *   `preload`, `artwork`, `artworkAlt`, `showArtworkOnPlayButton`,
+   *   `markers`, `autoplay`).
    * @returns {Promise<void>}
    */
   async loadTrack(url, title = null, artist = null, options = {}) {
     const hasArtworkOption = Object.prototype.hasOwnProperty.call(options, "artwork");
     const hasArtworkAltOption = Object.prototype.hasOwnProperty.call(options, "artworkAlt");
+    const hasShowArtworkOnPlayButtonOption = Object.prototype.hasOwnProperty.call(options, "showArtworkOnPlayButton");
     if (this.isPlaying) {
       this.pause();
     }
@@ -1751,7 +1799,7 @@ var WaveformPlayer = class _WaveformPlayer {
     if (artist !== null) {
       this.syncArtist(artist);
     }
-    if (hasArtworkOption || hasArtworkAltOption) {
+    if (hasArtworkOption || hasArtworkAltOption || hasShowArtworkOnPlayButtonOption) {
       this.syncArtwork(
         hasArtworkOption ? options.artwork : this.options.artwork,
         hasArtworkAltOption ? options.artworkAlt : this.options.artworkAlt
