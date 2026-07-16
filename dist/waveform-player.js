@@ -718,8 +718,8 @@
     // Features
     autoplay: false,
     showControls: true,
-    // Display the artwork as a decorative image inside the play/pause button.
-    // Uses the same `artwork` URL and error fallback as the info-row image.
+    // Display the artwork as a decorative background on the play/pause button.
+    // Uses the same `artwork` URL while leaving the button label unchanged.
     showArtworkOnPlayButton: false,
     showInfo: true,
     showTime: true,
@@ -962,12 +962,8 @@
         this.container.classList.add("waveform-layout-preview");
       }
       this.container.classList.toggle("waveform-theme-light", this._scheme === "light");
-      const buttonArtworkHTML = this.options.showArtworkOnPlayButton && this.options.artwork ? `
-          <img class="waveform-btn-artwork" src="${escapeHtml(this.options.artwork)}" alt="" aria-hidden="true">
-        ` : "";
       const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}${buttonArtworkHTML ? " waveform-btn-has-artwork" : ""}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === "number" ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ""}>
-          ${buttonArtworkHTML}
+        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === "number" ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ""}>
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
         </button>
@@ -1034,8 +1030,7 @@
   </div>
 `;
       this.playBtn = this.container.querySelector(".waveform-btn");
-      this.playButtonArtworkEl = this.container.querySelector(".waveform-btn-artwork");
-      this.bindArtworkFallback(this.playButtonArtworkEl);
+      this.syncPlayButtonArtwork(this.options.artwork);
       this.canvas = this.container.querySelector("canvas");
       this.ctx = this.canvas.getContext("2d");
       this.titleEl = this.container.querySelector(".waveform-title");
@@ -1080,20 +1075,6 @@
       img.style.borderRadius = "4px";
       img.style.objectFit = "cover";
       img.style.flexShrink = "0";
-      this.bindArtworkFallback(img);
-      return img;
-    }
-    /**
-     * Create a decorative artwork image for the play button.
-     *
-     * @returns {HTMLImageElement} Play-button artwork image element.
-     * @private
-     */
-    createPlayButtonArtworkElement() {
-      const img = document.createElement("img");
-      img.className = "waveform-btn-artwork";
-      img.alt = "";
-      img.setAttribute("aria-hidden", "true");
       this.bindArtworkFallback(img);
       return img;
     }
@@ -1164,19 +1145,13 @@
      * @private
      */
     syncPlayButtonArtwork(artwork) {
-      if (!this.playBtn) return;
       const showArtwork = Boolean(this.options.showArtworkOnPlayButton && artwork);
-      this.playBtn.classList.toggle("waveform-btn-has-artwork", showArtwork);
-      if (!showArtwork) {
-        this.playButtonArtworkEl?.remove();
-        this.playButtonArtworkEl = null;
-        return;
+      this.container.classList.toggle("has-play-button-artwork", showArtwork);
+      if (showArtwork) {
+        this.container.style.setProperty("--wfp-play-button-artwork", `url(${JSON.stringify(String(artwork))})`);
+      } else {
+        this.container.style.removeProperty("--wfp-play-button-artwork");
       }
-      if (!this.playButtonArtworkEl) {
-        this.playButtonArtworkEl = this.createPlayButtonArtworkElement();
-        this.playBtn.prepend(this.playButtonArtworkEl);
-      }
-      this.playButtonArtworkEl.src = artwork;
     }
     /**
      * Create audio element

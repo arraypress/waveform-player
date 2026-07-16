@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - **Play-button artwork.** New `showArtworkOnPlayButton` option, also settable
   with `data-show-artwork-on-play-button`, displays the current `artwork` image
-  as a decorative layer inside the play/pause button. It stays in sync with
+  as a decorative background on the play/pause button. It stays in sync with
   `loadTrack()` artwork changes and works even when the info row is hidden.
 
 ## [1.21.0] — 2026-07-10

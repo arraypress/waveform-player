@@ -202,8 +202,8 @@ export const DEFAULT_OPTIONS = {
     // Features
     autoplay: false,
     showControls: true,
-    // Display the artwork as a decorative image inside the play/pause button.
-    // Uses the same `artwork` URL and error fallback as the info-row image.
+    // Display the artwork as a decorative background on the play/pause button.
+    // Uses the same `artwork` URL while leaving the button label unchanged.
     showArtworkOnPlayButton: false,
     showInfo: true,
     showTime: true,

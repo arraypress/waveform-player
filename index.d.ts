@@ -147,7 +147,7 @@ export interface WaveformPlayerOptions {
 	buttonSize?: number | string | null;
 	/** Show transport controls. @default true */
 	showControls?: boolean;
-	/** Display the album artwork as a decorative image inside the play/pause button. @default false */
+	/** Display the album artwork as a decorative background on the play/pause button. @default false */
 	showArtworkOnPlayButton?: boolean;
 	/** Show the info (title/artist) block. @default true */
 	showInfo?: boolean;
