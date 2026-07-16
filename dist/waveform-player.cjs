@@ -79,6 +79,14 @@ function parseDataAttributes(element) {
       console.warn(`[WaveformPlayer] Invalid ${dataKey} JSON:`, e);
     }
   };
+  const setI18n = (optKey, dataKey) => {
+    const raw = element.dataset[dataKey];
+    if (raw === void 0) return;
+    if (!options.i18n || typeof options.i18n !== "object" || Array.isArray(options.i18n)) {
+      options.i18n = {};
+    }
+    options.i18n[optKey] = raw;
+  };
   if (element.dataset.src) options.url = element.dataset.src;
   if (element.dataset.url) options.url = element.dataset.url;
   setNum("height");
@@ -129,6 +137,20 @@ function parseDataAttributes(element) {
   setBool("accessibleSeek");
   if (element.dataset.seekLabel) options.seekLabel = element.dataset.seekLabel;
   if (element.dataset.errorText) options.errorText = element.dataset.errorText;
+  setJson("i18n");
+  if (options.i18n && (typeof options.i18n !== "object" || Array.isArray(options.i18n))) {
+    delete options.i18n;
+  }
+  setI18n("playPauseLabel", "i18nPlayPauseLabel");
+  setI18n("albumArtworkAlt", "i18nAlbumArtworkAlt");
+  setI18n("playbackSpeedLabel", "i18nPlaybackSpeedLabel");
+  setI18n("bpmLabel", "i18nBpmLabel");
+  setI18n("seekLabel", "i18nSeekLabel");
+  setI18n("seekFallbackLabel", "i18nSeekFallbackLabel");
+  setI18n("seekValueText", "i18nSeekValueText");
+  setI18n("unknownTrack", "i18nUnknownTrack");
+  setI18n("errorText", "i18nErrorText");
+  setI18n("audioTitle", "i18nAudioTitle");
   if (element.dataset.playIcon) options.playIcon = element.dataset.playIcon;
   if (element.dataset.pauseIcon) options.pauseIcon = element.dataset.pauseIcon;
   return options;
@@ -152,8 +174,8 @@ function generateId(url) {
   }
   return `wp_${(hash >>> 0).toString(36)}_${(idCounter++).toString(36)}`;
 }
-function extractTitleFromUrl(url) {
-  if (!url) return "Audio";
+function extractTitleFromUrl(url, fallback = "Audio") {
+  if (!url) return fallback;
   const parts = url.split("/");
   const filename = parts[parts.length - 1];
   const name = filename.split(".")[0];
@@ -665,6 +687,18 @@ var COLOR_PRESETS = {
     progressColor: "rgba(0, 0, 0, 0.8)"
   }
 };
+var DEFAULT_I18N = {
+  playPauseLabel: "Play/Pause",
+  albumArtworkAlt: "Album artwork",
+  playbackSpeedLabel: "Playback speed",
+  bpmLabel: "BPM",
+  seekLabel: null,
+  seekFallbackLabel: "Seek",
+  seekValueText: "{currentTime} of {duration}",
+  unknownTrack: "Unknown Track",
+  errorText: "Unable to load audio",
+  audioTitle: "Audio"
+};
 function getColorPreset(presetName) {
   if (presetName && COLOR_PRESETS[presetName]) {
     return COLOR_PRESETS[presetName];
@@ -754,12 +788,14 @@ var DEFAULT_OPTIONS = {
   // to the track title, then 'Seek'.
   accessibleSeek: true,
   seekLabel: null,
+  i18n: DEFAULT_I18N,
   // Content
   title: null,
   artist: null,
   artwork: null,
   album: "",
-  // Message shown in the error state when audio fails to load.
+  // Message shown in the error state when audio fails to load. Kept as a
+  // backwards-compatible alias for i18n.errorText.
   errorText: "Unable to load audio",
   // Icons (SVG)
   playIcon: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>',
@@ -824,7 +860,16 @@ var WaveformPlayer = class _WaveformPlayer {
     const userOptions = { ...options };
     if (userOptions.style && !userOptions.waveformStyle) userOptions.waveformStyle = userOptions.style;
     if (userOptions.src && !userOptions.url) userOptions.url = userOptions.src;
+    this._explicitSeekLabel = dataOptions.seekLabel !== void 0 || userOptions.seekLabel !== void 0;
+    this._explicitErrorText = dataOptions.errorText !== void 0 || userOptions.errorText !== void 0;
+    const dataI18n = dataOptions.i18n && typeof dataOptions.i18n === "object" && !Array.isArray(dataOptions.i18n) ? dataOptions.i18n : {};
+    const userI18n = userOptions.i18n && typeof userOptions.i18n === "object" && !Array.isArray(userOptions.i18n) ? userOptions.i18n : {};
     this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, userOptions);
+    this.options.i18n = mergeOptions(
+      DEFAULT_I18N,
+      dataI18n,
+      userI18n
+    );
     const preset = getColorPreset(this.options.colorPreset);
     this._autoTheme = this.options.colorPreset == null || !COLOR_PRESETS[this.options.colorPreset];
     this._presetKeys = [];
@@ -880,6 +925,38 @@ var WaveformPlayer = class _WaveformPlayer {
     const event = new CustomEvent(type, { bubbles: true, cancelable, detail });
     this.container.dispatchEvent(event);
     return event;
+  }
+  /**
+   * Resolve a localized string. Values may be strings with simple
+   * `{placeholder}` tokens or formatter functions receiving the same context
+   * object plus the player instance.
+   * @param {string} key - i18n key.
+   * @param {Object} [context={}] - Placeholder / formatter context.
+   * @returns {string} Resolved localized string.
+   * @private
+   */
+  i18n(key, context = {}) {
+    const value = this.options.i18n?.[key];
+    const data = { ...context, player: this };
+    if (typeof value === "function") {
+      return String(value(data));
+    }
+    if (typeof value === "string") {
+      return value.replace(/\{(\w+)\}/g, (match, token) => data[token] === void 0 || data[token] === null ? match : String(data[token]));
+    }
+    return "";
+  }
+  /**
+   * Backwards-compatible error text resolver: the historical top-level
+   * `errorText` option wins only when explicitly supplied.
+   * @returns {string} Error message for the visible error state.
+   * @private
+   */
+  getErrorText() {
+    if (this._explicitErrorText) {
+      return this.options.errorText;
+    }
+    return this.i18n("errorText") || this.options.errorText;
   }
   /**
    * External-mode seek request: dispatch a cancelable
@@ -958,7 +1035,7 @@ var WaveformPlayer = class _WaveformPlayer {
     }
     this.container.classList.toggle("waveform-theme-light", this._scheme === "light");
     const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="Play/Pause"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === "number" ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ""}>
+        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="${escapeHtml(this.i18n("playPauseLabel"))}"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === "number" ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ""}>
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
         </button>
@@ -966,7 +1043,7 @@ var WaveformPlayer = class _WaveformPlayer {
     const infoHTML = this.options.showInfo ? `
       <div class="waveform-info">
         ${this.options.artwork ? `
-          <img class="waveform-artwork" src="${this.options.artwork}" alt="Album artwork" style="
+          <img class="waveform-artwork" src="${this.options.artwork}" alt="${escapeHtml(this.i18n("albumArtworkAlt"))}" style="
             width: 40px;
             height: 40px;
             border-radius: 4px;
@@ -981,15 +1058,15 @@ var WaveformPlayer = class _WaveformPlayer {
         <div class="waveform-meta" style="display: flex; align-items: center; gap: 1rem;">
           ${this.options.showBPM ? `
             <span class="waveform-bpm" style="display: none;">
-              <span class="bpm-value">--</span> BPM
+              <span class="bpm-value">--</span> ${escapeHtml(this.i18n("bpmLabel"))}
             </span>
           ` : ""}
           ${this.options.showPlaybackSpeed ? `
             <div class="waveform-speed">
-              <button class="speed-btn" aria-label="Playback speed" aria-haspopup="menu" aria-expanded="false">
+              <button class="speed-btn" aria-label="${escapeHtml(this.i18n("playbackSpeedLabel"))}" aria-haspopup="menu" aria-expanded="false">
                 <span class="speed-value">1x</span>
               </button>
-              <div class="speed-menu" role="menu" aria-label="Playback speed" style="display: none;">
+              <div class="speed-menu" role="menu" aria-label="${escapeHtml(this.i18n("playbackSpeedLabel"))}" style="display: none;">
                 ${this.options.playbackRates.map(
       (rate) => `<button class="speed-option" role="menuitemradio" tabindex="-1" aria-checked="false" data-rate="${rate}">${rate}x</button>`
     ).join("")}
@@ -1015,7 +1092,7 @@ var WaveformPlayer = class _WaveformPlayer {
           <div class="waveform-markers"></div>
           <div class="waveform-loading" style="display:none;"></div>
           <div class="waveform-error" style="display:none;" role="alert">
-            <span class="waveform-error-text">${escapeHtml(this.options.errorText)}</span>
+            <span class="waveform-error-text">${escapeHtml(this.getErrorText())}</span>
           </div>
         </div>
       </div>
@@ -1317,15 +1394,16 @@ var WaveformPlayer = class _WaveformPlayer {
     this.seekTo(clamped);
   }
   /**
-   * Set the slider's accessible name from `seekLabel`, falling back to the
-   * track title, then a generic 'Seek'. No-op if the slider isn't present.
+   * Set the slider's accessible name from `seekLabel`, falling back to a
+   * localized seek label, the track title, then a generic fallback. No-op if
+   * the slider isn't present.
    * @param {string} [title=this.options.title] - Track title to fall back to
    *   when `seekLabel` is not set.
    * @private
    */
   applySeekLabel(title = this.options.title) {
     if (!this.seekEl) return;
-    const label = this.options.seekLabel || title || "Seek";
+    const label = (this._explicitSeekLabel ? this.options.seekLabel : "") || this.i18n("seekLabel", { title }) || title || this.i18n("seekFallbackLabel");
     this.seekEl.setAttribute("aria-label", label);
   }
   /**
@@ -1338,10 +1416,14 @@ var WaveformPlayer = class _WaveformPlayer {
     const current = Math.min(this.getSeekCurrentTime(), duration);
     this.seekEl.setAttribute("aria-valuemax", String(Math.round(duration)));
     this.seekEl.setAttribute("aria-valuenow", String(Math.round(current)));
-    this.seekEl.setAttribute(
-      "aria-valuetext",
-      `${formatTime(current)} of ${formatTime(duration)}`
-    );
+    const currentTime = formatTime(current);
+    const durationTime = formatTime(duration);
+    this.seekEl.setAttribute("aria-valuetext", this.i18n("seekValueText", {
+      currentTime,
+      duration: durationTime,
+      current,
+      durationSeconds: duration
+    }));
   }
   /**
    * Initialize Media Session API for system media controls
@@ -1382,7 +1464,7 @@ var WaveformPlayer = class _WaveformPlayer {
   _applyMediaMetadata() {
     if (!("mediaSession" in navigator) || !this.options.enableMediaSession) return;
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: this.options.title || "Unknown Track",
+      title: this.options.title || this.i18n("unknownTrack"),
       artist: this.options.artist || "",
       album: this.options.album || "",
       artwork: this.options.artwork ? [
@@ -1547,7 +1629,7 @@ var WaveformPlayer = class _WaveformPlayer {
           this.audio.addEventListener("error", errorHandler);
         });
       }
-      const title = this.options.title || extractTitleFromUrl(url);
+      const title = this.options.title || extractTitleFromUrl(url, this.i18n("audioTitle"));
       if (this.titleEl) {
         this.titleEl.textContent = title;
       }
@@ -1615,12 +1697,21 @@ var WaveformPlayer = class _WaveformPlayer {
     }
     this.progress = 0;
     this.waveformData = [];
+    const previousI18n = this.options.i18n;
+    if (options.seekLabel !== void 0) this._explicitSeekLabel = true;
+    if (options.errorText !== void 0) this._explicitErrorText = true;
     this.options = mergeOptions(this.options, {
       url,
       title: title || this.options.title,
       artist: artist || this.options.artist,
       ...options
     });
+    const nextI18n = options.i18n && typeof options.i18n === "object" && !Array.isArray(options.i18n) ? options.i18n : {};
+    this.options.i18n = mergeOptions(previousI18n || DEFAULT_I18N, nextI18n);
+    if (this.errorEl) {
+      const errorTextEl = this.errorEl.querySelector(".waveform-error-text");
+      if (errorTextEl) errorTextEl.textContent = this.getErrorText();
+    }
     if (options.preload && this.audio) {
       this.audio.preload = options.preload;
     }

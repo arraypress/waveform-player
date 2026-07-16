@@ -17,7 +17,7 @@ import {
     DEFAULT_SAMPLES
 } from './utils.js';
 
-import {DEFAULT_OPTIONS, STYLE_DEFAULTS, getColorPreset, COLOR_PRESETS, detectColorScheme} from './themes.js';
+import {DEFAULT_OPTIONS, DEFAULT_I18N, STYLE_DEFAULTS, getColorPreset, COLOR_PRESETS, detectColorScheme} from './themes.js';
 
 /**
  * Placeholder shown when an artwork URL fails to load (404 / broken) — a muted
@@ -85,8 +85,25 @@ export class WaveformPlayer {
         if (userOptions.style && !userOptions.waveformStyle) userOptions.waveformStyle = userOptions.style;
         if (userOptions.src && !userOptions.url) userOptions.url = userOptions.src;
 
+        // Track legacy top-level text aliases so `i18n` can own defaults while
+        // existing callers using `seekLabel` / `errorText` keep precedence.
+        this._explicitSeekLabel = dataOptions.seekLabel !== undefined || userOptions.seekLabel !== undefined;
+        this._explicitErrorText = dataOptions.errorText !== undefined || userOptions.errorText !== undefined;
+
         // Merge options: defaults < data attributes < constructor options
+        const dataI18n = dataOptions.i18n && typeof dataOptions.i18n === 'object' && !Array.isArray(dataOptions.i18n)
+            ? dataOptions.i18n
+            : {};
+        const userI18n = userOptions.i18n && typeof userOptions.i18n === 'object' && !Array.isArray(userOptions.i18n)
+            ? userOptions.i18n
+            : {};
+
         this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, userOptions);
+        this.options.i18n = mergeOptions(
+            DEFAULT_I18N,
+            dataI18n,
+            userI18n
+        );
 
         // Apply color preset (auto-detect if not specified)
         const preset = getColorPreset(this.options.colorPreset);
@@ -171,6 +188,45 @@ export class WaveformPlayer {
         const event = new CustomEvent(type, { bubbles: true, cancelable, detail });
         this.container.dispatchEvent(event);
         return event;
+    }
+
+    /**
+     * Resolve a localized string. Values may be strings with simple
+     * `{placeholder}` tokens or formatter functions receiving the same context
+     * object plus the player instance.
+     * @param {string} key - i18n key.
+     * @param {Object} [context={}] - Placeholder / formatter context.
+     * @returns {string} Resolved localized string.
+     * @private
+     */
+    i18n(key, context = {}) {
+        const value = this.options.i18n?.[key];
+        const data = { ...context, player: this };
+
+        if (typeof value === 'function') {
+            return String(value(data));
+        }
+
+        if (typeof value === 'string') {
+            return value.replace(/\{(\w+)\}/g, (match, token) => (
+                data[token] === undefined || data[token] === null ? match : String(data[token])
+            ));
+        }
+
+        return '';
+    }
+
+    /**
+     * Backwards-compatible error text resolver: the historical top-level
+     * `errorText` option wins only when explicitly supplied.
+     * @returns {string} Error message for the visible error state.
+     * @private
+     */
+    getErrorText() {
+        if (this._explicitErrorText) {
+            return this.options.errorText;
+        }
+        return this.i18n('errorText') || this.options.errorText;
     }
 
     /**
@@ -265,7 +321,7 @@ export class WaveformPlayer {
 
         // Build play button HTML (conditional)
         const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn${this.options.buttonStyle === 'minimal' ? ' waveform-btn-minimal' : ''}" aria-label="Play/Pause"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === 'number' ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ''}>
+        <button class="waveform-btn${this.options.buttonStyle === 'minimal' ? ' waveform-btn-minimal' : ''}" aria-label="${escapeHtml(this.i18n('playPauseLabel'))}"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === 'number' ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ''}>
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
         </button>
@@ -275,7 +331,7 @@ export class WaveformPlayer {
         const infoHTML = this.options.showInfo ? `
       <div class="waveform-info">
         ${this.options.artwork ? `
-          <img class="waveform-artwork" src="${this.options.artwork}" alt="Album artwork" style="
+          <img class="waveform-artwork" src="${this.options.artwork}" alt="${escapeHtml(this.i18n('albumArtworkAlt'))}" style="
             width: 40px;
             height: 40px;
             border-radius: 4px;
@@ -290,15 +346,15 @@ export class WaveformPlayer {
         <div class="waveform-meta" style="display: flex; align-items: center; gap: 1rem;">
           ${this.options.showBPM ? `
             <span class="waveform-bpm" style="display: none;">
-              <span class="bpm-value">--</span> BPM
+              <span class="bpm-value">--</span> ${escapeHtml(this.i18n('bpmLabel'))}
             </span>
           ` : ''}
           ${this.options.showPlaybackSpeed ? `
             <div class="waveform-speed">
-              <button class="speed-btn" aria-label="Playback speed" aria-haspopup="menu" aria-expanded="false">
+              <button class="speed-btn" aria-label="${escapeHtml(this.i18n('playbackSpeedLabel'))}" aria-haspopup="menu" aria-expanded="false">
                 <span class="speed-value">1x</span>
               </button>
-              <div class="speed-menu" role="menu" aria-label="Playback speed" style="display: none;">
+              <div class="speed-menu" role="menu" aria-label="${escapeHtml(this.i18n('playbackSpeedLabel'))}" style="display: none;">
                 ${this.options.playbackRates.map(rate =>
             `<button class="speed-option" role="menuitemradio" tabindex="-1" aria-checked="false" data-rate="${rate}">${rate}x</button>`
         ).join('')}
@@ -326,7 +382,7 @@ export class WaveformPlayer {
           <div class="waveform-markers"></div>
           <div class="waveform-loading" style="display:none;"></div>
           <div class="waveform-error" style="display:none;" role="alert">
-            <span class="waveform-error-text">${escapeHtml(this.options.errorText)}</span>
+            <span class="waveform-error-text">${escapeHtml(this.getErrorText())}</span>
           </div>
         </div>
       </div>
@@ -696,15 +752,19 @@ export class WaveformPlayer {
     }
 
     /**
-     * Set the slider's accessible name from `seekLabel`, falling back to the
-     * track title, then a generic 'Seek'. No-op if the slider isn't present.
+     * Set the slider's accessible name from `seekLabel`, falling back to a
+     * localized seek label, the track title, then a generic fallback. No-op if
+     * the slider isn't present.
      * @param {string} [title=this.options.title] - Track title to fall back to
      *   when `seekLabel` is not set.
      * @private
      */
     applySeekLabel(title = this.options.title) {
         if (!this.seekEl) return;
-        const label = this.options.seekLabel || title || 'Seek';
+        const label = (this._explicitSeekLabel ? this.options.seekLabel : '')
+            || this.i18n('seekLabel', { title })
+            || title
+            || this.i18n('seekFallbackLabel');
         this.seekEl.setAttribute('aria-label', label);
     }
 
@@ -720,10 +780,15 @@ export class WaveformPlayer {
 
         this.seekEl.setAttribute('aria-valuemax', String(Math.round(duration)));
         this.seekEl.setAttribute('aria-valuenow', String(Math.round(current)));
-        this.seekEl.setAttribute(
-            'aria-valuetext',
-            `${formatTime(current)} of ${formatTime(duration)}`
-        );
+        const currentTime = formatTime(current);
+        const durationTime = formatTime(duration);
+
+        this.seekEl.setAttribute('aria-valuetext', this.i18n('seekValueText', {
+            currentTime,
+            duration: durationTime,
+            current,
+            durationSeconds: duration
+        }));
     }
 
     /**
@@ -770,7 +835,7 @@ export class WaveformPlayer {
     _applyMediaMetadata() {
         if (!('mediaSession' in navigator) || !this.options.enableMediaSession) return;
         navigator.mediaSession.metadata = new MediaMetadata({
-            title: this.options.title || 'Unknown Track',
+            title: this.options.title || this.i18n('unknownTrack'),
             artist: this.options.artist || '',
             album: this.options.album || '',
             artwork: this.options.artwork ? [
@@ -984,7 +1049,7 @@ export class WaveformPlayer {
             }
 
             // Set title
-            const title = this.options.title || extractTitleFromUrl(url);
+            const title = this.options.title || extractTitleFromUrl(url, this.i18n('audioTitle'));
             if (this.titleEl) {
                 this.titleEl.textContent = title;
             }
@@ -1071,6 +1136,10 @@ export class WaveformPlayer {
         this.progress = 0;
         this.waveformData = [];
 
+        const previousI18n = this.options.i18n;
+        if (options.seekLabel !== undefined) this._explicitSeekLabel = true;
+        if (options.errorText !== undefined) this._explicitErrorText = true;
+
         // Update options (including preload if specified)
         this.options = mergeOptions(this.options, {
             url,
@@ -1078,6 +1147,15 @@ export class WaveformPlayer {
             artist: artist || this.options.artist,
             ...options
         });
+        const nextI18n = options.i18n && typeof options.i18n === 'object' && !Array.isArray(options.i18n)
+            ? options.i18n
+            : {};
+        this.options.i18n = mergeOptions(previousI18n || DEFAULT_I18N, nextI18n);
+
+        if (this.errorEl) {
+            const errorTextEl = this.errorEl.querySelector('.waveform-error-text');
+            if (errorTextEl) errorTextEl.textContent = this.getErrorText();
+        }
 
         // Apply preload setting if it was changed
         if (options.preload && this.audio) {

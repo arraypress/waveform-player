@@ -102,6 +102,27 @@ export const COLOR_PRESETS = {
 };
 
 /**
+ * Default localized strings for all user-facing text/ARIA emitted by the
+ * player. Consumers can override any key through the `i18n` option; string
+ * values may use `{currentTime}`, `{duration}`, and `{title}` placeholders
+ * where those values are available.
+ *
+ * @type {Object<string, string|null>}
+ */
+export const DEFAULT_I18N = {
+    playPauseLabel: 'Play/Pause',
+    albumArtworkAlt: 'Album artwork',
+    playbackSpeedLabel: 'Playback speed',
+    bpmLabel: 'BPM',
+    seekLabel: null,
+    seekFallbackLabel: 'Seek',
+    seekValueText: '{currentTime} of {duration}',
+    unknownTrack: 'Unknown Track',
+    errorText: 'Unable to load audio',
+    audioTitle: 'Audio'
+};
+
+/**
  * Resolve a colour preset by name, falling back to auto-detection.
  *
  * When `presetName` names a known preset it is returned as-is; otherwise
@@ -228,6 +249,7 @@ export const DEFAULT_OPTIONS = {
     // to the track title, then 'Seek'.
     accessibleSeek: true,
     seekLabel: null,
+    i18n: DEFAULT_I18N,
 
     // Content
     title: null,
@@ -235,7 +257,8 @@ export const DEFAULT_OPTIONS = {
     artwork: null,
     album: '',
 
-    // Message shown in the error state when audio fails to load.
+    // Message shown in the error state when audio fails to load. Kept as a
+    // backwards-compatible alias for i18n.errorText.
     errorText: 'Unable to load audio',
 
     // Icons (SVG)

@@ -131,6 +131,25 @@ describe('parseDataAttributes', () => {
 		expect(o.barRadius).toBe(4);
 	});
 
+	it('reads localized strings from data-i18n JSON and data-i18n-* attributes', () => {
+		const el = document.createElement('div');
+		el.dataset.i18n = JSON.stringify({
+			playPauseLabel: 'Play translated',
+			seekValueText: '{currentTime} translated {duration}',
+		});
+		el.dataset.i18nSeekLabel = 'Seek translated';
+		el.dataset.i18nBpmLabel = 'Tempo';
+
+		const o = parseDataAttributes(el);
+
+		expect(o.i18n).toEqual({
+			playPauseLabel: 'Play translated',
+			seekValueText: '{currentTime} translated {duration}',
+			seekLabel: 'Seek translated',
+			bpmLabel: 'Tempo',
+		});
+	});
+
 	it('accepts data-src as a shorthand alias for data-url', () => {
 		const a = document.createElement('div');
 		a.dataset.src = 'song.mp3';

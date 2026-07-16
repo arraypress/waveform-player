@@ -79,6 +79,44 @@ describe('accessible seek slider', () => {
 		player.setLoading(false);
 		expect(slider.getAttribute('aria-busy')).toBe('false');
 	});
+
+	it('localizes seek label and value text through i18n options', () => {
+		const { el, player } = track(mount({
+			title: 'My Track',
+			i18n: {
+				seekLabel: 'Buscar en {title}',
+				seekValueText: '{currentTime} de {duration}',
+			},
+		}));
+		const slider = el.querySelector('.waveform-container');
+
+		player.setProgress(30, 120);
+
+		expect(slider.getAttribute('aria-label')).toBe('Buscar en My Track');
+		expect(slider.getAttribute('aria-valuetext')).toBe('0:30 de 2:00');
+	});
+
+	it('accepts a seek value formatter function', () => {
+		const { el, player } = track(mount({
+			i18n: {
+				seekValueText: ({ currentTime, duration }) => `${currentTime} / ${duration}`,
+			},
+		}));
+		const slider = el.querySelector('.waveform-container');
+
+		player.setProgress(45, 180);
+
+		expect(slider.getAttribute('aria-valuetext')).toBe('0:45 / 3:00');
+	});
+
+	it('keeps the legacy seekLabel option ahead of i18n.seekLabel', () => {
+		const { el } = track(mount({
+			seekLabel: 'Legacy Scrub',
+			i18n: { seekLabel: 'Localized Scrub' },
+		}));
+
+		expect(el.querySelector('.waveform-container').getAttribute('aria-label')).toBe('Legacy Scrub');
+	});
 });
 
 describe('onTimeUpdate signature', () => {
@@ -224,6 +262,29 @@ describe('core additions for controllers (v1.8.0)', () => {
 		const span = evil.el.querySelector('.waveform-error-text');
 		expect(span.querySelector('img')).toBe(null);            // not parsed as HTML
 		expect(span.textContent).toContain('<img');
+	});
+
+	it('localizes visible and accessible UI labels', () => {
+		const { el } = track(mount({
+			showPlaybackSpeed: true,
+			showBPM: true,
+			bpm: 123,
+			artwork: 'cover.jpg',
+			i18n: {
+				playPauseLabel: 'Reproducir/Pausar',
+				albumArtworkAlt: 'Portada del album',
+				playbackSpeedLabel: 'Velocidad',
+				bpmLabel: 'PPM',
+				errorText: 'No se puede cargar el audio',
+			},
+		}));
+
+		expect(el.querySelector('.waveform-btn').getAttribute('aria-label')).toBe('Reproducir/Pausar');
+		expect(el.querySelector('.waveform-artwork').getAttribute('alt')).toBe('Portada del album');
+		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('Velocidad');
+		expect(el.querySelector('.speed-menu').getAttribute('aria-label')).toBe('Velocidad');
+		expect(el.querySelector('.waveform-bpm').textContent).toContain('PPM');
+		expect(el.querySelector('.waveform-error-text').textContent).toBe('No se puede cargar el audio');
 	});
 
 	it('request-play detail carries the artist', () => {

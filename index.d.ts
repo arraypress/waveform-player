@@ -58,6 +58,43 @@ export interface WaveformMarker {
  */
 export type WaveformPeaks = number[] | string | null;
 
+/** Context passed to i18n formatter functions. */
+export interface WaveformI18nContext {
+	player: WaveformPlayer;
+	title?: string | null;
+	currentTime?: string;
+	duration?: string;
+	current?: number;
+	durationSeconds?: number;
+}
+
+/** A localized string or formatter function. */
+export type WaveformI18nValue = string | ((context: WaveformI18nContext) => string);
+
+/** Localized text used for visible UI and accessibility labels. */
+export interface WaveformI18nOptions {
+	/** Accessible label for the play/pause button. @default 'Play/Pause' */
+	playPauseLabel?: WaveformI18nValue;
+	/** Alt text for track artwork images. @default 'Album artwork' */
+	albumArtworkAlt?: WaveformI18nValue;
+	/** Accessible label for the playback-speed button and menu. @default 'Playback speed' */
+	playbackSpeedLabel?: WaveformI18nValue;
+	/** Text suffix shown after the BPM value. @default 'BPM' */
+	bpmLabel?: WaveformI18nValue;
+	/** Accessible label for the seek slider. Falls back to the title when unset. @default null */
+	seekLabel?: WaveformI18nValue | null;
+	/** Generic seek slider label used when no track title is available. @default 'Seek' */
+	seekFallbackLabel?: WaveformI18nValue;
+	/** Slider value text. String values may use `{currentTime}` and `{duration}`. @default '{currentTime} of {duration}' */
+	seekValueText?: WaveformI18nValue;
+	/** Media Session title fallback. @default 'Unknown Track' */
+	unknownTrack?: WaveformI18nValue;
+	/** Message shown when audio fails to load. @default 'Unable to load audio' */
+	errorText?: WaveformI18nValue;
+	/** Title fallback for an empty URL. @default 'Audio' */
+	audioTitle?: WaveformI18nValue;
+}
+
 /** `onTimeUpdate` fires with the same `(currentTime, duration, player)` order in both audio modes. */
 export type WaveformTimeUpdateHandler = (currentTime: number, duration: number, player: WaveformPlayer) => void;
 /** Lifecycle callback receiving the player instance. */
@@ -181,13 +218,15 @@ export interface WaveformPlayerOptions {
 	accessibleSeek?: boolean;
 	/** Accessible name for the seek slider (falls back to the title, then `'Seek'`). @default null */
 	seekLabel?: string | null;
+	/** Localized UI and accessibility strings. */
+	i18n?: WaveformI18nOptions;
 
 	// ── Content metadata ──────────────────────────────────────────
 	title?: string | null;
 	artist?: string | null;
 	artwork?: string | null;
 	album?: string;
-	/** Message shown when audio fails to load. @default 'Unable to load audio' */
+	/** Message shown when audio fails to load. Alias for `i18n.errorText`. @default 'Unable to load audio' */
 	errorText?: string;
 
 	// ── Icons (raw SVG markup) ────────────────────────────────────

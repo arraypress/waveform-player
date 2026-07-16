@@ -142,6 +142,15 @@ export function parseDataAttributes(element) {
         catch (e) { console.warn(`[WaveformPlayer] Invalid ${dataKey} JSON:`, e); }
     };
 
+    const setI18n = (optKey, dataKey) => {
+        const raw = element.dataset[dataKey];
+        if (raw === undefined) return;
+        if (!options.i18n || typeof options.i18n !== 'object' || Array.isArray(options.i18n)) {
+            options.i18n = {};
+        }
+        options.i18n[optKey] = raw;
+    };
+
     // Core attributes. `data-src` is a shorthand alias for `data-url`;
     // the canonical long form wins if both are set.
     if (element.dataset.src) options.url = element.dataset.src;
@@ -222,6 +231,23 @@ export function parseDataAttributes(element) {
     if (element.dataset.seekLabel) options.seekLabel = element.dataset.seekLabel;
     if (element.dataset.errorText) options.errorText = element.dataset.errorText;
 
+    // Localized strings. `data-i18n` accepts a JSON object, and individual
+    // data-i18n-* attributes can override one key without JSON escaping.
+    setJson('i18n');
+    if (options.i18n && (typeof options.i18n !== 'object' || Array.isArray(options.i18n))) {
+        delete options.i18n;
+    }
+    setI18n('playPauseLabel', 'i18nPlayPauseLabel');
+    setI18n('albumArtworkAlt', 'i18nAlbumArtworkAlt');
+    setI18n('playbackSpeedLabel', 'i18nPlaybackSpeedLabel');
+    setI18n('bpmLabel', 'i18nBpmLabel');
+    setI18n('seekLabel', 'i18nSeekLabel');
+    setI18n('seekFallbackLabel', 'i18nSeekFallbackLabel');
+    setI18n('seekValueText', 'i18nSeekValueText');
+    setI18n('unknownTrack', 'i18nUnknownTrack');
+    setI18n('errorText', 'i18nErrorText');
+    setI18n('audioTitle', 'i18nAudioTitle');
+
     // Custom icons (raw SVG markup)
     if (element.dataset.playIcon) options.playIcon = element.dataset.playIcon;
     if (element.dataset.pauseIcon) options.pauseIcon = element.dataset.pauseIcon;
@@ -283,14 +309,15 @@ export function generateId(url) {
  *
  * Takes the last path segment, drops the extension, replaces `-`/`_`
  * separators with spaces, and title-cases the first letter of each word.
- * Returns `'Audio'` for an empty or missing URL.
+ * Returns the supplied fallback for an empty or missing URL.
  * @param {string} url - Audio URL.
+ * @param {string} [fallback='Audio'] - Title returned when no URL is supplied.
  * @returns {string} Extracted, prettified title.
  * @example
  * extractTitleFromUrl('https://cdn.example.com/my-cool_track.mp3'); // 'My Cool Track'
  */
-export function extractTitleFromUrl(url) {
-    if (!url) return 'Audio';
+export function extractTitleFromUrl(url, fallback = 'Audio') {
+    if (!url) return fallback;
 
     const parts = url.split('/');
     const filename = parts[parts.length - 1];
