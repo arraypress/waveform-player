@@ -145,6 +145,12 @@ export interface WaveformPlayerOptions {
 	 * @default null
 	 */
 	buttonSize?: number | string | null;
+	/**
+	 * Play/pause button corner radius. A number is treated as px; a string
+	 * (e.g. `'8px'`) is used verbatim. Set `0` for a square bordered button.
+	 * @default null
+	 */
+	buttonRadius?: number | string | null;
 	/** Show transport controls. @default true */
 	showControls?: boolean;
 	/** Show the info (title/artist) block. @default true */

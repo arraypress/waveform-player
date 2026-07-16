@@ -170,6 +170,12 @@ export function parseDataAttributes(element) {
         const bs = element.dataset.buttonSize;
         options.buttonSize = /^\d+(\.\d+)?$/.test(bs.trim()) ? parseFloat(bs) : bs;
     }
+    // buttonRadius: a bare number is px (data-button-radius="0"); a unit
+    // string (e.g. "8px") is kept verbatim.
+    if (element.dataset.buttonRadius) {
+        const br = element.dataset.buttonRadius;
+        options.buttonRadius = /^\d+(\.\d+)?$/.test(br.trim()) ? parseFloat(br) : br;
+    }
 
     // Color preset
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;

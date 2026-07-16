@@ -100,6 +100,10 @@ function parseDataAttributes(element) {
     const bs = element.dataset.buttonSize;
     options.buttonSize = /^\d+(\.\d+)?$/.test(bs.trim()) ? parseFloat(bs) : bs;
   }
+  if (element.dataset.buttonRadius) {
+    const br = element.dataset.buttonRadius;
+    options.buttonRadius = /^\d+(\.\d+)?$/.test(br.trim()) ? parseFloat(br) : br;
+  }
   if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;
   if (element.dataset.waveformColor) options.waveformColor = parseColorValue(element.dataset.waveformColor);
   if (element.dataset.progressColor) options.progressColor = parseColorValue(element.dataset.progressColor);
@@ -721,6 +725,10 @@ var DEFAULT_OPTIONS = {
   // is used verbatim. Sets the `--wfp-btn-size` CSS var, which scales BOTH
   // styles — box and glyph — proportionally.
   buttonSize: null,
+  // Play/pause button corner radius. null = the stylesheet default (50%,
+  // circular). A number is treated as px; a string (e.g. '8px') is used
+  // verbatim. Set 0 for a square bordered button.
+  buttonRadius: null,
   // Default waveform style
   waveformStyle: "mirror",
   barWidth: 2,
@@ -983,8 +991,17 @@ var WaveformPlayer = class _WaveformPlayer {
       this.container.classList.add("waveform-layout-preview");
     }
     this.container.classList.toggle("waveform-theme-light", this._scheme === "light");
+    const buttonStyleVars = [];
+    const formatButtonStyleValue = (value) => escapeHtml(typeof value === "number" ? `${value}px` : value);
+    if (this.options.buttonSize != null) {
+      buttonStyleVars.push(`--wfp-btn-size: ${formatButtonStyleValue(this.options.buttonSize)}`);
+    }
+    if (this.options.buttonRadius != null) {
+      buttonStyleVars.push(`--wfp-btn-radius: ${formatButtonStyleValue(this.options.buttonRadius)}`);
+    }
+    const buttonStyleAttr = buttonStyleVars.length ? ` style="${buttonStyleVars.join("; ")};"` : "";
     const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === "number" ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ""}>
+        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${buttonStyleAttr}>
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
         </button>

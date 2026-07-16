@@ -536,6 +536,35 @@ describe('buttonSize', () => {
 	});
 });
 
+describe('buttonRadius', () => {
+	it('sets --wfp-btn-radius in px from a number', () => {
+		const { el } = mount({ buttonRadius: 0 });
+		expect(el.querySelector('.waveform-btn').getAttribute('style')).toContain('--wfp-btn-radius: 0px');
+	});
+
+	it('passes a unit string through verbatim', () => {
+		const { el } = mount({ buttonRadius: '8px' });
+		expect(el.querySelector('.waveform-btn').getAttribute('style')).toContain('--wfp-btn-radius: 8px');
+	});
+
+	it('omits the variable by default (stylesheet default applies)', () => {
+		const { el } = mount({});
+		expect(el.querySelector('.waveform-btn').getAttribute('style') ?? '').not.toContain('--wfp-btn-radius');
+	});
+
+	it('reads data-button-radius (number → px)', () => {
+		const host = document.createElement('div');
+		host.setAttribute('data-waveform-player', '');
+		host.setAttribute('data-url', '/a.mp3');
+		host.setAttribute('data-button-radius', '0');
+		host.setAttribute('data-audio-mode', 'external');
+		document.body.appendChild(host);
+		const player = new WaveformPlayer(host);
+		expect(host.querySelector('.waveform-btn').getAttribute('style')).toContain('--wfp-btn-radius: 0px');
+		player.destroy();
+	});
+});
+
 describe('static getPeaksUrl', () => {
 	it('swaps a known audio extension for .json', () => {
 		expect(WaveformPlayer.getPeaksUrl('https://x.com/a.mp3')).toBe('https://x.com/a.json');

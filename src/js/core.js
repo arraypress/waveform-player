@@ -265,8 +265,17 @@ export class WaveformPlayer {
         this.container.classList.toggle('waveform-theme-light', this._scheme === 'light');
 
         // Build play button HTML (conditional)
+        const buttonStyleVars = [];
+        const formatButtonStyleValue = value => escapeHtml(typeof value === 'number' ? `${value}px` : value);
+        if (this.options.buttonSize != null) {
+            buttonStyleVars.push(`--wfp-btn-size: ${formatButtonStyleValue(this.options.buttonSize)}`);
+        }
+        if (this.options.buttonRadius != null) {
+            buttonStyleVars.push(`--wfp-btn-radius: ${formatButtonStyleValue(this.options.buttonRadius)}`);
+        }
+        const buttonStyleAttr = buttonStyleVars.length ? ` style="${buttonStyleVars.join('; ')};"` : '';
         const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn${this.options.buttonStyle === 'minimal' ? ' waveform-btn-minimal' : ''}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === 'number' ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ''}>
+        <button class="waveform-btn${this.options.buttonStyle === 'minimal' ? ' waveform-btn-minimal' : ''}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${buttonStyleAttr}>
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
         </button>
