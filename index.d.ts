@@ -218,6 +218,14 @@ export interface WaveformPlayerOptions {
 	accessibleSeek?: boolean;
 	/** Accessible name for the seek slider (falls back to the title, then `'Seek'`). @default null */
 	seekLabel?: string | null;
+	/**
+	 * Template for the seek slider's spoken `aria-valuetext`. `%1$s` is the
+	 * current time and `%2$s` the total duration (both formatted `M:SS`);
+	 * sequential `%s` and reordered positional args are also supported. Alias
+	 * for `i18n.seekValueText`.
+	 * @default null
+	 */
+	seekValueText?: string | null;
 	/** Localized UI and accessibility strings. */
 	i18n?: WaveformI18nOptions;
 
@@ -226,6 +234,14 @@ export interface WaveformPlayerOptions {
 	artist?: string | null;
 	artwork?: string | null;
 	album?: string;
+	/** Alt text for the artwork image. Alias for `i18n.albumArtworkAlt`. @default 'Album artwork' */
+	artworkAlt?: string;
+	/** Accessible label for the play/pause button. Alias for `i18n.playPauseLabel`. @default 'Play/Pause' */
+	playPauseLabel?: string;
+	/** Accessible label for the playback-speed button and menu. Alias for `i18n.playbackSpeedLabel`. @default 'Playback speed' */
+	speedLabel?: string;
+	/** Media Session title fallback used when no track `title` is set. Alias for `i18n.unknownTrack`. @default 'Unknown Track' */
+	unknownTrackText?: string;
 	/** Message shown when audio fails to load. Alias for `i18n.errorText`. @default 'Unable to load audio' */
 	errorText?: string;
 

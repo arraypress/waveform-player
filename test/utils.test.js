@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
 	formatTime,
+	formatSeekValueText,
 	generateId,
 	mergeOptions,
 	extractTitleFromUrl,
@@ -78,6 +79,30 @@ describe('formatTime', () => {
 	});
 });
 
+describe('formatSeekValueText', () => {
+	it('substitutes positional placeholders', () => {
+		expect(formatSeekValueText('%1$s of %2$s', '0:30', '2:00')).toBe(
+			'0:30 of 2:00'
+		);
+	});
+
+	it('substitutes sequential %s placeholders in order', () => {
+		expect(formatSeekValueText('%s / %s', '0:30', '2:00')).toBe(
+			'0:30 / 2:00'
+		);
+	});
+
+	it('resolves reordered positional args independently of source order', () => {
+		expect(formatSeekValueText('%2$s, %1$s', '0:30', '2:00')).toBe(
+			'2:00, 0:30'
+		);
+	});
+
+	it('leaves placeholders with no matching argument intact', () => {
+		expect(formatSeekValueText('%1$s of %2$s', '0:30')).toBe('0:30 of %2$s');
+	});
+});
+
 describe('generateId', () => {
 	it('produces element-id-safe strings', () => {
 		expect(generateId('https://x.com/a.mp3')).toMatch(/^wp_[0-9a-z]+_[0-9a-z]+$/);
@@ -148,6 +173,23 @@ describe('parseDataAttributes', () => {
 			seekLabel: 'Seek translated',
 			bpmLabel: 'Tempo',
 		});
+	});
+
+	it('reads the localizable UI string data-* attributes', () => {
+		const el = document.createElement('div');
+		Object.assign(el.dataset, {
+			seekValueText: '%1$s de %2$s',
+			playPauseLabel: 'Reproducir/Pausar',
+			speedLabel: 'Velocidad',
+			artworkAlt: 'Portada',
+			unknownTrackText: 'Pista desconocida',
+		});
+		const o = parseDataAttributes(el);
+		expect(o.seekValueText).toBe('%1$s de %2$s');
+		expect(o.playPauseLabel).toBe('Reproducir/Pausar');
+		expect(o.speedLabel).toBe('Velocidad');
+		expect(o.artworkAlt).toBe('Portada');
+		expect(o.unknownTrackText).toBe('Pista desconocida');
 	});
 
 	it('accepts data-src as a shorthand alias for data-url', () => {

@@ -7,6 +7,7 @@ import {draw} from './drawing.js';
 import {generateWaveform, generatePlaceholderWaveform} from './audio.js';
 import {
     formatTime,
+    formatSeekValueText,
     extractTitleFromUrl,
     generateId,
     parseDataAttributes,
@@ -88,6 +89,7 @@ export class WaveformPlayer {
         // Track legacy top-level text aliases so `i18n` can own defaults while
         // existing callers using `seekLabel` / `errorText` keep precedence.
         this._explicitSeekLabel = dataOptions.seekLabel !== undefined || userOptions.seekLabel !== undefined;
+        this._explicitSeekValueText = dataOptions.seekValueText !== undefined || userOptions.seekValueText !== undefined;
         this._explicitErrorText = dataOptions.errorText !== undefined || userOptions.errorText !== undefined;
 
         // Merge options: defaults < data attributes < constructor options
@@ -99,8 +101,20 @@ export class WaveformPlayer {
             : {};
 
         this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, userOptions);
+        const i18nAliases = {};
+        const setI18nAlias = (optionKey, i18nKey) => {
+            if (dataOptions[optionKey] !== undefined || userOptions[optionKey] !== undefined) {
+                i18nAliases[i18nKey] = this.options[optionKey];
+            }
+        };
+        setI18nAlias('playPauseLabel', 'playPauseLabel');
+        setI18nAlias('speedLabel', 'playbackSpeedLabel');
+        setI18nAlias('artworkAlt', 'albumArtworkAlt');
+        setI18nAlias('unknownTrackText', 'unknownTrack');
+
         this.options.i18n = mergeOptions(
             DEFAULT_I18N,
+            i18nAliases,
             dataI18n,
             userI18n
         );
@@ -420,6 +434,96 @@ export class WaveformPlayer {
 
         // Show a caller-supplied BPM immediately (no audio decode required).
         this.updateBPMDisplay();
+    }
+
+    /**
+     * Create an artwork element matching the initial player markup.
+     *
+     * @returns {HTMLImageElement} Artwork image element.
+     * @private
+     */
+    createArtworkElement() {
+        const img = document.createElement('img');
+        img.className = 'waveform-artwork';
+        img.style.width = '40px';
+        img.style.height = '40px';
+        img.style.borderRadius = '4px';
+        img.style.objectFit = 'cover';
+        img.style.flexShrink = '0';
+        img.addEventListener('error', () => {
+            if (!img.src.startsWith('data:')) img.src = ARTWORK_FALLBACK;
+        });
+        return img;
+    }
+
+    /**
+     * Create an artist text element matching the initial player markup.
+     *
+     * @returns {HTMLSpanElement} Artist text element.
+     * @private
+     */
+    createArtistElement() {
+        const span = document.createElement('span');
+        span.className = 'waveform-artist';
+        return span;
+    }
+
+    /**
+     * Reconcile artist metadata and markup for the current track.
+     *
+     * @param {string|null} artist - Artist text, or a falsy value to remove it.
+     * @private
+     */
+    syncArtist(artist) {
+        this.options.artist = artist || null;
+
+        if (!this.options.showInfo) return;
+
+        if (!artist) {
+            this.artistEl?.remove();
+            this.artistEl = null;
+            return;
+        }
+
+        if (!this.artistEl) {
+            const titleEl = this.container.querySelector('.waveform-title');
+            if (!titleEl) return;
+            this.artistEl = this.createArtistElement();
+            titleEl.after(this.artistEl);
+        }
+
+        this.artistEl.textContent = artist;
+        this.artistEl.style.display = '';
+    }
+
+    /**
+     * Reconcile artwork metadata and markup for the current track.
+     *
+     * @param {string|null} artwork - Artwork image URL, or a falsy value to remove artwork.
+     * @param {string} artworkAlt - Artwork alt text.
+     * @private
+     */
+    syncArtwork(artwork, artworkAlt = '') {
+        this.options.artwork = artwork || null;
+        this.options.artworkAlt = artworkAlt || '';
+
+        if (!this.options.showInfo) return;
+
+        if (!artwork) {
+            this.artworkEl?.remove();
+            this.artworkEl = null;
+            return;
+        }
+
+        if (!this.artworkEl) {
+            const textEl = this.container.querySelector('.waveform-text');
+            if (!textEl) return;
+            this.artworkEl = this.createArtworkElement();
+            textEl.before(this.artworkEl);
+        }
+
+        this.artworkEl.src = artwork;
+        this.artworkEl.alt = artworkAlt || '';
     }
 
     /**
@@ -783,12 +887,16 @@ export class WaveformPlayer {
         const currentTime = formatTime(current);
         const durationTime = formatTime(duration);
 
-        this.seekEl.setAttribute('aria-valuetext', this.i18n('seekValueText', {
-            currentTime,
-            duration: durationTime,
-            current,
-            durationSeconds: duration
-        }));
+        const valueText = this._explicitSeekValueText
+            ? formatSeekValueText(this.options.seekValueText || '%1$s of %2$s', currentTime, durationTime)
+            : this.i18n('seekValueText', {
+                currentTime,
+                duration: durationTime,
+                current,
+                durationSeconds: duration
+            });
+
+        this.seekEl.setAttribute('aria-valuetext', valueText);
     }
 
     /**
@@ -1109,6 +1217,9 @@ export class WaveformPlayer {
      * @returns {Promise<void>}
      */
     async loadTrack(url, title = null, artist = null, options = {}) {
+        const hasArtworkOption = Object.prototype.hasOwnProperty.call(options, 'artwork');
+        const hasArtworkAltOption = Object.prototype.hasOwnProperty.call(options, 'artworkAlt');
+
         // Stop current playback and clear state
         if (this.isPlaying) {
             this.pause();
@@ -1138,15 +1249,25 @@ export class WaveformPlayer {
 
         const previousI18n = this.options.i18n;
         if (options.seekLabel !== undefined) this._explicitSeekLabel = true;
+        if (options.seekValueText !== undefined) this._explicitSeekValueText = true;
         if (options.errorText !== undefined) this._explicitErrorText = true;
 
         // Update options (including preload if specified)
         this.options = mergeOptions(this.options, {
             url,
-            title: title || this.options.title,
-            artist: artist || this.options.artist,
+            title: title === null ? this.options.title : title,
+            artist: artist === null ? this.options.artist : artist,
             ...options
         });
+        if (hasArtworkOption) {
+            this.options.artwork = options.artwork || null;
+        }
+        if (hasArtworkAltOption) {
+            this.options.artworkAlt = options.artworkAlt || '';
+        } else if (hasArtworkOption) {
+            this.options.artworkAlt = this.options.artwork ? this.i18n('albumArtworkAlt') : '';
+        }
+
         const nextI18n = options.i18n && typeof options.i18n === 'object' && !Array.isArray(options.i18n)
             ? options.i18n
             : {};
@@ -1162,19 +1283,19 @@ export class WaveformPlayer {
             this.audio.preload = options.preload;
         }
 
-        // Update UI elements
-        if (this.artistEl) {
-            if (artist) {
-                this.artistEl.textContent = artist;
-                this.artistEl.style.display = '';
-            } else if (artist === '') {
-                this.artistEl.style.display = 'none';
-            }
+        // Update artist only when explicitly provided. A null artist keeps the
+        // existing artist, while an empty string removes it.
+        if (artist !== null) {
+            this.syncArtist(artist);
         }
 
-        // Update artwork if provided
-        if (options.artwork && this.artworkEl) {
-            this.artworkEl.src = options.artwork;
+        // Update artwork when explicitly provided. The caller can pass an empty
+        // value to remove existing artwork from the in-place player.
+        if (hasArtworkOption || hasArtworkAltOption) {
+            this.syncArtwork(
+                hasArtworkOption ? options.artwork : this.options.artwork,
+                hasArtworkAltOption ? options.artworkAlt : this.options.artworkAlt
+            );
         }
 
         // Clear or update markers

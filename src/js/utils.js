@@ -229,7 +229,14 @@ export function parseDataAttributes(element) {
     // Accessibility
     setBool('accessibleSeek');
     if (element.dataset.seekLabel) options.seekLabel = element.dataset.seekLabel;
+    if (element.dataset.seekValueText) options.seekValueText = element.dataset.seekValueText;
     if (element.dataset.errorText) options.errorText = element.dataset.errorText;
+
+    // Backwards-compatible top-level localizable UI strings.
+    if (element.dataset.playPauseLabel) options.playPauseLabel = element.dataset.playPauseLabel;
+    if (element.dataset.speedLabel) options.speedLabel = element.dataset.speedLabel;
+    if (element.dataset.artworkAlt) options.artworkAlt = element.dataset.artworkAlt;
+    if (element.dataset.unknownTrackText) options.unknownTrackText = element.dataset.unknownTrackText;
 
     // Localized strings. `data-i18n` accepts a JSON object, and individual
     // data-i18n-* attributes can override one key without JSON escaping.
@@ -253,6 +260,25 @@ export function parseDataAttributes(element) {
     if (element.dataset.pauseIcon) options.pauseIcon = element.dataset.pauseIcon;
 
     return options;
+}
+
+/**
+ * Interpolate a printf-style seek value-text template.
+ *
+ * Substitutes positional (`%1$s`, `%2$s`) and sequential (`%s`) placeholders so
+ * a localized template resolves the same way `sprintf` would — including
+ * templates that reorder the arguments for a given language. Placeholders with
+ * no matching argument are left intact.
+ * @param {string} template - Value-text template, e.g. `'%1$s of %2$s'`.
+ * @param {...string} args  - Replacement values, in order (current, duration).
+ * @returns {string} The interpolated value text.
+ */
+export function formatSeekValueText(template, ...args) {
+    let sequentialIndex = 0;
+    return template.replace(/%(?:(\d+)\$)?s/g, (match, position) => {
+        const index = position ? Number(position) - 1 : sequentialIndex++;
+        return args[index] ?? match;
+    });
 }
 
 /**

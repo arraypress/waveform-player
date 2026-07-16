@@ -35,6 +35,47 @@ describe('construction', () => {
 	});
 });
 
+describe('localizable UI strings', () => {
+	it('defaults the play button, speed control, and artwork alt to English', () => {
+		const { el } = track(mount({ showPlaybackSpeed: true, artwork: 'cover.jpg' }));
+		expect(el.querySelector('.waveform-btn').getAttribute('aria-label')).toBe('Play/Pause');
+		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('Playback speed');
+		expect(el.querySelector('.speed-menu').getAttribute('aria-label')).toBe('Playback speed');
+		expect(el.querySelector('.waveform-artwork').getAttribute('alt')).toBe('Album artwork');
+	});
+
+	it('localizes the play button, speed control, and artwork alt via options', () => {
+		const { el } = track(mount({
+			showPlaybackSpeed: true,
+			artwork: 'cover.jpg',
+			playPauseLabel: 'Reproducir/Pausar',
+			speedLabel: 'Velocidad',
+			artworkAlt: 'Portada',
+		}));
+		expect(el.querySelector('.waveform-btn').getAttribute('aria-label')).toBe('Reproducir/Pausar');
+		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('Velocidad');
+		expect(el.querySelector('.speed-menu').getAttribute('aria-label')).toBe('Velocidad');
+		expect(el.querySelector('.waveform-artwork').getAttribute('alt')).toBe('Portada');
+	});
+
+	it('reads the localizable labels from data-* attributes', () => {
+		const el = document.createElement('div');
+		el.dataset.showPlaybackSpeed = 'true';
+		el.dataset.playPauseLabel = 'Reproducir/Pausar';
+		el.dataset.speedLabel = 'Velocidad';
+		document.body.appendChild(el);
+		track(new WaveformPlayer(el, { audioMode: 'external' }));
+		expect(el.querySelector('.waveform-btn').getAttribute('aria-label')).toBe('Reproducir/Pausar');
+		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('Velocidad');
+	});
+
+	it('escapes localizable labels to keep the aria-label attribute well-formed', () => {
+		const { el } = track(mount({ playPauseLabel: 'Play "&" Pause' }));
+		// The raw text round-trips through the DOM rather than breaking the attribute.
+		expect(el.querySelector('.waveform-btn').getAttribute('aria-label')).toBe('Play "&" Pause');
+	});
+});
+
 describe('accessible seek slider', () => {
 	it('exposes the waveform as an ARIA slider by default', () => {
 		const { el } = track(mount({ title: 'My Track' }));
@@ -69,6 +110,43 @@ describe('accessible seek slider', () => {
 
 		slider.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
 		expect(seek.detail.percent).toBe(0);
+	});
+
+	it('localizes aria-valuetext with a custom seekValueText template (Spanish)', () => {
+		const { el, player } = track(
+			mount({ showTime: false, seekValueText: '%1$s de %2$s' })
+		);
+		const slider = el.querySelector('.waveform-container');
+
+		player.setProgress(30, 120);
+		expect(slider.getAttribute('aria-valuetext')).toBe('0:30 de 2:00');
+	});
+
+	it('supports reordered positional args in a translated template', () => {
+		// A translation may place the total before the current time; %2$s/%1$s
+		// must resolve independently of source order.
+		const { el, player } = track(
+			mount({ showTime: false, seekValueText: '%2$s en total, %1$s actual' })
+		);
+		const slider = el.querySelector('.waveform-container');
+
+		player.setProgress(30, 120);
+		expect(slider.getAttribute('aria-valuetext')).toBe(
+			'2:00 en total, 0:30 actual'
+		);
+	});
+
+	it('reads seekValueText from the data-seek-value-text attribute', () => {
+		const el = document.createElement('div');
+		el.dataset.seekValueText = '%1$s de %2$s';
+		document.body.appendChild(el);
+		const player = track(
+			new WaveformPlayer(el, { audioMode: 'external', showTime: false })
+		);
+		const slider = el.querySelector('.waveform-container');
+
+		player.setProgress(30, 120);
+		expect(slider.getAttribute('aria-valuetext')).toBe('0:30 de 2:00');
 	});
 
 	it('toggles aria-busy while loading', () => {
@@ -224,6 +302,96 @@ describe('lifecycle + external events', () => {
 		// ...but explicit peaks on a later load are still honoured.
 		await player.loadTrack('third.mp3', 'Third', 'Artist', { autoplay: false, waveform: [0.2, 0.4] });
 		expect(player.options.waveform).toEqual([0.2, 0.4]);
+	});
+
+	it('loadTrack updates existing artwork and alt text', async () => {
+		const { el, player } = track(mount({
+			artwork: 'first-cover.jpg',
+			artworkAlt: 'First cover',
+		}));
+		const img = el.querySelector('.waveform-artwork');
+
+		await player.loadTrack('next.mp3', 'Next', 'Artist', {
+			artwork: 'second-cover.jpg',
+			artworkAlt: 'Second cover',
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-artwork')).toBe(img);
+		expect(img.getAttribute('src')).toBe('second-cover.jpg');
+		expect(img.getAttribute('alt')).toBe('Second cover');
+		expect(player.options.artwork).toBe('second-cover.jpg');
+		expect(player.options.artworkAlt).toBe('Second cover');
+	});
+
+	it('loadTrack updates existing artist text', async () => {
+		const { el, player } = track(mount({ artist: 'First Artist' }));
+		const artistEl = el.querySelector('.waveform-artist');
+
+		await player.loadTrack('next.mp3', 'Next', 'Second Artist', {
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-artist')).toBe(artistEl);
+		expect(artistEl.textContent).toBe('Second Artist');
+		expect(player.options.artist).toBe('Second Artist');
+	});
+
+	it('loadTrack removes existing artist when artist is empty', async () => {
+		const { el, player } = track(mount({ artist: 'Artist' }));
+		expect(el.querySelector('.waveform-artist')).toBeTruthy();
+
+		await player.loadTrack('next.mp3', 'Next', '', {
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-artist')).toBe(null);
+		expect(player.options.artist).toBe(null);
+	});
+
+	it('loadTrack creates artist text when the player was initialized without it', async () => {
+		const { el, player } = track(mount());
+		expect(el.querySelector('.waveform-artist')).toBe(null);
+
+		await player.loadTrack('next.mp3', 'Next', 'Artist', {
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-artist').textContent).toBe('Artist');
+		expect(player.options.artist).toBe('Artist');
+	});
+
+	it('loadTrack removes existing artwork when artwork is empty', async () => {
+		const { el, player } = track(mount({
+			artwork: 'cover.jpg',
+			artworkAlt: 'Cover',
+		}));
+		expect(el.querySelector('.waveform-artwork')).toBeTruthy();
+
+		await player.loadTrack('next.mp3', 'Next', 'Artist', {
+			artwork: null,
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-artwork')).toBe(null);
+		expect(player.options.artwork).toBe(null);
+		expect(player.options.artworkAlt).toBe('');
+	});
+
+	it('loadTrack creates artwork when the player was initialized without it', async () => {
+		const { el, player } = track(mount());
+		expect(el.querySelector('.waveform-artwork')).toBe(null);
+
+		await player.loadTrack('next.mp3', 'Next', 'Artist', {
+			artwork: 'cover.jpg',
+			artworkAlt: 'Cover',
+			autoplay: false,
+		});
+
+		const img = el.querySelector('.waveform-artwork');
+		expect(img).toBeTruthy();
+		expect(img.getAttribute('src')).toBe('cover.jpg');
+		expect(img.getAttribute('alt')).toBe('Cover');
 	});
 });
 

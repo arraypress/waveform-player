@@ -247,8 +247,12 @@ export const DEFAULT_OPTIONS = {
     // (role="slider" + ARIA value attributes + arrow/page/home/end seeking).
     // seekLabel sets the slider's accessible name; when null it falls back
     // to the track title, then 'Seek'.
+    // seekValueText is a backwards-compatible top-level alias that templates
+    // the slider's spoken aria-valuetext using printf placeholders: %1$s is
+    // the current time and %2$s the total duration (both formatted M:SS).
     accessibleSeek: true,
     seekLabel: null,
+    seekValueText: null,
     i18n: DEFAULT_I18N,
 
     // Content
@@ -260,6 +264,12 @@ export const DEFAULT_OPTIONS = {
     // Message shown in the error state when audio fails to load. Kept as a
     // backwards-compatible alias for i18n.errorText.
     errorText: 'Unable to load audio',
+
+    // Backwards-compatible aliases for i18n.* values.
+    playPauseLabel: 'Play/Pause',
+    speedLabel: 'Playback speed',
+    artworkAlt: 'Album artwork',
+    unknownTrackText: 'Unknown Track',
 
     // Icons (SVG)
     playIcon: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>',
