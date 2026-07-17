@@ -15,6 +15,7 @@ import {
     debounce,
     clamp,
     escapeHtml,
+    formatCssLength,
     DEFAULT_SAMPLES
 } from './utils.js';
 
@@ -264,9 +265,20 @@ export class WaveformPlayer {
         }
         this.container.classList.toggle('waveform-theme-light', this._scheme === 'light');
 
+        // Button sizing/shape ride in on CSS vars so the stylesheet keeps the
+        // fallbacks (36px, 50%) — an unset option emits no var at all.
+        const buttonVars = [];
+        if (this.options.buttonSize != null) {
+            buttonVars.push(`--wfp-btn-size: ${formatCssLength(this.options.buttonSize)}`);
+        }
+        if (this.options.buttonRadius != null) {
+            buttonVars.push(`--wfp-btn-radius: ${formatCssLength(this.options.buttonRadius)}`);
+        }
+        const buttonStyleAttr = buttonVars.length ? ` style="${buttonVars.join('; ')};"` : '';
+
         // Build play button HTML (conditional)
         const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn${this.options.buttonStyle === 'minimal' ? ' waveform-btn-minimal' : ''}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === 'number' ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ''}>
+        <button class="waveform-btn${this.options.buttonStyle === 'minimal' ? ' waveform-btn-minimal' : ''}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${buttonStyleAttr}>
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
         </button>
@@ -276,7 +288,7 @@ export class WaveformPlayer {
         const infoHTML = this.options.showInfo ? `
       <div class="waveform-info">
         ${this.options.artwork ? `
-          <img class="waveform-artwork" src="${this.options.artwork}" alt="${escapeHtml(this.options.artworkAlt)}" style="
+          <img class="waveform-artwork" src="${escapeHtml(this.options.artwork)}" alt="${escapeHtml(this.options.artworkAlt)}" style="
             width: 40px;
             height: 40px;
             border-radius: 4px;
@@ -286,7 +298,7 @@ export class WaveformPlayer {
         ` : ''}
         <div class="waveform-text">
           <span class="waveform-title"></span>
-          ${this.options.artist ? `<span class="waveform-artist">${this.options.artist}</span>` : ''}
+          ${this.options.artist ? `<span class="waveform-artist">${escapeHtml(this.options.artist)}</span>` : ''}
         </div>
         <div class="waveform-meta" style="display: flex; align-items: center; gap: 1rem;">
           ${this.options.showBPM ? `

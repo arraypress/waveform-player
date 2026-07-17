@@ -43,6 +43,22 @@ export function escapeHtml(str) {
 }
 
 /**
+ * Format a CSS length option (`buttonSize`, `buttonRadius`) for interpolation
+ * into an inline `style` attribute. A number is treated as px; a string (e.g.
+ * `'4rem'`) is used verbatim.
+ *
+ * The result is HTML-escaped: these values reach the markup from author-supplied
+ * `data-*` attributes, so an unescaped quote would otherwise close the `style`
+ * attribute and let arbitrary markup in.
+ *
+ * @param {number|string} value - Length option value.
+ * @returns {string} Escaped CSS length, e.g. `36px` or `4rem`.
+ */
+export function formatCssLength(value) {
+    return escapeHtml(typeof value === 'number' ? `${value}px` : value);
+}
+
+/**
  * Whether a URL is safe to navigate to (assign to `location.href`): allows only
  * `http`/`https` and relative URLs, rejecting `javascript:`, `data:`, `blob:`,
  * `vbscript:` and other script-bearing schemes.
@@ -134,6 +150,14 @@ export function parseDataAttributes(element) {
         if (raw) options[optKey] = float ? parseFloat(raw) : parseInt(raw, 10);
     };
 
+    // Read a CSS length attribute: a bare number is px (data-button-size="64"),
+    // a unit string (e.g. "4rem") is kept verbatim for the stylesheet to resolve.
+    const setLength = (optKey, dataKey = optKey) => {
+        const raw = element.dataset[dataKey];
+        if (!raw) return;
+        options[optKey] = /^\d+(\.\d+)?$/.test(raw.trim()) ? parseFloat(raw) : raw;
+    };
+
     // Parse a JSON-valued attribute defensively — warn and skip on bad JSON.
     const setJson = (optKey, dataKey = optKey) => {
         const raw = element.dataset[dataKey];
@@ -164,12 +188,8 @@ export function parseDataAttributes(element) {
     if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
     if (element.dataset.layout) options.layout = element.dataset.layout;
     if (element.dataset.buttonStyle) options.buttonStyle = element.dataset.buttonStyle;
-    // buttonSize: a bare number is px (data-button-size="64"); a unit string
-    // (e.g. "4rem") is kept verbatim.
-    if (element.dataset.buttonSize) {
-        const bs = element.dataset.buttonSize;
-        options.buttonSize = /^\d+(\.\d+)?$/.test(bs.trim()) ? parseFloat(bs) : bs;
-    }
+    setLength('buttonSize');
+    setLength('buttonRadius');
 
     // Color preset
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;

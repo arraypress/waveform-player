@@ -536,6 +536,121 @@ describe('buttonSize', () => {
 	});
 });
 
+describe('buttonRadius', () => {
+	it('sets --wfp-btn-radius in px from a number', () => {
+		const { el } = track(mount({ buttonRadius: 8 }));
+		expect(el.querySelector('.waveform-btn').getAttribute('style')).toContain('--wfp-btn-radius: 8px');
+	});
+
+	it('squares the button with 0 (not skipped as falsy)', () => {
+		const { el } = track(mount({ buttonRadius: 0 }));
+		expect(el.querySelector('.waveform-btn').getAttribute('style')).toContain('--wfp-btn-radius: 0px');
+	});
+
+	it('passes a unit string through verbatim', () => {
+		const { el } = track(mount({ buttonRadius: '0.5rem' }));
+		expect(el.querySelector('.waveform-btn').getAttribute('style')).toContain('--wfp-btn-radius: 0.5rem');
+	});
+
+	it('omits the variable by default (stylesheet 50% applies)', () => {
+		const { el } = track(mount({}));
+		expect(el.querySelector('.waveform-btn').getAttribute('style') ?? '').not.toContain('--wfp-btn-radius');
+	});
+
+	it('emits both button vars in one style attribute alongside buttonSize', () => {
+		const { el } = track(mount({ buttonSize: 64, buttonRadius: 0 }));
+		const style = el.querySelector('.waveform-btn').getAttribute('style');
+		expect(style).toContain('--wfp-btn-size: 64px');
+		expect(style).toContain('--wfp-btn-radius: 0px');
+	});
+
+	it('reads data-button-radius (number → px)', () => {
+		const host = document.createElement('div');
+		host.setAttribute('data-waveform-player', '');
+		host.setAttribute('data-url', '/a.mp3');
+		host.setAttribute('data-button-radius', '0');
+		host.setAttribute('data-audio-mode', 'external');
+		document.body.appendChild(host);
+		const player = track(new WaveformPlayer(host));
+		expect(host.querySelector('.waveform-btn').getAttribute('style')).toContain('--wfp-btn-radius: 0px');
+	});
+});
+
+describe('_build escapes author-supplied values', () => {
+	// Everything _build interpolates can arrive from a data-* attribute, so no
+	// value may close the attribute it sits in or be parsed as markup. The rest
+	// of the player writes these through textContent (syncArtist, setTitle) —
+	// these tests keep the initial render honest to the same contract.
+	it('renders artist as text, not markup', () => {
+		const { el } = track(mount({ artist: '<img class="x" src=y onerror=alert(1)>' }));
+		expect(el.querySelector('.x')).toBe(null);
+		expect(el.querySelector('.waveform-artist').textContent)
+			.toBe('<img class="x" src=y onerror=alert(1)>');
+	});
+
+	// An ampersand is the one thing artist genuinely has to carry ("David &
+	// John"). Escaping writes `&amp;` into the markup, which the parser decodes
+	// straight back — so the reader sees a single `&`, never `&amp;`. Guards
+	// against a future double-escape (e.g. textContent = escapeHtml(artist)).
+	it('renders an ampersand in artist as a single & on both render paths', async () => {
+		const { el, player } = track(mount({ artist: 'David & John' }));
+		expect(el.querySelector('.waveform-artist').textContent).toBe('David & John');
+
+		await player.loadTrack('next.mp3', 'Next', 'Bill & Ted', { autoplay: false });
+		expect(el.querySelector('.waveform-artist').textContent).toBe('Bill & Ted');
+	});
+
+	it('keeps an ampersand intact in an artwork query string', () => {
+		const { el } = track(mount({ artwork: 'https://cdn.test/cover.jpg?w=80&h=80' }));
+		expect(el.querySelector('.waveform-artwork').getAttribute('src'))
+			.toBe('https://cdn.test/cover.jpg?w=80&h=80');
+	});
+
+	it('does not let an artwork URL break out of the src attribute', () => {
+		const { el } = track(mount({ artwork: 'x.jpg"><img class="x" src=y onerror=alert(1)>' }));
+		expect(el.querySelector('.x')).toBe(null);
+		expect(el.querySelector('.waveform-artwork').getAttribute('src'))
+			.toBe('x.jpg"><img class="x" src=y onerror=alert(1)>');
+	});
+
+	it('does not let data-artist inject markup', () => {
+		const host = document.createElement('div');
+		host.setAttribute('data-waveform-player', '');
+		host.setAttribute('data-url', '/a.mp3');
+		host.setAttribute('data-artist', '<img class="x" src=y onerror=alert(1)>');
+		host.setAttribute('data-audio-mode', 'external');
+		document.body.appendChild(host);
+		track(new WaveformPlayer(host));
+		expect(host.querySelector('.x')).toBe(null);
+	});
+
+	// The button CSS vars are interpolated into a `style` attribute and can come
+	// from author-supplied data-* attributes, so a quote in the value must not be
+	// able to close the attribute and inject markup.
+	it('does not let a buttonSize string break out of the style attribute', () => {
+		const { el } = track(mount({ buttonSize: '36px"><img src=x onerror=alert(1)>' }));
+		const btn = el.querySelector('.waveform-btn');
+		expect(el.querySelector('img')).toBe(null);
+		expect(btn.getAttribute('style')).toContain('--wfp-btn-size: 36px"><img src=x onerror=alert(1)>');
+	});
+
+	it('does not let a buttonRadius string break out of the style attribute', () => {
+		const { el } = track(mount({ buttonRadius: '8px"><img src=x onerror=alert(1)>' }));
+		expect(el.querySelector('img')).toBe(null);
+	});
+
+	it('does not let data-button-size inject markup', () => {
+		const host = document.createElement('div');
+		host.setAttribute('data-waveform-player', '');
+		host.setAttribute('data-url', '/a.mp3');
+		host.setAttribute('data-button-size', '36px"><img src=x onerror=alert(1)>');
+		host.setAttribute('data-audio-mode', 'external');
+		document.body.appendChild(host);
+		const player = track(new WaveformPlayer(host));
+		expect(host.querySelector('img')).toBe(null);
+	});
+});
+
 describe('static getPeaksUrl', () => {
 	it('swaps a known audio extension for .json', () => {
 		expect(WaveformPlayer.getPeaksUrl('https://x.com/a.mp3')).toBe('https://x.com/a.json');

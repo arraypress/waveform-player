@@ -50,7 +50,7 @@
     width: var(--wfp-btn-size, 36px);
     height: var(--wfp-btn-size, 36px);
     min-width: var(--wfp-btn-size, 36px);
-    border-radius: 50%;
+    border-radius: var(--wfp-btn-radius, 50%);
     border: 2px solid currentColor;
     background: transparent;
     color: var(--wfp-button-color, inherit);

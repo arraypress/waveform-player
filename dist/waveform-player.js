@@ -11,6 +11,9 @@
   function escapeHtml(str) {
     return String(str == null ? "" : str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
+  function formatCssLength(value) {
+    return escapeHtml(typeof value === "number" ? `${value}px` : value);
+  }
   function isSafeHref(url) {
     if (typeof url !== "string" || url === "") return false;
     try {
@@ -45,6 +48,11 @@
       const raw = element.dataset[dataKey];
       if (raw) options[optKey] = float ? parseFloat(raw) : parseInt(raw, 10);
     };
+    const setLength = (optKey, dataKey = optKey) => {
+      const raw = element.dataset[dataKey];
+      if (!raw) return;
+      options[optKey] = /^\d+(\.\d+)?$/.test(raw.trim()) ? parseFloat(raw) : raw;
+    };
     const setJson = (optKey, dataKey = optKey) => {
       const raw = element.dataset[dataKey];
       if (!raw) return;
@@ -71,10 +79,8 @@
     if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
     if (element.dataset.layout) options.layout = element.dataset.layout;
     if (element.dataset.buttonStyle) options.buttonStyle = element.dataset.buttonStyle;
-    if (element.dataset.buttonSize) {
-      const bs = element.dataset.buttonSize;
-      options.buttonSize = /^\d+(\.\d+)?$/.test(bs.trim()) ? parseFloat(bs) : bs;
-    }
+    setLength("buttonSize");
+    setLength("buttonRadius");
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;
     if (element.dataset.waveformColor) options.waveformColor = parseColorValue(element.dataset.waveformColor);
     if (element.dataset.progressColor) options.progressColor = parseColorValue(element.dataset.progressColor);
@@ -696,6 +702,12 @@
     // is used verbatim. Sets the `--wfp-btn-size` CSS var, which scales BOTH
     // styles — box and glyph — proportionally.
     buttonSize: null,
+    // Play/pause button corner radius. null = the stylesheet default (50%, a
+    // circle). A number is treated as px; a string (e.g. '8px') is used
+    // verbatim. Set 0 for a square button. Sets the `--wfp-btn-radius` CSS var,
+    // which shapes the 'circle' style's box — the bare 'minimal' glyph has no
+    // box to round, so this is a no-op there.
+    buttonRadius: null,
     // Default waveform style
     waveformStyle: "mirror",
     barWidth: 2,
@@ -958,8 +970,16 @@
         this.container.classList.add("waveform-layout-preview");
       }
       this.container.classList.toggle("waveform-theme-light", this._scheme === "light");
+      const buttonVars = [];
+      if (this.options.buttonSize != null) {
+        buttonVars.push(`--wfp-btn-size: ${formatCssLength(this.options.buttonSize)}`);
+      }
+      if (this.options.buttonRadius != null) {
+        buttonVars.push(`--wfp-btn-radius: ${formatCssLength(this.options.buttonRadius)}`);
+      }
+      const buttonStyleAttr = buttonVars.length ? ` style="${buttonVars.join("; ")};"` : "";
       const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${this.options.buttonSize != null ? ` style="--wfp-btn-size: ${typeof this.options.buttonSize === "number" ? `${this.options.buttonSize}px` : this.options.buttonSize};"` : ""}>
+        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${buttonStyleAttr}>
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
         </button>
@@ -967,7 +987,7 @@
       const infoHTML = this.options.showInfo ? `
       <div class="waveform-info">
         ${this.options.artwork ? `
-          <img class="waveform-artwork" src="${this.options.artwork}" alt="${escapeHtml(this.options.artworkAlt)}" style="
+          <img class="waveform-artwork" src="${escapeHtml(this.options.artwork)}" alt="${escapeHtml(this.options.artworkAlt)}" style="
             width: 40px;
             height: 40px;
             border-radius: 4px;
@@ -977,7 +997,7 @@
         ` : ""}
         <div class="waveform-text">
           <span class="waveform-title"></span>
-          ${this.options.artist ? `<span class="waveform-artist">${this.options.artist}</span>` : ""}
+          ${this.options.artist ? `<span class="waveform-artist">${escapeHtml(this.options.artist)}</span>` : ""}
         </div>
         <div class="waveform-meta" style="display: flex; align-items: center; gap: 1rem;">
           ${this.options.showBPM ? `

@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Button corner radius.** New `buttonRadius` option, also settable with
+  `data-button-radius`, sets the play/pause button's corner radius — `0` for a
+  square button, or any CSS length (`8`, `'0.5rem'`). Defaults to `null`, which
+  leaves the stylesheet's circular `50%` in place. Shapes the `circle` button
+  style; the bare `minimal` glyph has no box to round.
+
+### Fixed
+
+- **Author-supplied values are now escaped when the player first renders.**
+  `artist`, `artwork`, and `buttonSize` were interpolated into the initial
+  markup unescaped, so a quote in any of them — including via `data-artist`,
+  `data-artwork`, or `data-button-size` — could close its attribute and inject
+  markup. All values `_build()` interpolates now go through `escapeHtml`. This
+  aligns the first render with every other path in the player, which has always
+  written this metadata via `textContent`.
+
 ## [1.21.0] — 2026-07-10
 
 ### Changed

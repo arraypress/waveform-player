@@ -28,5 +28,6 @@ describe('option/style tables', () => {
 		expect(DEFAULT_OPTIONS.accessibleSeek).toBe(true);
 		expect(DEFAULT_OPTIONS.seekLabel).toBe(null);
 		expect(DEFAULT_OPTIONS.audioMode).toBe('self');
+		expect(DEFAULT_OPTIONS.buttonRadius).toBe(null);
 	});
 });

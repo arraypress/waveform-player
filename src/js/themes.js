@@ -176,6 +176,12 @@ export const DEFAULT_OPTIONS = {
     // is used verbatim. Sets the `--wfp-btn-size` CSS var, which scales BOTH
     // styles — box and glyph — proportionally.
     buttonSize: null,
+    // Play/pause button corner radius. null = the stylesheet default (50%, a
+    // circle). A number is treated as px; a string (e.g. '8px') is used
+    // verbatim. Set 0 for a square button. Sets the `--wfp-btn-radius` CSS var,
+    // which shapes the 'circle' style's box — the bare 'minimal' glyph has no
+    // box to round, so this is a no-op there.
+    buttonRadius: null,
 
     // Default waveform style
     waveformStyle: 'mirror',

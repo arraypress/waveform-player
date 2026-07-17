@@ -10,6 +10,7 @@ import {
 	clamp,
 	parseBoolAttr,
 	escapeHtml,
+	formatCssLength,
 	isSafeHref,
 } from '../src/js/utils.js';
 
@@ -19,6 +20,21 @@ describe('escapeHtml', () => {
 		expect(escapeHtml(`"&'`)).toBe('&quot;&amp;&#39;');
 		expect(escapeHtml(null)).toBe('');
 		expect(escapeHtml(undefined)).toBe('');
+	});
+});
+
+describe('formatCssLength', () => {
+	it('treats a number as px and passes a unit string through verbatim', () => {
+		expect(formatCssLength(64)).toBe('64px');
+		expect(formatCssLength(0)).toBe('0px');
+		expect(formatCssLength(2.5)).toBe('2.5px');
+		expect(formatCssLength('4rem')).toBe('4rem');
+		expect(formatCssLength('50%')).toBe('50%');
+	});
+
+	it('escapes a string that would break out of the style attribute', () => {
+		expect(formatCssLength('36px"><img src=x onerror=alert(1)>'))
+			.toBe('36px&quot;&gt;&lt;img src=x onerror=alert(1)&gt;');
 	});
 });
 
@@ -154,6 +170,28 @@ describe('parseDataAttributes', () => {
 		expect(o.accessibleSeek).toBe(false);
 		expect(o.seekLabel).toBe('Scrub');
 		expect(o.barRadius).toBe(4);
+	});
+
+	it('reads data-button-size / data-button-radius (bare number → px, unit string verbatim)', () => {
+		const el = document.createElement('div');
+		Object.assign(el.dataset, { buttonSize: '48', buttonRadius: '8px' });
+		const o = parseDataAttributes(el);
+		expect(o.buttonSize).toBe(48);
+		expect(o.buttonRadius).toBe('8px');
+	});
+
+	it('reads data-button-radius="0" rather than skipping it as falsy', () => {
+		const el = document.createElement('div');
+		el.dataset.buttonRadius = '0';
+		expect(parseDataAttributes(el).buttonRadius).toBe(0);
+	});
+
+	it('omits button lengths that are absent or empty, leaving the defaults', () => {
+		const el = document.createElement('div');
+		el.dataset.buttonRadius = '';
+		const o = parseDataAttributes(el);
+		expect('buttonRadius' in o).toBe(false);
+		expect('buttonSize' in o).toBe(false);
 	});
 
 	it('reads the localizable UI string data-* attributes', () => {
