@@ -276,9 +276,19 @@ export class WaveformPlayer {
         }
         const buttonStyleAttr = buttonVars.length ? ` style="${buttonVars.join('; ')};"` : '';
 
+        // Artwork renders in exactly one place — the button or the info row —
+        // so the same cover can never appear twice. Button artwork is
+        // decorative: the button already carries its own aria-label, so a
+        // second accessible name here would just be noise.
+        const artworkOnButton = this.options.artworkPosition === 'button' && this.options.artwork;
+        const buttonArtworkHTML = artworkOnButton
+            ? `<img class="waveform-btn-artwork" src="${escapeHtml(this.options.artwork)}" alt="" aria-hidden="true">`
+            : '';
+
         // Build play button HTML (conditional)
         const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn${this.options.buttonStyle === 'minimal' ? ' waveform-btn-minimal' : ''}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${buttonStyleAttr}>
+        <button class="waveform-btn${this.options.buttonStyle === 'minimal' ? ' waveform-btn-minimal' : ''}${artworkOnButton ? ' waveform-btn-has-artwork' : ''}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${buttonStyleAttr}>
+          ${buttonArtworkHTML}
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
         </button>
@@ -287,7 +297,7 @@ export class WaveformPlayer {
         // Build info section HTML (conditional)
         const infoHTML = this.options.showInfo ? `
       <div class="waveform-info">
-        ${this.options.artwork ? `
+        ${this.options.artworkPosition !== 'button' && this.options.artwork ? `
           <img class="waveform-artwork" src="${escapeHtml(this.options.artwork)}" alt="${escapeHtml(this.options.artworkAlt)}" style="
             width: 40px;
             height: 40px;
@@ -355,7 +365,10 @@ export class WaveformPlayer {
         this.ctx = this.canvas.getContext('2d');
         this.titleEl = this.container.querySelector('.waveform-title');
         this.artistEl = this.container.querySelector('.waveform-artist');
-        this.artworkEl = this.container.querySelector('.waveform-artwork');
+        // One reference for either placement — artworkPosition is structural
+        // (like showInfo/buttonStyle) and fixed for the player's lifetime, so
+        // the image only ever has one home.
+        this.artworkEl = this.container.querySelector('.waveform-artwork, .waveform-btn-artwork');
         this.bindArtworkFallback(this.artworkEl);
         this.currentTimeEl = this.container.querySelector('.time-current');
         this.totalTimeEl = this.container.querySelector('.time-total');
@@ -408,6 +421,25 @@ export class WaveformPlayer {
     }
 
     /**
+     * Create a play-button artwork image matching the initial player markup.
+     *
+     * Decorative by design — the button already has an accessible name from its
+     * `aria-label`, so the cover is hidden from assistive tech rather than
+     * given a competing one. Sizing and clipping are the stylesheet's job.
+     *
+     * @returns {HTMLImageElement} Play-button artwork image element.
+     * @private
+     */
+    createButtonArtworkElement() {
+        const img = document.createElement('img');
+        img.className = 'waveform-btn-artwork';
+        img.alt = '';
+        img.setAttribute('aria-hidden', 'true');
+        this.bindArtworkFallback(img);
+        return img;
+    }
+
+    /**
      * Create an artist text element matching the initial player markup.
      *
      * @returns {HTMLSpanElement} Artist text element.
@@ -448,15 +480,56 @@ export class WaveformPlayer {
     }
 
     /**
+     * Reconcile the play button's artwork image (`artworkPosition: 'button'`).
+     *
+     * Shares {@link bindArtworkFallback} with the info-row image, so a broken
+     * cover degrades to the same placeholder tile in either placement. The
+     * `waveform-btn-has-artwork` class is what turns on the scrim + glyph
+     * treatment, so it tracks the image's presence exactly.
+     *
+     * @param {string|null} artwork - Artwork image URL, or a falsy value to remove it.
+     * @private
+     */
+    syncButtonArtwork(artwork) {
+        // Nothing to hang the cover on when the transport is hidden.
+        if (!this.playBtn) return;
+
+        if (!artwork) {
+            this.artworkEl?.remove();
+            this.artworkEl = null;
+            this.playBtn.classList.remove('waveform-btn-has-artwork');
+            return;
+        }
+
+        if (!this.artworkEl) {
+            this.artworkEl = this.createButtonArtworkElement();
+            this.playBtn.prepend(this.artworkEl);
+        }
+
+        this.artworkEl.src = artwork;
+        this.playBtn.classList.add('waveform-btn-has-artwork');
+    }
+
+    /**
      * Reconcile artwork metadata and markup for the current track.
      *
+     * The image lives in one of two homes depending on `artworkPosition` — the
+     * info row (default) or the play button — and only ever one of them, so a
+     * cover can't render twice.
+     *
      * @param {string|null} artwork - Artwork image URL, or a falsy value to remove artwork.
-     * @param {string} artworkAlt - Artwork alt text.
+     * @param {string} artworkAlt - Artwork alt text. Info-row placement only:
+     *   button artwork is decorative and defers to the button's own label.
      * @private
      */
     syncArtwork(artwork, artworkAlt = '') {
         this.options.artwork = artwork || null;
         this.options.artworkAlt = artworkAlt || '';
+
+        if (this.options.artworkPosition === 'button') {
+            this.syncButtonArtwork(this.options.artwork);
+            return;
+        }
 
         if (!this.options.showInfo) return;
 

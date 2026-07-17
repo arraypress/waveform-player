@@ -12,6 +12,17 @@
     --wfp-button-color: rgba(255, 255, 255, 0.9);
     --wfp-text-color: #ffffff;
     --wfp-text-secondary-color: rgba(255, 255, 255, 0.6);
+
+    /* Play-button artwork (artworkPosition: 'button'). Deliberately NOT
+       re-themed for light pages below: the cover underneath is an arbitrary
+       image, so a light page tells us nothing about it — flipping the glyph
+       dark is exactly the unreadable case. This surface is always dark, so it
+       always takes the dark treatment (same value as --wfp-button-color's dark
+       form). The scrim earns its keep: at 0.5 a 0.9-white glyph clears 3:1
+       (WCAG 1.4.11) against even a pure-white cover; any darker cover is
+       better. Re-theme both together or the contrast guarantee goes with it. */
+    --wfp-btn-artwork-color: rgba(255, 255, 255, 0.9);
+    --wfp-btn-artwork-scrim: rgba(0, 0, 0, 0.5);
 }
 
 /* Light theme — the player adds .waveform-theme-light when it detects a light
@@ -119,6 +130,48 @@
     height: calc(var(--wfp-btn-size, 36px) * 0.45);
     fill: currentColor;
     display: block;
+}
+
+/* Play-button artwork — the cover fills the button, a scrim sits between it and
+   the glyph. `overflow: hidden` clips the cover to whatever --wfp-btn-radius is
+   set to, so the image follows `buttonRadius` for free (an outline is painted
+   outside the border box, so the focus ring survives the clip). At the default
+   36px a cover reads as a smudge — this is built for buttonSize: 64 +
+   buttonRadius: 8, the cover-tile look. */
+.waveform-btn-has-artwork {
+    position: relative;
+    overflow: hidden;
+    color: var(--wfp-btn-artwork-color);
+}
+
+/* NOTE: must out-specify `.waveform-btn > * { display: flex; … }` above, which
+   ties on specificity and would otherwise flex the image. The compound
+   `.waveform-btn > .waveform-btn-artwork` wins outright. */
+.waveform-btn > .waveform-btn-artwork {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* The scrim. Generated content paints after the element's children, so without
+   the z-index ladder here it would bury the glyph it exists to make readable. */
+.waveform-btn-has-artwork::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--wfp-btn-artwork-scrim);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.waveform-btn-has-artwork > :not(.waveform-btn-artwork) {
+    position: relative;
+    z-index: 2;
 }
 
 .waveform-icon-play svg {

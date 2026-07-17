@@ -172,6 +172,12 @@ describe('parseDataAttributes', () => {
 		expect(o.barRadius).toBe(4);
 	});
 
+	it('reads data-artwork-position', () => {
+		const el = document.createElement('div');
+		el.dataset.artworkPosition = 'button';
+		expect(parseDataAttributes(el).artworkPosition).toBe('button');
+	});
+
 	it('reads data-button-size / data-button-radius (bare number → px, unit string verbatim)', () => {
 		const el = document.createElement('div');
 		Object.assign(el.dataset, { buttonSize: '48', buttonRadius: '8px' });

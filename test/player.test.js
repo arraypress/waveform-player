@@ -720,6 +720,165 @@ describe('artwork fallback', () => {
 		img.dispatchEvent(new Event('error'));
 		expect(img.src.startsWith('data:image/svg')).toBe(true);
 	});
+
+	// Both placements share bindArtworkFallback, so a broken cover degrades the
+	// same way wherever it lives — no placement-specific failure mode.
+	it('swaps a broken play-button cover for the placeholder tile too', () => {
+		const { el } = track(mount({
+			artwork: 'does-not-exist.jpg',
+			artworkPosition: 'button',
+			title: 'X',
+		}));
+		const img = el.querySelector('.waveform-btn-artwork');
+		expect(img).toBeTruthy();
+		img.dispatchEvent(new Event('error'));
+		expect(img.src.startsWith('data:image/svg')).toBe(true);
+	});
+
+	it('swaps a broken cover added later by loadTrack', async () => {
+		const { el, player } = track(mount({
+			artwork: 'first.jpg',
+			artworkPosition: 'button',
+		}));
+		await player.loadTrack('n.mp3', 'N', 'A', { artwork: 'gone.jpg', autoplay: false });
+		const img = el.querySelector('.waveform-btn-artwork');
+		img.dispatchEvent(new Event('error'));
+		expect(img.src.startsWith('data:image/svg')).toBe(true);
+	});
+});
+
+describe('artworkPosition', () => {
+	it('defaults to the info row, leaving the button untouched', () => {
+		const { el } = track(mount({ artwork: 'cover.jpg' }));
+		expect(el.querySelector('.waveform-artwork')).toBeTruthy();
+		expect(el.querySelector('.waveform-btn-artwork')).toBe(null);
+		expect(el.querySelector('.waveform-btn').classList.contains('waveform-btn-has-artwork')).toBe(false);
+	});
+
+	it('renders the cover on the button and NOT in the info row', () => {
+		const { el } = track(mount({ artwork: 'cover.jpg', artworkPosition: 'button' }));
+		const img = el.querySelector('.waveform-btn-artwork');
+		expect(img.getAttribute('src')).toBe('cover.jpg');
+		expect(el.querySelector('.waveform-info')).toBeTruthy();
+		expect(el.querySelector('.waveform-artwork')).toBe(null);
+		expect(el.querySelector('.waveform-btn').classList.contains('waveform-btn-has-artwork')).toBe(true);
+	});
+
+	it('renders button artwork decoratively, leaving the button its own label', () => {
+		const { el } = track(mount({
+			artwork: 'cover.jpg',
+			artworkPosition: 'button',
+			artworkAlt: 'Portada',
+		}));
+		const img = el.querySelector('.waveform-btn-artwork');
+		expect(img.getAttribute('alt')).toBe('');
+		expect(img.getAttribute('aria-hidden')).toBe('true');
+		expect(el.querySelector('.waveform-btn').getAttribute('aria-label')).toBe('Play/Pause');
+	});
+
+	it('shows button artwork with the info row hidden', () => {
+		const { el } = track(mount({
+			artwork: 'cover.jpg',
+			artworkPosition: 'button',
+			showInfo: false,
+		}));
+		expect(el.querySelector('.waveform-info')).toBe(null);
+		expect(el.querySelector('.waveform-btn-artwork').getAttribute('src')).toBe('cover.jpg');
+	});
+
+	it('still hides info-row artwork when the info row is hidden', () => {
+		const { el } = track(mount({ artwork: 'cover.jpg', showInfo: false }));
+		expect(el.querySelector('.waveform-artwork')).toBe(null);
+		expect(el.querySelector('.waveform-btn-artwork')).toBe(null);
+	});
+
+	it('renders nowhere when the transport is hidden and artwork is on the button', () => {
+		const { el } = track(mount({
+			artwork: 'cover.jpg',
+			artworkPosition: 'button',
+			showControls: false,
+		}));
+		expect(el.querySelector('.waveform-btn')).toBe(null);
+		expect(el.querySelector('.waveform-btn-artwork')).toBe(null);
+	});
+
+	it('falls back to the info row for an unrecognised position', () => {
+		const { el } = track(mount({ artwork: 'cover.jpg', artworkPosition: 'nonsense' }));
+		expect(el.querySelector('.waveform-artwork')).toBeTruthy();
+		expect(el.querySelector('.waveform-btn-artwork')).toBe(null);
+	});
+
+	it('escapes a button artwork URL, keeping an ampersand intact', () => {
+		const { el } = track(mount({
+			artwork: 'https://cdn.test/c.jpg?w=80&h=80',
+			artworkPosition: 'button',
+		}));
+		expect(el.querySelector('.waveform-btn-artwork').getAttribute('src'))
+			.toBe('https://cdn.test/c.jpg?w=80&h=80');
+	});
+
+	it('reads data-artwork-position', () => {
+		const host = document.createElement('div');
+		host.setAttribute('data-waveform-player', '');
+		host.setAttribute('data-url', '/a.mp3');
+		host.setAttribute('data-artwork', 'cover.jpg');
+		host.setAttribute('data-artwork-position', 'button');
+		host.setAttribute('data-audio-mode', 'external');
+		document.body.appendChild(host);
+		track(new WaveformPlayer(host));
+		expect(host.querySelector('.waveform-btn-artwork').getAttribute('src')).toBe('cover.jpg');
+	});
+});
+
+describe('artworkPosition — loadTrack reconciliation', () => {
+	it('updates the button cover in place, reusing the same <img>', async () => {
+		const { el, player } = track(mount({
+			artwork: 'first.jpg',
+			artworkPosition: 'button',
+		}));
+		const img = el.querySelector('.waveform-btn-artwork');
+
+		await player.loadTrack('n.mp3', 'N', 'A', { artwork: 'second.jpg', autoplay: false });
+
+		expect(el.querySelector('.waveform-btn-artwork')).toBe(img);
+		expect(img.getAttribute('src')).toBe('second.jpg');
+	});
+
+	it('removes the button cover and its state class when artwork is cleared', async () => {
+		const { el, player } = track(mount({
+			artwork: 'first.jpg',
+			artworkPosition: 'button',
+		}));
+
+		await player.loadTrack('n.mp3', 'N', 'A', { artwork: null, autoplay: false });
+
+		expect(el.querySelector('.waveform-btn-artwork')).toBe(null);
+		expect(el.querySelector('.waveform-btn').classList.contains('waveform-btn-has-artwork')).toBe(false);
+	});
+
+	it('adds a button cover to a track that started without one', async () => {
+		const { el, player } = track(mount({ artworkPosition: 'button' }));
+		expect(el.querySelector('.waveform-btn-artwork')).toBe(null);
+
+		await player.loadTrack('n.mp3', 'N', 'A', { artwork: 'late.jpg', autoplay: false });
+
+		const img = el.querySelector('.waveform-btn-artwork');
+		expect(img.getAttribute('src')).toBe('late.jpg');
+		expect(img.getAttribute('aria-hidden')).toBe('true');
+		expect(el.querySelector('.waveform-btn').classList.contains('waveform-btn-has-artwork')).toBe(true);
+	});
+
+	it('never lets a cover land in both placements across a track change', async () => {
+		const { el, player } = track(mount({
+			artwork: 'first.jpg',
+			artworkPosition: 'button',
+		}));
+
+		await player.loadTrack('n.mp3', 'N', 'A', { artwork: 'second.jpg', autoplay: false });
+
+		expect(el.querySelectorAll('.waveform-btn-artwork').length).toBe(1);
+		expect(el.querySelector('.waveform-artwork')).toBe(null);
+	});
 });
 
 describe('focus stability on activation', () => {

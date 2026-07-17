@@ -219,6 +219,7 @@ export function parseDataAttributes(element) {
     if (element.dataset.artist) options.artist = element.dataset.artist;
     if (element.dataset.album) options.album = element.dataset.album;
     if (element.dataset.artwork) options.artwork = element.dataset.artwork;
+    if (element.dataset.artworkPosition) options.artworkPosition = element.dataset.artworkPosition;
 
     // Waveform data
     if (element.dataset.waveform) options.waveform = element.dataset.waveform;

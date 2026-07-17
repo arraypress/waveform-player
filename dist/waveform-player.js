@@ -100,6 +100,7 @@
     if (element.dataset.artist) options.artist = element.dataset.artist;
     if (element.dataset.album) options.album = element.dataset.album;
     if (element.dataset.artwork) options.artwork = element.dataset.artwork;
+    if (element.dataset.artworkPosition) options.artworkPosition = element.dataset.artworkPosition;
     if (element.dataset.waveform) options.waveform = element.dataset.waveform;
     setJson("markers");
     setNum("playbackRate", "playbackRate", true);
@@ -762,6 +763,13 @@
     title: null,
     artist: null,
     artwork: null,
+    // Where the `artwork` image renders. 'info' = the info row beside the title
+    // (needs showInfo). 'button' = filling the play/pause button, which still
+    // works with the info row hidden. Only ONE placement ever renders, so the
+    // same cover can't appear twice. Button artwork wants a bigger button than
+    // the 36px default — buttonSize: 64 + buttonRadius: 8 is the cover-tile
+    // look it exists for.
+    artworkPosition: "info",
     album: "",
     // Message shown in the error state when audio fails to load.
     errorText: "Unable to load audio",
@@ -978,15 +986,18 @@
         buttonVars.push(`--wfp-btn-radius: ${formatCssLength(this.options.buttonRadius)}`);
       }
       const buttonStyleAttr = buttonVars.length ? ` style="${buttonVars.join("; ")};"` : "";
+      const artworkOnButton = this.options.artworkPosition === "button" && this.options.artwork;
+      const buttonArtworkHTML = artworkOnButton ? `<img class="waveform-btn-artwork" src="${escapeHtml(this.options.artwork)}" alt="" aria-hidden="true">` : "";
       const buttonHTML = this.options.showControls ? `
-        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${buttonStyleAttr}>
+        <button class="waveform-btn${this.options.buttonStyle === "minimal" ? " waveform-btn-minimal" : ""}${artworkOnButton ? " waveform-btn-has-artwork" : ""}" aria-label="${escapeHtml(this.options.playPauseLabel)}"${buttonStyleAttr}>
+          ${buttonArtworkHTML}
           <span class="waveform-icon-play">${this.options.playIcon}</span>
           <span class="waveform-icon-pause" style="display:none;">${this.options.pauseIcon}</span>
         </button>
         ` : "";
       const infoHTML = this.options.showInfo ? `
       <div class="waveform-info">
-        ${this.options.artwork ? `
+        ${this.options.artworkPosition !== "button" && this.options.artwork ? `
           <img class="waveform-artwork" src="${escapeHtml(this.options.artwork)}" alt="${escapeHtml(this.options.artworkAlt)}" style="
             width: 40px;
             height: 40px;
@@ -1050,7 +1061,7 @@
       this.ctx = this.canvas.getContext("2d");
       this.titleEl = this.container.querySelector(".waveform-title");
       this.artistEl = this.container.querySelector(".waveform-artist");
-      this.artworkEl = this.container.querySelector(".waveform-artwork");
+      this.artworkEl = this.container.querySelector(".waveform-artwork, .waveform-btn-artwork");
       this.bindArtworkFallback(this.artworkEl);
       this.currentTimeEl = this.container.querySelector(".time-current");
       this.totalTimeEl = this.container.querySelector(".time-total");
@@ -1094,6 +1105,24 @@
       return img;
     }
     /**
+     * Create a play-button artwork image matching the initial player markup.
+     *
+     * Decorative by design — the button already has an accessible name from its
+     * `aria-label`, so the cover is hidden from assistive tech rather than
+     * given a competing one. Sizing and clipping are the stylesheet's job.
+     *
+     * @returns {HTMLImageElement} Play-button artwork image element.
+     * @private
+     */
+    createButtonArtworkElement() {
+      const img = document.createElement("img");
+      img.className = "waveform-btn-artwork";
+      img.alt = "";
+      img.setAttribute("aria-hidden", "true");
+      this.bindArtworkFallback(img);
+      return img;
+    }
+    /**
      * Create an artist text element matching the initial player markup.
      *
      * @returns {HTMLSpanElement} Artist text element.
@@ -1128,15 +1157,50 @@
       this.artistEl.style.display = "";
     }
     /**
+     * Reconcile the play button's artwork image (`artworkPosition: 'button'`).
+     *
+     * Shares {@link bindArtworkFallback} with the info-row image, so a broken
+     * cover degrades to the same placeholder tile in either placement. The
+     * `waveform-btn-has-artwork` class is what turns on the scrim + glyph
+     * treatment, so it tracks the image's presence exactly.
+     *
+     * @param {string|null} artwork - Artwork image URL, or a falsy value to remove it.
+     * @private
+     */
+    syncButtonArtwork(artwork) {
+      if (!this.playBtn) return;
+      if (!artwork) {
+        this.artworkEl?.remove();
+        this.artworkEl = null;
+        this.playBtn.classList.remove("waveform-btn-has-artwork");
+        return;
+      }
+      if (!this.artworkEl) {
+        this.artworkEl = this.createButtonArtworkElement();
+        this.playBtn.prepend(this.artworkEl);
+      }
+      this.artworkEl.src = artwork;
+      this.playBtn.classList.add("waveform-btn-has-artwork");
+    }
+    /**
      * Reconcile artwork metadata and markup for the current track.
      *
+     * The image lives in one of two homes depending on `artworkPosition` — the
+     * info row (default) or the play button — and only ever one of them, so a
+     * cover can't render twice.
+     *
      * @param {string|null} artwork - Artwork image URL, or a falsy value to remove artwork.
-     * @param {string} artworkAlt - Artwork alt text.
+     * @param {string} artworkAlt - Artwork alt text. Info-row placement only:
+     *   button artwork is decorative and defers to the button's own label.
      * @private
      */
     syncArtwork(artwork, artworkAlt = "") {
       this.options.artwork = artwork || null;
       this.options.artworkAlt = artworkAlt || "";
+      if (this.options.artworkPosition === "button") {
+        this.syncButtonArtwork(this.options.artwork);
+        return;
+      }
       if (!this.options.showInfo) return;
       if (!artwork) {
         this.artworkEl?.remove();

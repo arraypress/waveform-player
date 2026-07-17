@@ -244,6 +244,13 @@ export const DEFAULT_OPTIONS = {
     title: null,
     artist: null,
     artwork: null,
+    // Where the `artwork` image renders. 'info' = the info row beside the title
+    // (needs showInfo). 'button' = filling the play/pause button, which still
+    // works with the info row hidden. Only ONE placement ever renders, so the
+    // same cover can't appear twice. Button artwork wants a bigger button than
+    // the 36px default — buttonSize: 64 + buttonRadius: 8 is the cover-tile
+    // look it exists for.
+    artworkPosition: 'info',
     album: '',
 
     // Message shown in the error state when audio fails to load.

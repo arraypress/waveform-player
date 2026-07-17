@@ -6,6 +6,24 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **Artwork placement.** New `artworkPosition` option (`'info'` | `'button'`),
+  also settable with `data-artwork-position`, chooses where the `artwork` image
+  renders. `'info'` (the default) is the existing behaviour — the cover sits in
+  the info row beside the title. `'button'` fills the play/pause button with it
+  instead, which still works when the info row is hidden. Only one placement
+  ever renders, so the same cover can't appear twice.
+
+  Button artwork is decorative: the image is hidden from assistive tech and the
+  button keeps its own `aria-label`. A broken cover falls back to the same
+  placeholder tile as the info-row image. A scrim between the cover and the
+  glyph keeps the glyph above the WCAG 3:1 non-text contrast minimum over any
+  image — re-theme it with `--wfp-btn-artwork-scrim` /
+  `--wfp-btn-artwork-color`, but re-theme both together or the contrast
+  guarantee goes with it.
+
+  Built for a larger button than the 36px default — `buttonSize: 64` with
+  `buttonRadius: 8` is the cover-tile look it exists for.
+
 - **Button corner radius.** New `buttonRadius` option, also settable with
   `data-button-radius`, sets the play/pause button's corner radius — `0` for a
   square button, or any CSS length (`8`, `'0.5rem'`). Defaults to `null`, which
