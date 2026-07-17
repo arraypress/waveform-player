@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.22.0] — 2026-07-17
+
 ### Added
 
 - **Artwork placement.** New `artworkPosition` option (`'info'` | `'button'`),
