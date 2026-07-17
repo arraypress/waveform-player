@@ -6,7 +6,7 @@ It is the foundation the rest of the `@arraypress` waveform family builds on.
 ## Commands
 - `npm test` — vitest + jsdom (run this before committing).
 - `npm run build` — builds all dist targets (css, iife, esm, cjs, min). `prepublishOnly` runs `test && build`.
-- `npm run size` — gzipped JS/CSS sizes (~10KB JS gzip is the budget; flag regressions).
+- `npm run size` — gzipped JS/CSS sizes. **As of 1.22.0: ~12.4KB JS / ~1.8KB CSS.** Ceiling is ~13KB JS; flag anything that moves it materially. (The old "~10KB budget" sat *below* actual for several releases, so it could never flag anything — keep this figure current when it moves, or it rots the same way. The marketing site quotes it too: `waveform-site/src/data/packages.ts`.)
 - `npm run dev` — watch build (rebuilds dist while you test against a local HTML page).
 
 ## Architecture (`src/js/`)
