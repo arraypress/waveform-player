@@ -132,15 +132,23 @@
     display: block;
 }
 
-/* Play-button artwork — the cover fills the button, a scrim sits between it and
-   the glyph. `overflow: hidden` clips the cover to whatever --wfp-btn-radius is
-   set to, so the image follows `buttonRadius` for free (an outline is painted
-   outside the border box, so the focus ring survives the clip). At the default
-   36px a cover reads as a smudge — this is built for buttonSize: 64 +
-   buttonRadius: 8, the cover-tile look. */
+/* Play-button artwork — in cover mode the artwork IS the control, so the
+   button's own chrome gets out of its way: no ring, and cover-sized defaults.
+   The transport button's defaults are wrong for a cover in both directions —
+   36px shrinks album art to a smudge, and 50% rounding crops a square cover
+   into a circle — and neither is a look worth making anyone opt out of.
+
+   These are declared as var DEFAULTS, not fixed values: `buttonSize` and
+   `buttonRadius` land as inline custom properties on the element, and inline
+   beats a stylesheet rule, so an explicit option still wins. `overflow: hidden`
+   clips the cover to the radius (an outline paints outside the border box, so
+   the focus ring survives the clip). */
 .waveform-btn-has-artwork {
+    --wfp-btn-size: 64px;
+    --wfp-btn-radius: 8px;
     position: relative;
     overflow: hidden;
+    border: none;
     color: var(--wfp-btn-artwork-color);
 }
 
@@ -533,10 +541,14 @@
 
 /* Responsive adjustments */
 @media (max-width: 480px) {
+    /* Narrow-screen default only — must stay var-driven. Hardcoding the width
+       here silently beat `buttonSize` (equal specificity, later source order),
+       so a 64px button collapsed to 32px on a phone; a cover tile would have
+       collapsed with it. The fallback still gives an unset button its 32px. */
     .waveform-btn {
-        width: 32px;
-        height: 32px;
-        min-width: 32px;
+        width: var(--wfp-btn-size, 32px);
+        height: var(--wfp-btn-size, 32px);
+        min-width: var(--wfp-btn-size, 32px);
     }
 
     .waveform-container {

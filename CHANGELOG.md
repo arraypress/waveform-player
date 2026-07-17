@@ -13,6 +13,13 @@ All notable changes to this project will be documented in this file.
   instead, which still works when the info row is hidden. Only one placement
   ever renders, so the same cover can't appear twice.
 
+  `'button'` needs no other options. The cover *is* the control, so the
+  stylesheet drops the button's ring and uses cover-sized defaults (64px, 8px
+  rounding) instead of the transport button's 36px circle — those defaults are
+  wrong for artwork in both directions, since 36px smudges a cover and 50%
+  rounding crops square album art into a circle. `buttonSize` / `buttonRadius`
+  still override it for a different tile.
+
   Button artwork is decorative: the image is hidden from assistive tech and the
   button keeps its own `aria-label`. A broken cover falls back to the same
   placeholder tile as the info-row image. A scrim between the cover and the
@@ -21,9 +28,6 @@ All notable changes to this project will be documented in this file.
   `--wfp-btn-artwork-color`, but re-theme both together or the contrast
   guarantee goes with it.
 
-  Built for a larger button than the 36px default — `buttonSize: 64` with
-  `buttonRadius: 8` is the cover-tile look it exists for.
-
 - **Button corner radius.** New `buttonRadius` option, also settable with
   `data-button-radius`, sets the play/pause button's corner radius — `0` for a
   square button, or any CSS length (`8`, `'0.5rem'`). Defaults to `null`, which
@@ -31,6 +35,13 @@ All notable changes to this project will be documented in this file.
   style; the bare `minimal` glyph has no box to round.
 
 ### Fixed
+
+- **`buttonSize` is no longer ignored on narrow screens.** The `max-width: 480px`
+  rule hardcoded `width: 32px`, which tied on specificity with the base
+  `.waveform-btn` rule and won on source order — so a `buttonSize: 64` button
+  silently collapsed to 32px on a phone. The rule now reads `--wfp-btn-size`
+  with `32px` as its fallback, so an unset button still gets the narrow-screen
+  default while an explicit size is honoured.
 
 - **Author-supplied values are now escaped when the player first renders.**
   `artist`, `artwork`, and `buttonSize` were interpolated into the initial

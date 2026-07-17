@@ -99,6 +99,26 @@ describe('play-button artwork contrast', () => {
 		expect(ratio).toBeGreaterThanOrEqual(MIN_RATIO);
 	});
 
+	it('drops the button chrome and brings cover-sized defaults', () => {
+		const block = CSS.match(/\.waveform-btn-has-artwork\s*\{([^}]*)\}/)[1];
+
+		// The cover is the control — a ring around it reads as art stuffed in a
+		// button, and the transport defaults (36px, 50%) smudge and circle-crop
+		// square album art.
+		expect(block).toMatch(/border:\s*none/);
+		expect(block).toMatch(/--wfp-btn-size:\s*64px/);
+		expect(block).toMatch(/--wfp-btn-radius:\s*8px/);
+	});
+
+	it('lets the narrow-screen rule stay var-driven so buttonSize survives', () => {
+		// A hardcoded width here ties on specificity with .waveform-btn and wins
+		// on source order, silently overriding buttonSize (and squashing a cover
+		// tile) below 480px.
+		const mobile = CSS.match(/@media\s*\(max-width:\s*480px\)\s*\{[\s\S]*?\.waveform-btn\s*\{([^}]*)\}/)[1];
+		expect(mobile).toMatch(/width:\s*var\(--wfp-btn-size/);
+		expect(mobile).not.toMatch(/width:\s*\d+px/);
+	});
+
 	it('is not re-themed for light pages — the cover is arbitrary either way', () => {
 		// The light-theme block must not override the artwork vars: a light PAGE
 		// says nothing about the COVER, and flipping the glyph dark there is

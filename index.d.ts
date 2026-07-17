@@ -157,11 +157,13 @@ export interface WaveformPlayerOptions {
 	showControls?: boolean;
 	/**
 	 * Where the `artwork` image renders. `'info'` places it in the info row
-	 * beside the title (requires `showInfo`); `'button'` fills the play/pause
-	 * button with it, which still works when the info row is hidden. Only one
-	 * placement ever renders, so the cover cannot appear twice. Button artwork
-	 * suits a larger button — `buttonSize: 64` + `buttonRadius: 8` is the
-	 * cover-tile look it exists for.
+	 * beside the title (requires `showInfo`); `'button'` makes the cover the
+	 * play/pause button, which still works when the info row is hidden. Only one
+	 * placement ever renders, so the cover cannot appear twice.
+	 *
+	 * `'button'` needs no other options: it drops the button's ring and uses
+	 * cover-sized defaults (64px, 8px rounding) rather than the transport
+	 * button's 36px circle. Set `buttonSize` / `buttonRadius` to override.
 	 * @default 'info'
 	 */
 	artworkPosition?: 'info' | 'button';

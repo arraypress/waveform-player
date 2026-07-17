@@ -245,11 +245,15 @@ export const DEFAULT_OPTIONS = {
     artist: null,
     artwork: null,
     // Where the `artwork` image renders. 'info' = the info row beside the title
-    // (needs showInfo). 'button' = filling the play/pause button, which still
-    // works with the info row hidden. Only ONE placement ever renders, so the
-    // same cover can't appear twice. Button artwork wants a bigger button than
-    // the 36px default — buttonSize: 64 + buttonRadius: 8 is the cover-tile
-    // look it exists for.
+    // (needs showInfo). 'button' = the cover becomes the play/pause button,
+    // which still works with the info row hidden. Only ONE placement ever
+    // renders, so the same cover can't appear twice.
+    //
+    // 'button' is self-contained: the stylesheet drops the button's ring and
+    // swaps its defaults for cover-sized ones (64px, 8px rounding), because the
+    // transport defaults are wrong for artwork in both directions — 36px
+    // smudges a cover, and 50% crops square art into a circle. buttonSize /
+    // buttonRadius still override it if you want a different tile.
     artworkPosition: 'info',
     album: '',
 
