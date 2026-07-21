@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.23.0] — 2026-07-22
+
+### Added
+
+- **`crossOrigin` option.** Controls the CORS mode of the self-mode `<audio>`
+  element (`'anonymous'` | `'use-credentials'` | `null`), also settable with
+  `data-cross-origin`. Resolves [#18](https://github.com/arraypress/waveform-player/issues/18).
+
+### Changed
+
+- **The `<audio>` element no longer sets `crossOrigin` by default.** Previously
+  it was hard-coded to `'anonymous'`, which forces a CORS request and breaks
+  playback of media hosted on origins that don't send
+  `Access-Control-Allow-Origin` (a common default-config S3/CDN setup) — even
+  though a plain `<audio>` would play the same URL. The player never needs
+  CORS-clean media for playback (the element is never fed to
+  `createMediaElementSource`; peak analysis uses a separate `fetch()` path with
+  its own placeholder fallback), so this only ever broke playback. It now
+  behaves like a native `<audio>` by default. Pass `crossOrigin: 'anonymous'`
+  (or `data-cross-origin="anonymous"`) to restore the old behaviour.
+
 ## [1.22.0] — 2026-07-17
 
 ### Added

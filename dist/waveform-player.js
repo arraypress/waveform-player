@@ -69,6 +69,9 @@
     if (element.dataset.preload) {
       options.preload = element.dataset.preload;
     }
+    if (element.dataset.crossOrigin) {
+      options.crossOrigin = element.dataset.crossOrigin;
+    }
     if (element.dataset.audioMode) options.audioMode = element.dataset.audioMode;
     if (element.dataset.style) options.waveformStyle = element.dataset.style;
     if (element.dataset.waveformStyle) options.waveformStyle = element.dataset.waveformStyle;
@@ -677,6 +680,15 @@
     // every-frame scan means a higher value costs no extra extraction time.
     samples: DEFAULT_SAMPLES,
     preload: "metadata",
+    // CORS mode for the underlying <audio> element. Left null by default so the
+    // player behaves like a plain <audio> and never forces a CORS request —
+    // setting 'anonymous' here would break playback of media hosted on origins
+    // that don't send Access-Control-Allow-Origin (default-config S3/CDN). The
+    // playback element is never fed to createMediaElementSource, so it never
+    // needs CORS-clean media; peak analysis uses a separate fetch() path with
+    // its own placeholder fallback. Set 'anonymous' / 'use-credentials' only if
+    // you specifically need it. See issue #18.
+    crossOrigin: null,
     // Audio mode — 'self' = player owns the <audio> element (default, current
     // behavior). 'external' = player is a visualization-only surface; no audio
     // element is created, play() dispatches `waveformplayer:request-play`
@@ -1237,7 +1249,9 @@
       }
       this.audio = new Audio();
       this.audio.preload = this.options.preload || "metadata";
-      this.audio.crossOrigin = "anonymous";
+      if (this.options.crossOrigin) {
+        this.audio.crossOrigin = this.options.crossOrigin;
+      }
     }
     // ============================================
     // Feature Initialization
@@ -1810,6 +1824,9 @@
       }
       if (options.preload && this.audio) {
         this.audio.preload = options.preload;
+      }
+      if (options.crossOrigin && this.audio) {
+        this.audio.crossOrigin = options.crossOrigin;
       }
       if (artist !== null) {
         this.syncArtist(artist);

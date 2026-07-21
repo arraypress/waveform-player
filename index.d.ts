@@ -35,6 +35,15 @@ export type AudioMode = 'self' | 'external';
 /** Browser preload hint for the underlying `<audio>` element. */
 export type AudioPreload = 'auto' | 'metadata' | 'none';
 
+/**
+ * CORS mode for the underlying `<audio>` element. Left unset by default so the
+ * player behaves like a plain `<audio>` and never forces a CORS request. Set
+ * `'anonymous'` / `'use-credentials'` only if you specifically need it — doing
+ * so breaks playback of media hosted on origins that don't send
+ * `Access-Control-Allow-Origin` (e.g. default-config S3/CDN).
+ */
+export type AudioCrossOrigin = 'anonymous' | 'use-credentials';
+
 /** Vertical alignment of the play button relative to the waveform. */
 export type ButtonAlign = 'auto' | 'top' | 'center' | 'bottom';
 
@@ -83,6 +92,13 @@ export interface WaveformPlayerOptions {
 	samples?: number;
 	/** `<audio>` preload hint. @default 'metadata' */
 	preload?: AudioPreload;
+	/**
+	 * `<audio>` CORS mode. Unset by default so the player behaves like a plain
+	 * `<audio>` and never forces a CORS request (which breaks playback of media
+	 * on origins without `Access-Control-Allow-Origin`). Set only if you need it.
+	 * @default null
+	 */
+	crossOrigin?: AudioCrossOrigin | null;
 	/** Whether the player owns its `<audio>` or delegates to an external controller. @default 'self' */
 	audioMode?: AudioMode;
 	/** Pre-computed peaks (array, .json URL, or JSON string). Skips Web Audio decoding when provided. */

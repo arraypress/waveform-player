@@ -147,6 +147,15 @@ export const DEFAULT_OPTIONS = {
     // every-frame scan means a higher value costs no extra extraction time.
     samples: DEFAULT_SAMPLES,
     preload: 'metadata',
+    // CORS mode for the underlying <audio> element. Left null by default so the
+    // player behaves like a plain <audio> and never forces a CORS request —
+    // setting 'anonymous' here would break playback of media hosted on origins
+    // that don't send Access-Control-Allow-Origin (default-config S3/CDN). The
+    // playback element is never fed to createMediaElementSource, so it never
+    // needs CORS-clean media; peak analysis uses a separate fetch() path with
+    // its own placeholder fallback. Set 'anonymous' / 'use-credentials' only if
+    // you specifically need it. See issue #18.
+    crossOrigin: null,
 
     // Audio mode — 'self' = player owns the <audio> element (default, current
     // behavior). 'external' = player is a visualization-only surface; no audio

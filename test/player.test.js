@@ -576,6 +576,44 @@ describe('buttonRadius', () => {
 	});
 });
 
+describe('crossOrigin', () => {
+	// Self-mode players own the <audio> element. crossOrigin must NOT be set by
+	// default — forcing a CORS request breaks playback of media on origins
+	// without Access-Control-Allow-Origin (default-config S3/CDN). See issue #18.
+	function mountSelf(options = {}) {
+		const el = document.createElement('div');
+		el.setAttribute('data-url', '/a.mp3');
+		document.body.appendChild(el);
+		return { el, player: track(new WaveformPlayer(el, { url: '/a.mp3', ...options })) };
+	}
+
+	it('does not set crossOrigin on the <audio> element by default', () => {
+		const { player } = mountSelf();
+		expect(player.audio).toBeTruthy();
+		expect(player.audio.crossOrigin).toBeFalsy();
+	});
+
+	it('applies crossOrigin when explicitly set to anonymous', () => {
+		const { player } = mountSelf({ crossOrigin: 'anonymous' });
+		expect(player.audio.crossOrigin).toBe('anonymous');
+	});
+
+	it('applies crossOrigin when set to use-credentials', () => {
+		const { player } = mountSelf({ crossOrigin: 'use-credentials' });
+		expect(player.audio.crossOrigin).toBe('use-credentials');
+	});
+
+	it('reads data-cross-origin from the host element', () => {
+		const host = document.createElement('div');
+		host.setAttribute('data-waveform-player', '');
+		host.setAttribute('data-url', '/a.mp3');
+		host.setAttribute('data-cross-origin', 'anonymous');
+		document.body.appendChild(host);
+		const player = track(new WaveformPlayer(host));
+		expect(player.audio.crossOrigin).toBe('anonymous');
+	});
+});
+
 describe('_build escapes author-supplied values', () => {
 	// Everything _build interpolates can arrive from a data-* attribute, so no
 	// value may close the attribute it sits in or be parsed as markup. The rest

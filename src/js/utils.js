@@ -175,6 +175,9 @@ export function parseDataAttributes(element) {
     if (element.dataset.preload) {
         options.preload = element.dataset.preload;
     }
+    if (element.dataset.crossOrigin) {
+        options.crossOrigin = element.dataset.crossOrigin;
+    }
     if (element.dataset.audioMode) options.audioMode = element.dataset.audioMode;
 
     // Waveform style attributes. `data-style` is a shorthand alias for

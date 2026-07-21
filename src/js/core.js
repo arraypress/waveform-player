@@ -567,7 +567,13 @@ export class WaveformPlayer {
         }
         this.audio = new Audio();
         this.audio.preload = this.options.preload || 'metadata';
-        this.audio.crossOrigin = 'anonymous';
+        // Only set crossOrigin when explicitly opted in. Setting it forces a
+        // CORS request that breaks playback of media on origins without
+        // Access-Control-Allow-Origin; the player never needs CORS-clean media
+        // for playback (no createMediaElementSource). See issue #18.
+        if (this.options.crossOrigin) {
+            this.audio.crossOrigin = this.options.crossOrigin;
+        }
     }
 
     // ============================================
@@ -1281,6 +1287,11 @@ export class WaveformPlayer {
         // Apply preload setting if it was changed
         if (options.preload && this.audio) {
             this.audio.preload = options.preload;
+        }
+
+        // Apply crossOrigin if it was changed for this track
+        if (options.crossOrigin && this.audio) {
+            this.audio.crossOrigin = options.crossOrigin;
         }
 
         // Update artist only when explicitly provided. A null artist keeps the
