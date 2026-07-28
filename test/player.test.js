@@ -1003,3 +1003,25 @@ describe('speed menu a11y (#11)', () => {
 		expect(btn.getAttribute('aria-expanded')).toBe('true');
 	});
 });
+
+describe('waveform analysis fallback', () => {
+	it('adds the waveform-is-placeholder class on analysis failure', async () => {
+		const { el, player } = track(mount());
+		await player.loadTrack('does-not-exist.mp3', null, null, { autoplay: false });
+		expect(el.classList.contains('waveform-is-placeholder')).toBe(true);
+	});
+
+	it('removes the waveform-is-placeholder class when a new load starts', async () => {
+		const { el, player } = track(mount());
+		await player.loadTrack('does-not-exist.mp3', null, null, { autoplay: false });
+		expect(el.classList.contains('waveform-is-placeholder')).toBe(true);
+
+		const loadPromise = player.loadTrack('next.mp3', 'Next', 'Artist', {
+			waveform: [0.1, 0.5, 0.9],
+			autoplay: false
+		});
+		expect(el.classList.contains('waveform-is-placeholder')).toBe(false);
+		await loadPromise;
+	});
+});
+
