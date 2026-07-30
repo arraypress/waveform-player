@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.24.0] — 2026-07-30
+
+### Added
+
+- **`waveform-is-placeholder` state class.** When waveform analysis fails and
+  the player falls back to placeholder peaks (e.g. a CORS-blocked track), the
+  container now gets a `waveform-is-placeholder` class, removed again when the
+  next load starts. Lets integrators detect the decorative waveform and restyle
+  it (e.g. flat-line it into a plain progress bar). Ships no styles of its own —
+  it's purely a hook. Contributed by
+  [@Intenzi](https://github.com/Intenzi) in
+  [#20](https://github.com/arraypress/waveform-player/pull/20); resolves
+  [#19](https://github.com/arraypress/waveform-player/issues/19).
+
 ## [1.23.0] — 2026-07-22
 
 ### Added

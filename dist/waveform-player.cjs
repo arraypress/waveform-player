@@ -1746,6 +1746,7 @@ var WaveformPlayer = class _WaveformPlayer {
       this.setLoading(true);
       this.progress = 0;
       this.hasError = false;
+      this.container.classList.remove("waveform-is-placeholder");
       if (this.audio) {
         this.audio.src = url;
         await new Promise((resolve, reject) => {
@@ -1781,6 +1782,7 @@ var WaveformPlayer = class _WaveformPlayer {
         } catch (error) {
           console.warn("[WaveformPlayer] Using placeholder waveform:", error);
           this.waveformData = generatePlaceholderWaveform(this.options.samples);
+          this.container.classList.add("waveform-is-placeholder");
         }
       }
       this.drawWaveform();
