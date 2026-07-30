@@ -1150,6 +1150,7 @@ export class WaveformPlayer {
             this.setLoading(true);
             this.progress = 0;
             this.hasError = false;
+            this.container.classList.remove('waveform-is-placeholder');
 
             // In external mode we don't own an <audio> element — skip
             // src assignment + metadata-wait, but still generate the
@@ -1202,6 +1203,7 @@ export class WaveformPlayer {
                 } catch (error) {
                     console.warn('[WaveformPlayer] Using placeholder waveform:', error);
                     this.waveformData = generatePlaceholderWaveform(this.options.samples);
+                    this.container.classList.add('waveform-is-placeholder');
                 }
             }
 
