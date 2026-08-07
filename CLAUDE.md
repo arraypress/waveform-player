@@ -32,14 +32,19 @@ It is the foundation the rest of the `@arraypress` waveform family builds on.
 - Canvas redraw is driven by a `ResizeObserver` on the canvas's parent + `resizeCanvas()`; a DOM move doesn't reliably trip it — call `resizeCanvas()` explicitly if you relocate the player.
 - **Seeking needs a Range-capable audio host.** The `<audio>` element seeks via HTTP byte-range requests; an origin that answers `200` with no `Accept-Ranges` (notably Cloudflare Pages **and** Workers Static Assets — both silently ignore ranges) lets the player seek only within already-buffered bytes → short tracks look fine, long tracks snap back to 0. It's the host, not the player. Serve audio from a range-capable origin (R2 / S3 / nginx / any real file server).
 
-## Ecosystem (siblings in this workspace)
+## Ecosystem (siblings in `~/Developer/waveform-player/`)
+This package's option surface is the root of a **15-package** family. All 20 repos are flat siblings; each is its own git repo on `main`.
 - **`waveform-bar`** — persistent bottom-bar singleton (`window.WaveformBar.init(config)`); embeds one self-mode player, drives inline `external`-mode players via `data-wb-*` triggers. **Ships no `.d.ts`** — its wrappers hand-declare the config type, so adding a bar config option means updating those wrapper types manually.
-- **`waveform-player-astro` / `-react`** — typed wrappers. Astro emits `data-*`; React passes constructor options. Both **derive their prop types from this package's `WaveformPlayerOptions`** via `Omit<>`, except `style` (which stays the framework's CSS prop — use `waveformStyle` for the visual style).
-- **`waveform-bar-astro` / `-react`** — same pattern for the bar (but pass `config` through verbatim to `init()`).
-- **`waveform-editor`** — in-browser clip editor: trim, fades (5 curve shapes), gain/normalize, auto-trim silence, export WAV / peaks / MP3 (lazy lamejs). Reuses this package's `extractPeaks` + monochrome look; edits are a non-destructive op-list baked via `OfflineAudioContext`. New (v0.1).
+- **`waveform-playlist`** — multi-track playlist around embedded players; forwards this package's options through to each.
+- **Wrappers, 4 per core × 3 cores** (`-astro` / `-react` / `-svelte` / `-vue` for player, bar, playlist). Player and playlist wrappers **derive prop types from this package's `WaveformPlayerOptions`** via `Omit<>`, except `style` (which stays the framework's CSS prop — use `waveformStyle`). Bar wrappers pass `config` verbatim to `init()`.
+- **`waveform-gen` / `waveform-tracker` / `waveform-editor`** — no shared option surface; unaffected by option changes here.
+
+**Types flow, runtime does not.** Every wrapper forwards options through an explicit, hand-maintained allowlist. Adding a key to `DEFAULT_OPTIONS` + `index.d.ts` makes it *typecheck* everywhere and *work* nowhere until each wrapper is edited.
 
 ## Publishing (npm, scoped public)
 Order matters — **core first**, then dependents (their peer dep is `@arraypress/waveform-player@^1.x`):
 1. `npm publish` here (no bump if package.json version already > npm).
 2. Dependents: `npm version <patch|minor>` → `npm publish` → `git push --follow-tags`.
 Keep dependents' peer ranges (`^1.x`) able to satisfy this package's published version.
+
+**A cross-repo option change or release is a 15-package + 2-site batch — load the `waveform-release` skill and work the whole checklist.**
