@@ -1,6 +1,6 @@
 {
   "name": "@arraypress/waveform-player",
-  "version": "1.24.0",
+  "version": "1.24.1",
   "description": "Lightweight, customizable audio player with waveform visualization",
   "type": "module",
   "types": "./index.d.ts",
@@ -39,6 +39,7 @@
     "serve": "npx http-server -p 8000",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:visual": "node test/visual/theme-matrix.mjs",
     "prepublishOnly": "npm run test && npm run build"
   },
   "keywords": [
