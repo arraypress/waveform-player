@@ -13,14 +13,19 @@
 // Import the main class
 import {WaveformPlayer} from './core.js';
 import {formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes} from './utils.js';
+import {detectColorScheme} from './themes.js';
 
 // Expose a small set of pure helpers as a single source of truth so consumers
 // (e.g. @arraypress/waveform-bar, @arraypress/waveform-playlist) can reuse them
 // instead of shipping divergent copies. `parseDataAttributes` lets wrappers read
 // the player's full `data-*` option surface off a host element without
-// re-implementing (and drifting from) the contract. Attached to the class so
-// it's reachable from the IIFE global too.
-WaveformPlayer.utils = {formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes};
+// re-implementing (and drifting from) the contract. `detectColorScheme` is here
+// for the same reason: the bar used to carry its own copy of the heuristic and
+// the two drifted (both shipped the transparent-background bug of #21, fixed
+// independently). Attached to the class so it's reachable from the IIFE global
+// too — which is how the bar reaches it, since it depends on this package as a
+// runtime peer rather than importing the module.
+WaveformPlayer.utils = {formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes, detectColorScheme};
 
 /**
  * Whether we're running in a browser (vs. SSR / Node), where `window` and

@@ -29,6 +29,7 @@ logs/
 # Testing
 coverage/
 .nyc_output/
+test/visual/shots/
 
 # Cache
 .npm/

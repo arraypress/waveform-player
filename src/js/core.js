@@ -90,8 +90,10 @@ export class WaveformPlayer {
         // Merge options: defaults < data attributes < constructor options
         this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, userOptions);
 
-        // Apply color preset (auto-detect if not specified)
-        const preset = getColorPreset(this.options.colorPreset);
+        // Apply color preset (auto-detect if not specified). Detection reads
+        // the backdrop behind THIS container, so a player dropped into a themed
+        // card matches the card rather than the page.
+        const preset = getColorPreset(this.options.colorPreset, this.container);
 
         // Track auto-theme state so the player can re-detect on a runtime light/
         // dark switch. Only colours the user LEFT UNSET follow the preset; an
@@ -100,7 +102,7 @@ export class WaveformPlayer {
         this._presetKeys = [];
         // Resolved scheme name for the CSS theme class (CSS provides the DOM
         // chrome colours via --wfp-* variables).
-        this._scheme = (this.options.colorPreset && COLOR_PRESETS[this.options.colorPreset]) ? this.options.colorPreset : detectColorScheme();
+        this._scheme = (this.options.colorPreset && COLOR_PRESETS[this.options.colorPreset]) ? this.options.colorPreset : detectColorScheme(this.container);
 
         // Apply preset colors only if individual colors aren't explicitly set
         for (const [key, value] of Object.entries(preset)) {
@@ -1989,8 +1991,8 @@ export class WaveformPlayer {
      */
     refreshTheme() {
         if (!this._autoTheme) return;
-        this._scheme = detectColorScheme();
-        const preset = getColorPreset(this.options.colorPreset);
+        this._scheme = detectColorScheme(this.container);
+        const preset = getColorPreset(this.options.colorPreset, this.container);
         for (const key of (this._presetKeys || [])) {
             if (key in preset) this.options[key] = preset[key];
         }

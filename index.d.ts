@@ -413,6 +413,13 @@ export declare class WaveformPlayer {
 		 * Lets wrappers inherit the complete option surface without drifting.
 		 */
 		parseDataAttributes(element: HTMLElement): Partial<WaveformPlayerOptions>;
+		/**
+		 * Detect whether the page around `element` reads as light or dark —
+		 * explicit theme classes/attributes first, then the backdrop actually
+		 * visible behind it (every ancestor background composited over the UA
+		 * canvas). Pass the element the caller is theming; defaults to `<body>`.
+		 */
+		detectColorScheme(element?: Element): 'dark' | 'light';
 	};
 }
 

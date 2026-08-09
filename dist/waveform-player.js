@@ -156,11 +156,21 @@
     const name = filename.split(".")[0];
     return name.replace(/[-_]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
   }
+  function parseColor(color) {
+    if (typeof color !== "string") return null;
+    const m = color.match(/rgba?\(\s*([\d.]+)\s*[,\s]\s*([\d.]+)\s*[,\s]\s*([\d.]+)\s*(?:[,/]\s*([\d.]+)(%?))?/i);
+    if (!m) return null;
+    const r = Number(m[1]), g = Number(m[2]), b = Number(m[3]);
+    if (!Number.isFinite(r) || !Number.isFinite(g) || !Number.isFinite(b)) return null;
+    let a = m[4] === void 0 ? 1 : Number(m[4]);
+    if (!Number.isFinite(a)) return null;
+    if (m[5] === "%") a /= 100;
+    return { r, g, b, a: clamp(a, 0, 1) };
+  }
   function perceivedBrightness(color) {
-    const rgb = typeof color === "string" ? color.match(/\d+/g) : null;
-    if (!rgb || rgb.length < 3) return null;
-    const [r, g, b] = rgb.map(Number);
-    return (r * 299 + g * 587 + b * 114) / 1e3;
+    const c = parseColor(color);
+    if (!c || c.a <= 0) return null;
+    return (c.r * 299 + c.g * 587 + c.b * 114) / 1e3;
   }
   function mergeOptions(...sources) {
     const result = {};
@@ -625,32 +635,47 @@
   }
 
   // src/js/themes.js
+  var LIGHT_THRESHOLD = 128;
   function hasThemeHint(scheme) {
     const root = document.documentElement;
     const body = document.body;
     return root.classList.contains(scheme) || root.classList.contains(`${scheme}-mode`) || root.classList.contains(`theme-${scheme}`) || root.getAttribute("data-theme") === scheme || root.getAttribute("data-color-scheme") === scheme || body.classList.contains(scheme) || body.classList.contains(`${scheme}-mode`) || body.getAttribute("data-theme") === scheme;
   }
-  function detectColorScheme() {
+  function collectBackdrop(el) {
+    let sum = 0;
+    let alpha = 0;
+    for (let node = el; node && node.nodeType === 1 && alpha < 0.995; node = node.parentElement) {
+      const c = parseColor(getComputedStyle(node).backgroundColor);
+      if (!c || c.a <= 0) continue;
+      const weight = c.a * (1 - alpha);
+      sum += (c.r * 299 + c.g * 587 + c.b * 114) / 1e3 * weight;
+      alpha += weight;
+    }
+    return { sum, alpha };
+  }
+  function detectCanvasScheme() {
+    const text = perceivedBrightness(getComputedStyle(document.body).color);
+    if (text !== null) return text > LIGHT_THRESHOLD ? "dark" : "light";
+    if (window.matchMedia) {
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+      if (window.matchMedia("(prefers-color-scheme: light)").matches) return "light";
+    }
+    return "dark";
+  }
+  function detectColorScheme(el) {
     if (hasThemeHint("dark")) return "dark";
     if (hasThemeHint("light")) return "light";
     try {
-      const bodyBg = getComputedStyle(document.body).backgroundColor;
-      const brightness = perceivedBrightness(bodyBg);
-      if (brightness !== null) {
-        if (brightness > 128) return "light";
-        if (brightness < 128) return "dark";
-      }
+      const start = el && el.nodeType === 1 ? el : document.body;
+      const { sum, alpha } = collectBackdrop(start);
+      const canvas = detectCanvasScheme();
+      const brightness = sum + (canvas === "dark" ? 0 : 255) * (1 - alpha);
+      if (brightness > LIGHT_THRESHOLD) return "light";
+      if (brightness < LIGHT_THRESHOLD) return "dark";
+      return canvas;
     } catch (e) {
+      return "dark";
     }
-    if (window.matchMedia) {
-      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        return "dark";
-      }
-      if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-        return "light";
-      }
-    }
-    return "dark";
   }
   var COLOR_PRESETS = {
     dark: {
@@ -662,11 +687,11 @@
       progressColor: "rgba(0, 0, 0, 0.8)"
     }
   };
-  function getColorPreset(presetName) {
+  function getColorPreset(presetName, el) {
     if (presetName && COLOR_PRESETS[presetName]) {
       return COLOR_PRESETS[presetName];
     }
-    const detected = detectColorScheme();
+    const detected = detectColorScheme(el);
     return COLOR_PRESETS[detected];
   }
   var DEFAULT_OPTIONS = {
@@ -862,10 +887,10 @@
       if (userOptions.style && !userOptions.waveformStyle) userOptions.waveformStyle = userOptions.style;
       if (userOptions.src && !userOptions.url) userOptions.url = userOptions.src;
       this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, userOptions);
-      const preset = getColorPreset(this.options.colorPreset);
+      const preset = getColorPreset(this.options.colorPreset, this.container);
       this._autoTheme = this.options.colorPreset == null || !COLOR_PRESETS[this.options.colorPreset];
       this._presetKeys = [];
-      this._scheme = this.options.colorPreset && COLOR_PRESETS[this.options.colorPreset] ? this.options.colorPreset : detectColorScheme();
+      this._scheme = this.options.colorPreset && COLOR_PRESETS[this.options.colorPreset] ? this.options.colorPreset : detectColorScheme(this.container);
       for (const [key, value] of Object.entries(preset)) {
         if (this.options[key] === null || this.options[key] === void 0) {
           this.options[key] = value;
@@ -2375,8 +2400,8 @@
      */
     refreshTheme() {
       if (!this._autoTheme) return;
-      this._scheme = detectColorScheme();
-      const preset = getColorPreset(this.options.colorPreset);
+      this._scheme = detectColorScheme(this.container);
+      const preset = getColorPreset(this.options.colorPreset, this.container);
       for (const key of this._presetKeys || []) {
         if (key in preset) this.options[key] = preset[key];
       }
@@ -2791,7 +2816,7 @@
   };
 
   // src/js/index.js
-  WaveformPlayer.utils = { formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes };
+  WaveformPlayer.utils = { formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes, detectColorScheme };
   var isBrowser = () => typeof window !== "undefined" && typeof document !== "undefined";
   function autoInit() {
     if (!isBrowser()) return;

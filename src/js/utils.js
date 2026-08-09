@@ -353,16 +353,51 @@ export function extractTitleFromUrl(url) {
 }
 
 /**
+ * Parse a CSS `rgb()`/`rgba()` colour into numeric channels.
+ *
+ * Handles both serializations a browser can hand back from `getComputedStyle`:
+ * the legacy comma form (`rgb(34, 34, 34)`, `rgba(34, 34, 34, 0.5)`) and the
+ * modern space/slash form (`rgb(34 34 34 / 50%)`). Anything else — the
+ * `transparent` keyword, a wide-gamut `color(srgb …)`, an empty string — is
+ * reported as `null` so callers treat it as *unknown* rather than as a colour.
+ *
+ * @param {string} color - CSS colour string.
+ * @returns {{r: number, g: number, b: number, a: number}|null} Channels 0–255
+ *   with alpha 0–1, or `null` when the string isn't an rgb()/rgba() colour.
+ */
+export function parseColor(color) {
+    if (typeof color !== 'string') return null;
+
+    const m = color.match(/rgba?\(\s*([\d.]+)\s*[,\s]\s*([\d.]+)\s*[,\s]\s*([\d.]+)\s*(?:[,/]\s*([\d.]+)(%?))?/i);
+    if (!m) return null;
+
+    const r = Number(m[1]), g = Number(m[2]), b = Number(m[3]);
+    if (!Number.isFinite(r) || !Number.isFinite(g) || !Number.isFinite(b)) return null;
+
+    let a = m[4] === undefined ? 1 : Number(m[4]);
+    if (!Number.isFinite(a)) return null;
+    if (m[5] === '%') a /= 100;
+
+    return {r, g, b, a: clamp(a, 0, 1)};
+}
+
+/**
  * Perceived brightness (0–255) of a CSS colour, via the luminance formula.
- * Pulls the numeric channels out of an `rgb()`/`rgba()` string.
+ *
+ * A fully transparent colour returns `null`, not `0`. That distinction matters:
+ * `rgba(0, 0, 0, 0)` is the computed background of *every* element the page
+ * never paints, so scoring it as pure black made auto-theme detection classify
+ * unpainted (i.e. white) pages as dark — see issue #21. Transparent means "this
+ * tells you nothing", which is a different answer from "this is black".
+ *
  * @param {string} color - CSS colour string, e.g. `"rgb(34, 34, 34)"`.
- * @returns {number|null} Brightness 0–255, or `null` if it can't be parsed.
+ * @returns {number|null} Brightness 0–255, or `null` if it can't be parsed or
+ *   is fully transparent.
  */
 export function perceivedBrightness(color) {
-    const rgb = typeof color === 'string' ? color.match(/\d+/g) : null;
-    if (!rgb || rgb.length < 3) return null;
-    const [r, g, b] = rgb.map(Number);
-    return (r * 299 + g * 587 + b * 114) / 1000;
+    const c = parseColor(color);
+    if (!c || c.a <= 0) return null;
+    return (c.r * 299 + c.g * 587 + c.b * 114) / 1000;
 }
 
 /**

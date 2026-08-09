@@ -491,8 +491,14 @@ describe('runtime theme switching', () => {
 	});
 
 	it('re-detects the theme and updates auto colors on refreshTheme()', () => {
+		// Pin the starting scheme rather than relying on what an unpainted page
+		// auto-detects as — in jsdom that's 'light' (black text ⇒ white canvas),
+		// so a light→light switch would assert nothing.
+		document.documentElement.setAttribute('data-theme', 'dark');
 		const { player } = mount({ title: 'X' }); // auto theme (no colorPreset)
 		const before = player.options.waveformColor;
+		expect(before).toContain('255');
+
 		document.documentElement.setAttribute('data-theme', 'light');
 		player.refreshTheme();
 		expect(player.options.waveformColor).not.toBe(before);

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Firefox base-background check</title>
+<!--
+  DELIBERATELY paints no background on <html> or <body>, and declares no
+  `color-scheme`. Whatever you see behind this text is the browser's own base
+  background — the thing waveform-player cannot read from script, and which
+  Chromium and WebKit disagree about.
+
+  Everything below is inside elements with their own backgrounds, which does not
+  affect what the browser paints behind the document itself.
+-->
+<style>
+  .box { font: 15px/1.6 -apple-system, system-ui, sans-serif; max-width: 46em; margin: 0 auto; padding: 24px; }
+  .swatches { display: flex; gap: 0; margin: 20px 0; border-radius: 8px; overflow: hidden; }
+  .sw { flex: 1; padding: 22px 12px; font: 600 13px/1 ui-monospace, monospace; text-align: center; }
+  .white { background: #fff; color: #111; }
+  .chrome-dark { background: #121212; color: #eee; }
+  .verdict { border: 2px solid currentColor; border-radius: 8px; padding: 14px 18px; margin-top: 20px; font-weight: 600; }
+  code { font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>Which colour is behind this text?</h1>
+
+  <p>This page paints <strong>no background at all</strong> and never declares
+    <code>color-scheme</code>. So the colour behind these words is whatever
+    Firefox composites by itself.</p>
+
+  <p>Compare against these two references — the left is what WebKit paints, the
+    right is what Chromium paints, for this exact page under a dark preference:</p>
+
+  <div class="swatches">
+    <div class="sw white">#ffffff &nbsp;(WebKit)</div>
+    <div class="sw chrome-dark">#121212 &nbsp;(Chromium)</div>
+  </div>
+
+  <p><strong>The one question:</strong> is the page behind this text white, or
+    near-black like the right-hand swatch?</p>
+
+  <div class="verdict" id="pref">checking…</div>
+
+  <p style="margin-top:20px">Firefox's preference lives in Settings → General →
+    <em>Website appearance</em>. It must read <code>dark</code> below for the
+    test to mean anything — if it says <code>light</code>, set it to Dark (or
+    Automatic with macOS in Dark) and reload.</p>
+</div>
+
+<script>
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const probe = document.createElement('div');
+  probe.style.backgroundColor = 'Canvas';
+  document.body.appendChild(probe);
+  const sys = getComputedStyle(probe).backgroundColor;
+  probe.remove();
+  document.getElementById('pref').textContent =
+    `prefers-color-scheme: ${dark ? 'dark' : 'light'}  ·  body text: ${getComputedStyle(document.body).color}  ·  Canvas system colour: ${sys}`;
+</script>
+</body>
+</html>

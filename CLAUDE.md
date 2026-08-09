@@ -5,8 +5,14 @@ It is the foundation the rest of the `@arraypress` waveform family builds on.
 
 ## Commands
 - `npm test` — vitest + jsdom (run this before committing).
+- `npm run test:visual` — opt-in browser check for auto-theme detection: renders
+  the player across a matrix of page shapes in real engines and measures the
+  *painted pixels*. Needs Playwright (`npm i -D playwright && npx playwright
+  install chromium webkit`), so it's deliberately outside `npm test` /
+  `prepublishOnly`. **Run it whenever you touch theme detection** — see
+  `test/visual/README.md` for what it proves and the engine findings behind it.
 - `npm run build` — builds all dist targets (css, iife, esm, cjs, min). `prepublishOnly` runs `test && build`.
-- `npm run size` — gzipped JS/CSS sizes. **As of 1.24.0: ~12.5KB JS / ~1.8KB CSS.** Ceiling is ~13KB JS; flag anything that moves it materially. (The old "~10KB budget" sat *below* actual for several releases, so it could never flag anything — keep this figure current when it moves, or it rots the same way. The marketing site quotes it too: `waveform-site/src/data/packages.ts`.)
+- `npm run size` — gzipped JS/CSS sizes. **As of 1.24.1: ~12.8KB JS / ~1.8KB CSS.** Ceiling is ~13KB JS; flag anything that moves it materially. (The old "~10KB budget" sat *below* actual for several releases, so it could never flag anything — keep this figure current when it moves, or it rots the same way. The marketing site quotes it too: `waveform-site/src/data/packages.ts`.)
 - `npm run dev` — watch build (rebuilds dist while you test against a local HTML page).
 
 ## Architecture (`src/js/`)
@@ -27,6 +33,14 @@ It is the foundation the rest of the `@arraypress` waveform family builds on.
 - Comprehensive JSDoc on public methods; match the existing density.
 
 ## Gotchas
+- **Auto-theme detection is measured, not reasoned about.** `detectCanvasScheme`
+  reads the page's resolved text colour and deliberately does *not* use
+  `prefers-color-scheme` (except as a last resort) — what a browser paints behind
+  an unpainted page under a dark preference is engine-specific: Chromium
+  composites `#121212`, WebKit and Firefox stay white, and Chromium's `Canvas`
+  system colour contradicts its own paint, so no script can tell them apart.
+  Changing this needs `npm run test:visual`, not an argument; there's a guard
+  test in `test/themes.test.js` and the full story in `test/visual/README.md`.
 - **`loadTrack` must reset per-track options.** It resets `markers` + `waveformData`, and (since 1.8.1) `this.options.waveform`. `mergeOptions` keeps prior values otherwise, so a track loaded without peaks would redraw the *previous* track's waveform. If you add per-track options (artwork/markers/peaks/bpm), reset them in `loadTrack` too.
 - jsdom has no `AudioContext` → `generateWaveform` falls back to a placeholder; that warning in test output is expected.
 - Canvas redraw is driven by a `ResizeObserver` on the canvas's parent + `resizeCanvas()`; a DOM move doesn't reliably trip it — call `resizeCanvas()` explicitly if you relocate the player.

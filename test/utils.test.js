@@ -7,6 +7,7 @@ import {
 	extractTitleFromUrl,
 	parseDataAttributes,
 	perceivedBrightness,
+	parseColor,
 	clamp,
 	parseBoolAttr,
 	escapeHtml,
@@ -267,6 +268,44 @@ describe('perceivedBrightness', () => {
 		expect(perceivedBrightness('transparent')).toBe(null);
 		expect(perceivedBrightness('')).toBe(null);
 		expect(perceivedBrightness(null)).toBe(null);
+	});
+
+	// Regression: issue #21. `rgba(0, 0, 0, 0)` is what getComputedStyle hands
+	// back for every element the page never paints. Scoring it as black (0) is
+	// what made auto-theme call white pages dark.
+	it('treats a fully transparent colour as unknown, not as black', () => {
+		expect(perceivedBrightness('rgba(0, 0, 0, 0)')).toBe(null);
+		expect(perceivedBrightness('rgba(255, 255, 255, 0)')).toBe(null);
+		expect(perceivedBrightness('rgb(0 0 0 / 0)')).toBe(null);
+	});
+
+	it('scores a colour that is merely translucent', () => {
+		expect(perceivedBrightness('rgba(0, 0, 0, 0.01)')).toBe(0);
+	});
+});
+
+describe('parseColor', () => {
+	it('parses the legacy comma form', () => {
+		expect(parseColor('rgb(34, 34, 34)')).toEqual({ r: 34, g: 34, b: 34, a: 1 });
+		expect(parseColor('rgba(1, 2, 3, 0.5)')).toEqual({ r: 1, g: 2, b: 3, a: 0.5 });
+	});
+
+	it('parses the modern space/slash form, including percentage alpha', () => {
+		expect(parseColor('rgb(1 2 3)')).toEqual({ r: 1, g: 2, b: 3, a: 1 });
+		expect(parseColor('rgb(1 2 3 / 50%)')).toEqual({ r: 1, g: 2, b: 3, a: 0.5 });
+		expect(parseColor('rgb(1 2 3 / 0.25)')).toEqual({ r: 1, g: 2, b: 3, a: 0.25 });
+	});
+
+	it('reports colours it cannot read as null rather than guessing', () => {
+		expect(parseColor('transparent')).toBe(null);
+		expect(parseColor('color(srgb 1 0 0)')).toBe(null);
+		expect(parseColor('#fff')).toBe(null);
+		expect(parseColor('')).toBe(null);
+		expect(parseColor(undefined)).toBe(null);
+	});
+
+	it('clamps out-of-range alpha', () => {
+		expect(parseColor('rgba(0, 0, 0, 4)').a).toBe(1);
 	});
 });
 
