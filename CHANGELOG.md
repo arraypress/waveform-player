@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.24.2] — 2026-08-09
+
+### Fixed
+
+- **`formatTime()` rendered `'Infinity:NaN:NaN'` for a non-finite duration.**
+  A streamed or unseekable source reports `audio.duration === Infinity`, which
+  is truthy, not `NaN` and not negative, so it slipped every guard —
+  `Infinity % 3600` is `NaN`, and the literal string landed in the time display.
+  Non-finite and non-numeric input now formats as `'0:00'` like the other
+  invalid cases. Numeric strings are still coerced.
+
 ## [1.24.1] — 2026-08-09
 
 ### Fixed
