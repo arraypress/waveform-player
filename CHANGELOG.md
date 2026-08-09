@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.24.3] — 2026-08-09
+
+### Changed
+
+- **Stopped shipping sourcemaps.** The three `.map` files were 681KB of the
+  package's 1.2MB unpacked size — more than half of every install — and nothing
+  could load them: esbuild's `--sourcemap=external` writes the file but omits
+  the `//# sourceMappingURL=` comment, so no bundler or devtools had a way to
+  find them. The bundle bytes are unchanged, and `src/` still ships for anyone
+  who wants to read the original source. Packed 330.7KB → 144.1KB, unpacked
+  1.2MB → 538.0KB.
+
 ## [1.24.2] — 2026-08-09
 
 ### Fixed
