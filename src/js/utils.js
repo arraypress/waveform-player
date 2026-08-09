@@ -283,17 +283,22 @@ export function formatSeekValueText(template, ...args) {
  * Format a duration as a clock string.
  *
  * Renders `M:SS` for durations under an hour and `H:MM:SS` for longer ones,
- * zero-padding the minutes and seconds. Falsy, `NaN`, or negative inputs are
- * treated as zero and return `'0:00'`.
+ * zero-padding the minutes and seconds. Falsy, non-numeric, non-finite, or
+ * negative inputs are treated as zero and return `'0:00'`.
+ *
+ * `Infinity` matters here, and an `isNaN` check does not catch it: a streamed or
+ * unseekable source reports `audio.duration === Infinity`, and `Infinity % 3600`
+ * is `NaN`, so the old guard rendered a literal `'Infinity:NaN:NaN'` into the UI.
  * @param {number} seconds - Time in seconds.
  * @returns {string} Formatted time, e.g. `'3:07'` or `'1:02:09'`.
  */
 export function formatTime(seconds) {
-    if (!seconds || isNaN(seconds) || seconds < 0) return '0:00';
+    const total = Number(seconds);
+    if (!total || !Number.isFinite(total) || total < 0) return '0:00';
 
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
+    const hrs = Math.floor(total / 3600);
+    const mins = Math.floor((total % 3600) / 60);
+    const secs = Math.floor(total % 60);
 
     if (hrs > 0) {
         return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;

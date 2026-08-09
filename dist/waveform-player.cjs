@@ -156,10 +156,11 @@ function formatSeekValueText(template, ...args) {
   });
 }
 function formatTime(seconds) {
-  if (!seconds || isNaN(seconds) || seconds < 0) return "0:00";
-  const hrs = Math.floor(seconds / 3600);
-  const mins = Math.floor(seconds % 3600 / 60);
-  const secs = Math.floor(seconds % 60);
+  const total = Number(seconds);
+  if (!total || !Number.isFinite(total) || total < 0) return "0:00";
+  const hrs = Math.floor(total / 3600);
+  const mins = Math.floor(total % 3600 / 60);
+  const secs = Math.floor(total % 60);
   if (hrs > 0) {
     return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }

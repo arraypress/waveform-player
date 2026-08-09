@@ -89,6 +89,22 @@ describe('formatTime', () => {
 		expect(formatTime(3905)).toBe('1:05:05');
 	});
 
+	// A streamed / unseekable source reports `duration === Infinity`, which is
+	// truthy, not NaN and not negative — so it slipped every guard and rendered
+	// 'Infinity:NaN:NaN' straight into the time display.
+	it('renders a non-finite duration as zero rather than "Infinity:NaN"', () => {
+		expect(formatTime(Infinity)).toBe('0:00');
+		expect(formatTime(-Infinity)).toBe('0:00');
+		expect(formatTime(NaN)).toBe('0:00');
+		expect(formatTime(-30)).toBe('0:00');
+		expect(formatTime(undefined)).toBe('0:00');
+		expect(formatTime('nonsense')).toBe('0:00');
+	});
+
+	it('still coerces numeric strings', () => {
+		expect(formatTime('125')).toBe('2:05');
+	});
+
 	it('clamps negatives and guards NaN', () => {
 		expect(formatTime(-5)).toBe('0:00');
 		expect(formatTime(NaN)).toBe('0:00');
