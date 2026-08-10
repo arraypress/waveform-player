@@ -11,7 +11,7 @@
  */
 
 // Import the main class
-import {WaveformPlayer} from './core.js';
+import WaveformPlayer from './core.js';
 import {formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes} from './utils.js';
 import {detectColorScheme} from './themes.js';
 

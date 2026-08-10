@@ -16,13 +16,13 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/js/index.js
-var index_exports = {};
-__export(index_exports, {
-  WaveformPlayer: () => core_default,
-  default: () => index_default
+// src/js/core.js
+var core_exports = {};
+__export(core_exports, {
+  WaveformPlayer: () => WaveformPlayer,
+  default: () => core_default
 });
-module.exports = __toCommonJS(index_exports);
+module.exports = __toCommonJS(core_exports);
 
 // src/js/utils.js
 var DEFAULT_SAMPLES = 1800;
@@ -38,15 +38,6 @@ function escapeHtml(str) {
 }
 function formatCssLength(value) {
   return escapeHtml(typeof value === "number" ? `${value}px` : value);
-}
-function isSafeHref(url) {
-  if (typeof url !== "string" || url === "") return false;
-  try {
-    const u = new URL(url, "http://localhost/");
-    return u.protocol === "http:" || u.protocol === "https:";
-  } catch (e) {
-    return false;
-  }
 }
 function clamp(value, min = 0, max = 1) {
   return Math.max(min, Math.min(value, max));
@@ -3001,34 +2992,3 @@ var WaveformPlayer = class _WaveformPlayer {
   }
 };
 var core_default = WaveformPlayer;
-
-// src/js/index.js
-core_default.utils = { formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes, detectColorScheme };
-var isBrowser = () => typeof window !== "undefined" && typeof document !== "undefined";
-function autoInit() {
-  if (!isBrowser()) return;
-  const elements = document.querySelectorAll("[data-waveform-player]");
-  elements.forEach((element) => {
-    if (element.dataset.waveformInitialized === "true" || core_default.getInstance(element)) {
-      return;
-    }
-    try {
-      new core_default(element);
-      element.dataset.waveformInitialized = "true";
-    } catch (error) {
-      console.error("[WaveformPlayer] Failed to initialize:", error, element);
-    }
-  });
-}
-if (isBrowser()) {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", autoInit);
-  } else {
-    autoInit();
-  }
-}
-core_default.init = autoInit;
-if (isBrowser()) {
-  window.WaveformPlayer = core_default;
-}
-var index_default = core_default;

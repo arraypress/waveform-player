@@ -14,6 +14,12 @@
       "require": "./dist/waveform-player.cjs",
       "default": "./dist/waveform-player.esm.js"
     },
+    "./core": {
+      "types": "./core.d.ts",
+      "import": "./dist/waveform-player-core.esm.js",
+      "require": "./dist/waveform-player-core.cjs",
+      "default": "./dist/waveform-player-core.esm.js"
+    },
     "./styles.css": "./dist/waveform-player.css",
     "./dist/*": "./dist/*",
     "./package.json": "./package.json"
@@ -22,16 +28,19 @@
     "dist/",
     "src/",
     "index.d.ts",
+    "core.d.ts",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "npm run build:css && npm run build:iife && npm run build:esm && npm run build:cjs && npm run build:min",
+    "build": "npm run build:css && npm run build:iife && npm run build:esm && npm run build:cjs && npm run build:core:esm && npm run build:core:cjs && npm run build:min",
     "build:css": "esbuild src/css/waveform-player.css --minify --outfile=dist/waveform-player.css",
     "build:iife": "esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.js",
     "build:min": "esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.min.js --minify",
     "build:esm": "esbuild src/js/index.js --bundle --format=esm --outfile=dist/waveform-player.esm.js --minify",
     "build:cjs": "esbuild src/js/index.js --bundle --format=cjs --outfile=dist/waveform-player.cjs",
+    "build:core:esm": "esbuild src/js/core.js --bundle --format=esm --outfile=dist/waveform-player-core.esm.js --minify",
+    "build:core:cjs": "esbuild src/js/core.js --bundle --format=cjs --outfile=dist/waveform-player-core.cjs",
     "dev": "npm run build:css && esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.js --watch",
     "dev:css": "esbuild src/css/waveform-player.css --outfile=dist/waveform-player.css --watch",
     "dev:demo": "npm run build:css && concurrently \"npm run dev\" \"npm run dev:css\"",

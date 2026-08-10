@@ -2531,3 +2531,5 @@ export class WaveformPlayer {
     }
 
 }
+
+export default WaveformPlayer;

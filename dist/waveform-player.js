@@ -2975,19 +2975,20 @@
       return swapped === audioUrl ? void 0 : swapped;
     }
   };
+  var core_default = WaveformPlayer;
 
   // src/js/index.js
-  WaveformPlayer.utils = { formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes, detectColorScheme };
+  core_default.utils = { formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes, detectColorScheme };
   var isBrowser = () => typeof window !== "undefined" && typeof document !== "undefined";
   function autoInit() {
     if (!isBrowser()) return;
     const elements = document.querySelectorAll("[data-waveform-player]");
     elements.forEach((element) => {
-      if (element.dataset.waveformInitialized === "true" || WaveformPlayer.getInstance(element)) {
+      if (element.dataset.waveformInitialized === "true" || core_default.getInstance(element)) {
         return;
       }
       try {
-        new WaveformPlayer(element);
+        new core_default(element);
         element.dataset.waveformInitialized = "true";
       } catch (error) {
         console.error("[WaveformPlayer] Failed to initialize:", error, element);
@@ -3001,9 +3002,9 @@
       autoInit();
     }
   }
-  WaveformPlayer.init = autoInit;
+  core_default.init = autoInit;
   if (isBrowser()) {
-    window.WaveformPlayer = WaveformPlayer;
+    window.WaveformPlayer = core_default;
   }
-  var index_default = WaveformPlayer;
+  var index_default = core_default;
 })();
