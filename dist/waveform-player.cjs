@@ -51,6 +51,44 @@ function isSafeHref(url) {
 function clamp(value, min = 0, max = 1) {
   return Math.max(min, Math.min(value, max));
 }
+function toFiniteNumber(value, fallback = null, opts = {}) {
+  const { min = -Infinity, max = Infinity, integer = false } = opts;
+  const n = typeof value === "number" ? value : typeof value === "string" && value.trim() !== "" ? Number(value) : NaN;
+  if (!Number.isFinite(n)) return fallback;
+  const bounded = clamp(n, min, max);
+  return integer ? Math.round(bounded) : bounded;
+}
+function toArray(value, fallback = null) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string" && value.trim().startsWith("[")) {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {
+    }
+  }
+  return fallback;
+}
+function toNumberArray(value, opts = {}) {
+  const { min = -Infinity, max = Infinity, fallback = null } = opts;
+  let list = toArray(value);
+  if (!list && typeof value === "string" && value.trim() !== "") {
+    list = value.split(/[,\s]+/);
+  }
+  if (!list) return fallback;
+  const numbers = list.map((v) => toFiniteNumber(v)).filter((n) => n !== null && n >= min && n <= max);
+  return numbers.length ? numbers : fallback;
+}
+function toEnum(value, allowed, fallback = null) {
+  return allowed.includes(value) ? value : fallback;
+}
+function toBool(value) {
+  if (typeof value === "string") {
+    const v = value.trim().toLowerCase();
+    return v !== "" && v !== "false" && v !== "0";
+  }
+  return !!value;
+}
 function parseBoolAttr(value) {
   return value === void 0 ? void 0 : value === "true";
 }
@@ -78,14 +116,12 @@ function parseDataAttributes(element) {
     if (!raw) return;
     options[optKey] = /^\d+(\.\d+)?$/.test(raw.trim()) ? parseFloat(raw) : raw;
   };
-  const setJson = (optKey, dataKey = optKey) => {
+  const setJsonArray = (optKey, dataKey = optKey) => {
     const raw = element.dataset[dataKey];
     if (!raw) return;
-    try {
-      options[optKey] = JSON.parse(raw);
-    } catch (e) {
-      console.warn(`[WaveformPlayer] Invalid ${dataKey} JSON:`, e);
-    }
+    const parsed = toArray(raw);
+    if (parsed) options[optKey] = parsed;
+    else console.warn(`[WaveformPlayer] Invalid ${dataKey} attribute, expected a JSON array:`, raw);
   };
   if (element.dataset.src) options.url = element.dataset.src;
   if (element.dataset.url) options.url = element.dataset.url;
@@ -130,10 +166,14 @@ function parseDataAttributes(element) {
   if (element.dataset.artwork) options.artwork = element.dataset.artwork;
   if (element.dataset.artworkPosition) options.artworkPosition = element.dataset.artworkPosition;
   if (element.dataset.waveform) options.waveform = element.dataset.waveform;
-  setJson("markers");
+  setJsonArray("markers");
   setNum("playbackRate", "playbackRate", true);
   setBool("showPlaybackSpeed");
-  setJson("playbackRates");
+  if (element.dataset.playbackRates) {
+    const rates = toNumberArray(element.dataset.playbackRates);
+    if (rates) options.playbackRates = rates;
+    else console.warn("[WaveformPlayer] Invalid playbackRates attribute:", element.dataset.playbackRates);
+  }
   setBool("enableMediaSession");
   setBool("showMarkers");
   setBool("accessibleSeek");
@@ -873,6 +913,123 @@ var STYLE_DEFAULTS = {
   dots: { barWidth: 3, barSpacing: 3 },
   seekbar: { barWidth: 1, barSpacing: 0 }
 };
+var BUTTON_ALIGNMENTS = ["auto", "top", "center", "bottom"];
+var PLAYBACK_RATE_MIN = 0.25;
+var PLAYBACK_RATE_MAX = 4;
+var ENUMS = {
+  buttonAlign: BUTTON_ALIGNMENTS,
+  layout: ["default", "preview"],
+  buttonStyle: ["circle", "minimal"],
+  artworkPosition: ["info", "button"],
+  waveformStyle: Object.keys(STYLE_DEFAULTS),
+  waveformGradient: ["vertical", "horizontal", "diagonal"],
+  audioMode: ["self", "external"],
+  preload: ["none", "metadata", "auto"],
+  colorPreset: Object.keys(COLOR_PRESETS),
+  // Anything other than these two makes the browser fall back to 'anonymous',
+  // which forces a CORS request the caller never asked for — so a bad value
+  // has to resolve to null (no crossorigin attribute), not pass through.
+  crossOrigin: ["anonymous", "use-credentials"]
+};
+var NUMBERS = {
+  height: { min: 1, integer: true },
+  samples: { min: 1, integer: true },
+  barWidth: { min: 0 },
+  barSpacing: { min: 0 },
+  barRadius: { min: 0 },
+  bpm: { min: 1 },
+  // Matches the clamp in setPlaybackRate() — the menu must not offer a rate
+  // the setter would then silently refuse.
+  playbackRate: { min: PLAYBACK_RATE_MIN, max: PLAYBACK_RATE_MAX }
+};
+var BOOLEANS = [
+  "autoplay",
+  "showControls",
+  "showInfo",
+  "showTime",
+  "showHoverTime",
+  "seekHandle",
+  "showBPM",
+  "singlePlay",
+  "playOnSeek",
+  "enableMediaSession",
+  "showMarkers",
+  "accessibleSeek",
+  "showPlaybackSpeed"
+];
+var CALLBACKS = [
+  "onLoad",
+  "onPlay",
+  "onPause",
+  "onEnd",
+  "onError",
+  "onTimeUpdate",
+  "onNextTrack",
+  "onPreviousTrack"
+];
+function warnInvalid(key, value) {
+  console.warn(`[WaveformPlayer] Invalid ${key} option, using default:`, value);
+}
+function normalizeMarkers(value) {
+  const list = toArray(value);
+  if (!list) {
+    if (value != null) warnInvalid("markers", value);
+    return [];
+  }
+  return list.reduce((markers, marker) => {
+    const time = marker && typeof marker === "object" ? toFiniteNumber(marker.time, null, { min: 0 }) : null;
+    if (time === null) {
+      warnInvalid("marker", marker);
+      return markers;
+    }
+    markers.push({ ...marker, time, label: marker.label == null ? "" : marker.label });
+    return markers;
+  }, []);
+}
+function normalizeOptions(options) {
+  const supplied = (key) => options[key] != null;
+  const reject = (key) => {
+    warnInvalid(key, options[key]);
+    options[key] = DEFAULT_OPTIONS[key];
+  };
+  for (const [key, range] of Object.entries(NUMBERS)) {
+    if (!supplied(key)) continue;
+    const n = toFiniteNumber(options[key], null, range);
+    if (n === null) reject(key);
+    else options[key] = n;
+  }
+  for (const [key, allowed] of Object.entries(ENUMS)) {
+    if (supplied(key) && toEnum(options[key], allowed) === null) reject(key);
+  }
+  for (const key of BOOLEANS) {
+    options[key] = toBool(options[key]);
+  }
+  for (const key of CALLBACKS) {
+    if (supplied(key) && typeof options[key] !== "function") reject(key);
+  }
+  if (supplied("playbackRates")) {
+    const rates = toNumberArray(options.playbackRates, {
+      min: PLAYBACK_RATE_MIN,
+      max: PLAYBACK_RATE_MAX,
+      fallback: null
+    });
+    if (rates === null) reject("playbackRates");
+    else options.playbackRates = rates;
+  }
+  options.markers = normalizeMarkers(options.markers);
+  for (const key of ["buttonSize", "buttonRadius"]) {
+    if (!supplied(key)) continue;
+    const value = options[key];
+    const ok = typeof value === "number" ? Number.isFinite(value) : typeof value === "string" && value.trim() !== "";
+    if (!ok) reject(key);
+  }
+  for (const key of ["waveformColor", "progressColor"]) {
+    if (!supplied(key)) continue;
+    const value = options[key];
+    if (!(typeof value === "string" && value.trim() !== "") && !Array.isArray(value)) reject(key);
+  }
+  return options;
+}
 
 // src/js/core.js
 var ARTWORK_FALLBACK = "data:image/svg+xml," + encodeURIComponent(
@@ -881,7 +1038,6 @@ var ARTWORK_FALLBACK = "data:image/svg+xml," + encodeURIComponent(
 var SEEK_STEP_SECONDS = 5;
 var SEEK_PAGE_SECONDS = 10;
 var INTERACTIVE_ELEMENTS = 'button, a[href], input, [role="slider"]';
-var BUTTON_ALIGNMENTS = ["auto", "top", "center", "bottom"];
 var WaveformPlayer = class _WaveformPlayer {
   /** @type {Map<string, WaveformPlayer>} */
   static instances = /* @__PURE__ */ new Map();
@@ -913,7 +1069,7 @@ var WaveformPlayer = class _WaveformPlayer {
     const userOptions = { ...options };
     if (userOptions.style && !userOptions.waveformStyle) userOptions.waveformStyle = userOptions.style;
     if (userOptions.src && !userOptions.url) userOptions.url = userOptions.src;
-    this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, userOptions);
+    this.options = normalizeOptions(mergeOptions(DEFAULT_OPTIONS, dataOptions, userOptions));
     const preset = getColorPreset(this.options.colorPreset, this.container);
     this._autoTheme = this.options.colorPreset == null || !COLOR_PRESETS[this.options.colorPreset];
     this._presetKeys = [];
@@ -1867,12 +2023,12 @@ var WaveformPlayer = class _WaveformPlayer {
     }
     this.progress = 0;
     this.waveformData = [];
-    this.options = mergeOptions(this.options, {
+    this.options = normalizeOptions(mergeOptions(this.options, {
       url,
       title: title === null ? this.options.title : title,
       artist: artist === null ? this.options.artist : artist,
       ...options
-    });
+    }));
     if (hasArtworkOption) {
       this.options.artwork = options.artwork || null;
     }
@@ -1882,10 +2038,10 @@ var WaveformPlayer = class _WaveformPlayer {
       this.options.artworkAlt = this.options.artwork ? DEFAULT_OPTIONS.artworkAlt : "";
     }
     if (options.preload && this.audio) {
-      this.audio.preload = options.preload;
+      this.audio.preload = this.options.preload;
     }
     if (options.crossOrigin && this.audio) {
-      this.audio.crossOrigin = options.crossOrigin;
+      this.audio.crossOrigin = this.options.crossOrigin;
     }
     if (artist !== null) {
       this.syncArtist(artist);
@@ -1896,7 +2052,7 @@ var WaveformPlayer = class _WaveformPlayer {
         hasArtworkAltOption ? options.artworkAlt : this.options.artworkAlt
       );
     }
-    this.options.markers = options.markers || [];
+    this.options.markers = options.markers ? normalizeMarkers(options.markers) : [];
     this.options.waveform = options.waveform || null;
     await this.load(url);
     if (options.autoplay !== false) {
@@ -1924,7 +2080,7 @@ var WaveformPlayer = class _WaveformPlayer {
       fetch(data.trim()).then((r) => r.json()).then((json) => {
         this.waveformData = Array.isArray(json) ? json : json.peaks || [];
         if (json.markers && !this.options.markers?.length) {
-          this.options.markers = json.markers;
+          this.options.markers = normalizeMarkers(json.markers);
           this.renderMarkers();
         }
         this.drawWaveform();
@@ -1932,16 +2088,7 @@ var WaveformPlayer = class _WaveformPlayer {
       });
       return;
     }
-    if (typeof data === "string") {
-      try {
-        const parsed = JSON.parse(data);
-        this.waveformData = Array.isArray(parsed) ? parsed : [];
-      } catch {
-        this.waveformData = data.split(",").map(Number);
-      }
-    } else {
-      this.waveformData = Array.isArray(data) ? data : [];
-    }
+    this.waveformData = toNumberArray(data, { fallback: [] });
     this.drawWaveform();
   }
   /**
@@ -2694,14 +2841,20 @@ var WaveformPlayer = class _WaveformPlayer {
     }
   }
   /**
-   * Set the owned `<audio>` element's playback rate (clamped to 0.5–2),
+   * Set the owned `<audio>` element's playback rate (clamped to 0.25–4),
    * persist it onto `this.options.playbackRate`, and refresh the speed UI.
    * Self mode only — a no-op in external mode.
-   * @param {number} rate - Desired playback rate; clamped to the 0.5–2 range.
+   *
+   * The clamp bounds the range browsers keep audible; the default speed menu
+   * offers a narrower 0.5–2, which `playbackRates` can widen up to these
+   * bounds. A non-numeric rate is ignored rather than assigned, since
+   * `audio.playbackRate = NaN` throws.
+   * @param {number} rate - Desired playback rate; clamped to the 0.25–4 range.
    */
   setPlaybackRate(rate) {
     if (!this.audio) return;
-    const clampedRate = clamp(rate, 0.5, 2);
+    const clampedRate = toFiniteNumber(rate, null, { min: PLAYBACK_RATE_MIN, max: PLAYBACK_RATE_MAX });
+    if (clampedRate === null) return;
     this.audio.playbackRate = clampedRate;
     this.options.playbackRate = clampedRate;
     this.updateSpeedUI();

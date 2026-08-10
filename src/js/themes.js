@@ -3,7 +3,16 @@
  * @description Color presets and default options for WaveformPlayer
  */
 
-import {parseColor, perceivedBrightness, DEFAULT_SAMPLES} from './utils.js';
+import {
+    parseColor,
+    perceivedBrightness,
+    toArray,
+    toBool,
+    toEnum,
+    toFiniteNumber,
+    toNumberArray,
+    DEFAULT_SAMPLES
+} from './utils.js';
 
 /**
  * Brightness (0–255) above which a backdrop counts as light.
@@ -401,3 +410,222 @@ export const STYLE_DEFAULTS = {
     dots: {barWidth: 3, barSpacing: 3},
     seekbar: {barWidth: 1, barSpacing: 0}
 };
+
+/**
+ * Permitted `buttonAlign` values. `auto` resolves per waveform style at DOM
+ * build time (bottom for `bars`, center otherwise).
+ * @type {string[]}
+ */
+export const BUTTON_ALIGNMENTS = ['auto', 'top', 'center', 'bottom'];
+
+/**
+ * Playback-rate bounds. Single source of truth for both the `setPlaybackRate()`
+ * clamp and the `playbackRates` menu — an offered rate the setter would refuse
+ * leaves the speed label reading one thing while the audio plays another.
+ *
+ * The window is deliberately wider than the default menu (0.5–2). Audiobook and
+ * podcast UIs routinely want 2.5x or 3x, and there's no reason the *setter* should
+ * cap what the menu merely doesn't offer by default. 0.25–4 is the conservative
+ * limit: browsers keep audio audible and pitch-corrected across that range and
+ * start muting it beyond, so a rate outside these bounds would play silently.
+ * @type {number}
+ */
+export const PLAYBACK_RATE_MIN = 0.25;
+export const PLAYBACK_RATE_MAX = 4;
+
+/**
+ * Closed vocabularies for the enumerated options, keyed by option name. Each
+ * unrecognised value resolves to that option's {@link DEFAULT_OPTIONS} entry.
+ * @type {Object<string, string[]>}
+ * @private
+ */
+const ENUMS = {
+    buttonAlign: BUTTON_ALIGNMENTS,
+    layout: ['default', 'preview'],
+    buttonStyle: ['circle', 'minimal'],
+    artworkPosition: ['info', 'button'],
+    waveformStyle: Object.keys(STYLE_DEFAULTS),
+    waveformGradient: ['vertical', 'horizontal', 'diagonal'],
+    audioMode: ['self', 'external'],
+    preload: ['none', 'metadata', 'auto'],
+    colorPreset: Object.keys(COLOR_PRESETS),
+    // Anything other than these two makes the browser fall back to 'anonymous',
+    // which forces a CORS request the caller never asked for — so a bad value
+    // has to resolve to null (no crossorigin attribute), not pass through.
+    crossOrigin: ['anonymous', 'use-credentials']
+};
+
+/**
+ * Numeric options and their acceptable ranges. Out-of-range values are clamped;
+ * non-numeric ones fall back to the default.
+ * @type {Object<string, {min?: number, max?: number, integer?: boolean}>}
+ * @private
+ */
+const NUMBERS = {
+    height: {min: 1, integer: true},
+    samples: {min: 1, integer: true},
+    barWidth: {min: 0},
+    barSpacing: {min: 0},
+    barRadius: {min: 0},
+    bpm: {min: 1},
+    // Matches the clamp in setPlaybackRate() — the menu must not offer a rate
+    // the setter would then silently refuse.
+    playbackRate: {min: PLAYBACK_RATE_MIN, max: PLAYBACK_RATE_MAX}
+};
+
+/**
+ * Boolean feature flags. Coerced with {@link toBool} so the string `'false'`
+ * (a `data-*` value, or a wrapper that stringified a prop) doesn't read as true.
+ * @type {string[]}
+ * @private
+ */
+const BOOLEANS = [
+    'autoplay', 'showControls', 'showInfo', 'showTime', 'showHoverTime',
+    'seekHandle', 'showBPM', 'singlePlay', 'playOnSeek', 'enableMediaSession',
+    'showMarkers', 'accessibleSeek', 'showPlaybackSpeed'
+];
+
+/**
+ * Callback options. A non-function here would throw at call time, deep inside
+ * playback, rather than at the point the bad value was supplied.
+ * @type {string[]}
+ * @private
+ */
+const CALLBACKS = [
+    'onLoad', 'onPlay', 'onPause', 'onEnd', 'onError', 'onTimeUpdate',
+    'onNextTrack', 'onPreviousTrack'
+];
+
+/**
+ * Warn about an option that was supplied but unusable. Invalid options resolve
+ * to their default rather than throwing, so without this they'd fail silently —
+ * a `NaN` height renders an invisible player with an empty console.
+ * @param {string} key - Option name.
+ * @param {*} value - The rejected value.
+ * @private
+ */
+function warnInvalid(key, value) {
+    console.warn(`[WaveformPlayer] Invalid ${key} option, using default:`, value);
+}
+
+/**
+ * Normalize a marker list into renderable markers.
+ *
+ * Accepts an array or a JSON array string, and keeps only entries that are
+ * objects with a finite, non-negative `time` — `renderMarkers()` divides by
+ * duration and writes the result into `style.left`, so a non-numeric time
+ * produces `left: NaN%` and silently stacks every bad marker at the left edge.
+ * A missing `label` becomes `''` rather than reaching the tooltip and the
+ * marker's `aria-label` as the string `"undefined"`.
+ *
+ * @param {*} value - Candidate marker list.
+ * @returns {Array<Object>} Renderable markers (empty when nothing survives).
+ */
+export function normalizeMarkers(value) {
+    const list = toArray(value);
+    if (!list) {
+        if (value != null) warnInvalid('markers', value);
+        return [];
+    }
+
+    return list.reduce((markers, marker) => {
+        const time = marker && typeof marker === 'object'
+            ? toFiniteNumber(marker.time, null, {min: 0})
+            : null;
+
+        if (time === null) {
+            warnInvalid('marker', marker);
+            return markers;
+        }
+
+        markers.push({...marker, time, label: marker.label == null ? '' : marker.label});
+        return markers;
+    }, []);
+}
+
+/**
+ * Normalize a merged option set in place, resolving every unusable value to its
+ * {@link DEFAULT_OPTIONS} entry.
+ *
+ * Options arrive from three untyped directions — `data-*` attributes, framework
+ * wrappers forwarding props, and hand-written JS — and the consumers downstream
+ * assume shapes that none of those paths guarantee. `playbackRates.map()` and
+ * `markers.forEach()` throw outright on valid-but-non-array JSON (`JSON.parse`
+ * validates syntax, not shape); `NaN` geometry sizes the canvas to nothing; and
+ * unrecognised enum values reach class names and DOM properties. Normalizing
+ * once, on the merged object, covers both configuration paths and every wrapper
+ * at a single point.
+ *
+ * Mutates and returns the same object, so it can be dropped in directly after
+ * {@link mergeOptions}. Options left unset (`null`) are untouched — `null` is
+ * the documented "inherit / auto-detect" state for colours, `bpm`, `buttonSize`
+ * and the callbacks.
+ *
+ * @param {Object} options - Merged options object (mutated).
+ * @returns {Object} The same object, normalized.
+ */
+export function normalizeOptions(options) {
+    // Only normalize what the caller actually supplied — mergeOptions() drops
+    // null/undefined sources, so a null here is a default that means "unset".
+    const supplied = (key) => options[key] != null;
+
+    // Fall back to the documented default, warning only when a real value was
+    // rejected (an unset option is not a mistake).
+    const reject = (key) => {
+        warnInvalid(key, options[key]);
+        options[key] = DEFAULT_OPTIONS[key];
+    };
+
+    for (const [key, range] of Object.entries(NUMBERS)) {
+        if (!supplied(key)) continue;
+        const n = toFiniteNumber(options[key], null, range);
+        if (n === null) reject(key); else options[key] = n;
+    }
+
+    for (const [key, allowed] of Object.entries(ENUMS)) {
+        if (supplied(key) && toEnum(options[key], allowed) === null) reject(key);
+    }
+
+    for (const key of BOOLEANS) {
+        options[key] = toBool(options[key]);
+    }
+
+    for (const key of CALLBACKS) {
+        if (supplied(key) && typeof options[key] !== 'function') reject(key);
+    }
+
+    // Speed menu: every offered rate must be one setPlaybackRate() will honour,
+    // or the menu label and the audio disagree. Members are interpolated into
+    // markup, so non-numeric entries must not survive.
+    if (supplied('playbackRates')) {
+        const rates = toNumberArray(options.playbackRates, {
+            min: PLAYBACK_RATE_MIN,
+            max: PLAYBACK_RATE_MAX,
+            fallback: null
+        });
+        if (rates === null) reject('playbackRates'); else options.playbackRates = rates;
+    }
+
+    options.markers = normalizeMarkers(options.markers);
+
+    // A CSS length is a number (px) or a verbatim unit string ('4rem'); both
+    // reach an inline style attribute, escaped, via formatCssLength().
+    for (const key of ['buttonSize', 'buttonRadius']) {
+        if (!supplied(key)) continue;
+        const value = options[key];
+        const ok = typeof value === 'number'
+            ? Number.isFinite(value)
+            : typeof value === 'string' && value.trim() !== '';
+        if (!ok) reject(key);
+    }
+
+    // A colour is a CSS colour string or an array of gradient stops; anything
+    // else resolves to null so the theme preset fills it in instead.
+    for (const key of ['waveformColor', 'progressColor']) {
+        if (!supplied(key)) continue;
+        const value = options[key];
+        if (!(typeof value === 'string' && value.trim() !== '') && !Array.isArray(value)) reject(key);
+    }
+
+    return options;
+}

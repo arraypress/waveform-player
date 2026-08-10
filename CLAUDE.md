@@ -12,7 +12,7 @@ It is the foundation the rest of the `@arraypress` waveform family builds on.
   `prepublishOnly`. **Run it whenever you touch theme detection** — see
   `test/visual/README.md` for what it proves and the engine findings behind it.
 - `npm run build` — builds all dist targets (css, iife, esm, cjs, min). `prepublishOnly` runs `test && build`.
-- `npm run size` — gzipped JS/CSS sizes. **As of 1.24.4: ~12.9KB JS / ~1.8KB CSS.** Ceiling is ~13KB JS; flag anything that moves it materially. (The old "~10KB budget" sat *below* actual for several releases, so it could never flag anything — keep this figure current when it moves, or it rots the same way. The marketing site quotes it too: `waveform-site/src/data/packages.ts`.)
+- `npm run size` — gzipped JS/CSS sizes. **As of 1.25.0: ~13.8KB JS / ~1.8KB CSS.** Ceiling is ~14KB JS; flag anything that moves it materially. (The option-normalization pass cost +880B — that was a deliberate, measured trade for turning two hard crashes and a class of silent blank-player failures into warnings; don't spend the new headroom casually.) (The old "~10KB budget" sat *below* actual for several releases, so it could never flag anything — keep this figure current when it moves, or it rots the same way. The marketing site quotes it too: `waveform-site/src/data/packages.ts`.)
 - `npm run dev` — watch build (rebuilds dist while you test against a local HTML page).
 
 ## Architecture (`src/js/`)

@@ -4,6 +4,58 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.25.0] — 2026-08-11
+
+### Fixed
+
+- **A valid-but-wrong option no longer takes the player down.** `JSON.parse`
+  validates syntax, not shape, so `data-playback-rates="2"` or
+  `data-markers='"hello"'` parsed cleanly and then threw at the first
+  `.map()` / `.forEach()` — killing the whole player from a typo. Every option
+  is now normalized once, on the merged result, so an unusable value resolves to
+  its documented default and warns instead of throwing.
+- **Non-numeric geometry no longer renders an invisible player.**
+  `data-height="tall"` parsed to `NaN`, which sized the canvas to zero with an
+  empty console. `height`, `samples`, `barWidth`, `barSpacing`, `barRadius`,
+  `bpm` and `playbackRate` now fall back to their defaults (and clamp to sane
+  ranges) with a warning naming the option.
+- **Enumerated options are checked against their vocabularies.** `layout`,
+  `buttonStyle`, `artworkPosition`, `waveformStyle`, `waveformGradient`,
+  `audioMode`, `preload`, `colorPreset` and `crossOrigin` resolve to their
+  defaults when unrecognised. `crossOrigin` mattered most: any unrecognised
+  value makes the browser fall back to `anonymous`, forcing a CORS request the
+  caller never asked for.
+- **The speed menu can no longer disagree with the audio.** Rates outside the
+  supported range were rendered as buttons but clamped on click, so the label
+  read `10x` while playback ran at the clamp and no menu item ever highlighted.
+  Out-of-range rates are dropped from the menu.
+- **Markers are validated per entry.** A marker without a usable `time`
+  produced `left: NaN%` and silently stacked at the left edge; a marker without
+  a `label` rendered the string `"undefined"` into its tooltip and `aria-label`.
+  Both are now dropped/defaulted, including markers arriving from a peaks JSON
+  sidecar.
+- **Non-function callbacks** (`onPlay`, `onEnd`, …) are rejected at
+  configuration time rather than throwing mid-playback.
+
+### Changed
+
+- **`setPlaybackRate` now clamps to 0.25–4** (was 0.5–2), the range browsers
+  keep audible — so `playbackRates` can offer the 2.5x/3x speeds podcast and
+  audiobook UIs expect. The default menu is unchanged.
+- **`playbackRates` accepts a bare list.** `data-playback-rates="0.5, 1, 2"`
+  now works alongside the JSON array form; previously it failed to parse and was
+  silently dropped.
+- **Boolean options accept attribute-shaped strings.** `showTime: 'false'` reads
+  as `false` rather than truthy, which is what a wrapper that stringifies props
+  actually means.
+- New internal coercion helpers (`toFiniteNumber`, `toArray`, `toNumberArray`,
+  `toBool`, `toEnum`) back all of the above; `setWaveformData` now shares them,
+  so a peaks string with junk in it yields no peaks rather than `NaN` ones.
+
+Thanks to [@scruffian](https://github.com/scruffian) for raising declarative
+config validation in
+[#22](https://github.com/arraypress/waveform-player/pull/22).
+
 ## [1.24.5] — 2026-08-10
 
 ### Fixed

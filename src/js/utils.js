@@ -88,6 +88,131 @@ export function clamp(value, min = 0, max = 1) {
 }
 
 /**
+ * Coerce a value to a finite number, clamped into an optional range.
+ *
+ * Options reach the player from three untyped directions — `data-*` attributes,
+ * framework wrappers that forward strings, and hand-written JS — so a value that
+ * *should* be a number routinely isn't. Anything non-numeric (`NaN`,
+ * `Infinity`, `null`, `''`, objects, arrays) returns `fallback` rather than
+ * poisoning arithmetic downstream: a `NaN` height silently sizes the canvas to
+ * zero, which looks like a broken player rather than a bad option.
+ *
+ * Numeric strings are accepted (`'64'` → `64`) but non-numeric ones are not
+ * (`'64px'` → `fallback`); the `data-*` layer has already run `parseInt`/
+ * `parseFloat` by the time values arrive here.
+ *
+ * @param {*} value - Candidate value.
+ * @param {*} [fallback=null] - Returned when `value` isn't a finite number.
+ * @param {Object} [opts={}] - Bounds.
+ * @param {number} [opts.min=-Infinity] - Lower bound (clamped, not rejected).
+ * @param {number} [opts.max=Infinity] - Upper bound (clamped, not rejected).
+ * @param {boolean} [opts.integer=false] - Round the result to a whole number.
+ * @returns {number|*} The finite, clamped number, or `fallback`.
+ */
+export function toFiniteNumber(value, fallback = null, opts = {}) {
+    const {min = -Infinity, max = Infinity, integer = false} = opts;
+    const n = typeof value === 'number'
+        ? value
+        : (typeof value === 'string' && value.trim() !== '' ? Number(value) : NaN);
+
+    if (!Number.isFinite(n)) return fallback;
+
+    const bounded = clamp(n, min, max);
+    return integer ? Math.round(bounded) : bounded;
+}
+
+/**
+ * Coerce a value to an array, accepting either a real array or a JSON string
+ * that parses to one (`'[1,2]'`). Anything else — including valid JSON that
+ * isn't an array, like `'2'` or `'{"a":1}'` — returns `fallback`.
+ *
+ * This is the guard `JSON.parse` alone doesn't give you: parsing only validates
+ * *syntax*, so well-formed non-array JSON sails through and detonates at the
+ * first `.map()`/`.forEach()` call site.
+ *
+ * @param {*} value - Candidate value.
+ * @param {*} [fallback=null] - Returned when `value` isn't (or doesn't parse to) an array.
+ * @returns {Array|*} The array, or `fallback`.
+ */
+export function toArray(value, fallback = null) {
+    if (Array.isArray(value)) return value;
+
+    if (typeof value === 'string' && value.trim().startsWith('[')) {
+        try {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) return parsed;
+        } catch (e) { /* fall through to the fallback */ }
+    }
+
+    return fallback;
+}
+
+/**
+ * Coerce a value to an array of finite numbers.
+ *
+ * Accepts a real array, a JSON array string (`'[0.5,1,2]'`), or a plain
+ * delimited list (`'0.5, 1, 2'`) — the last of which is what an author naturally
+ * types into a `data-*` attribute. Members that aren't finite numbers, or that
+ * fall outside `[min, max]`, are **dropped** rather than clamped, so a
+ * mistyped entry can't quietly masquerade as a supported one. An empty result
+ * returns `fallback`.
+ *
+ * @param {*} value - Candidate value.
+ * @param {Object} [opts={}] - Bounds and fallback.
+ * @param {number} [opts.min=-Infinity] - Lowest acceptable member.
+ * @param {number} [opts.max=Infinity] - Highest acceptable member.
+ * @param {*} [opts.fallback=null] - Returned when nothing usable survives.
+ * @returns {number[]|*} Numbers within range, or `fallback`.
+ */
+export function toNumberArray(value, opts = {}) {
+    const {min = -Infinity, max = Infinity, fallback = null} = opts;
+
+    let list = toArray(value);
+    if (!list && typeof value === 'string' && value.trim() !== '') {
+        list = value.split(/[,\s]+/);
+    }
+    if (!list) return fallback;
+
+    const numbers = list
+        .map(v => toFiniteNumber(v))
+        .filter(n => n !== null && n >= min && n <= max);
+
+    return numbers.length ? numbers : fallback;
+}
+
+/**
+ * Return `value` when it is one of `allowed`, else `fallback`. Used for the
+ * option surface's closed vocabularies (`layout`, `preload`, `audioMode`, …) so
+ * an unrecognised value resolves to the documented default instead of reaching
+ * a class name, a DOM property, or a lookup that silently misses.
+ *
+ * @param {*} value - Candidate value.
+ * @param {Array} allowed - Permitted values.
+ * @param {*} [fallback=null] - Returned when `value` isn't permitted.
+ * @returns {*} `value` if allowed, else `fallback`.
+ */
+export function toEnum(value, allowed, fallback = null) {
+    return allowed.includes(value) ? value : fallback;
+}
+
+/**
+ * Coerce a value to a boolean, treating the strings `'false'` and `'0'` as
+ * false. Plain `Boolean()` would make both truthy, and both arrive routinely
+ * from attribute-shaped sources (a `data-*` value, or a framework wrapper that
+ * stringifies props before forwarding them).
+ *
+ * @param {*} value - Candidate value.
+ * @returns {boolean} The coerced boolean.
+ */
+export function toBool(value) {
+    if (typeof value === 'string') {
+        const v = value.trim().toLowerCase();
+        return v !== '' && v !== 'false' && v !== '0';
+    }
+    return !!value;
+}
+
+/**
  * Read a boolean `data-*` flag. Returns `undefined` when the attribute is
  * absent (preserving the sparse-options contract) and otherwise compares the
  * raw value against the literal string `'true'`.
@@ -119,9 +244,13 @@ function parseColorValue(value) {
  * Only attributes that are actually present are copied, so the returned object
  * is sparse and never overrides defaults with `undefined`. Numeric attributes
  * are coerced with `parseInt`/`parseFloat`, boolean flags are compared against
- * the literal string `'true'`, and JSON-valued attributes (`markers`,
- * `playbackRates`) are parsed defensively — a parse failure is warned about and
- * the attribute is skipped rather than thrown.
+ * the literal string `'true'`, and list-valued attributes (`markers`,
+ * `playbackRates`) are parsed defensively — anything that isn't a list is
+ * warned about and skipped rather than thrown or passed on.
+ *
+ * This layer only reads and shapes; it does not police values. Ranges and
+ * vocabularies are enforced by `normalizeOptions` on the merged result, so the
+ * constructor path gets the same guarantees as the `data-*` path.
  *
  * Several attributes are shorthand aliases of a canonical long form: `data-src`
  * → `url`, `data-style` → `waveformStyle`. When both are present the canonical
@@ -158,12 +287,16 @@ export function parseDataAttributes(element) {
         options[optKey] = /^\d+(\.\d+)?$/.test(raw.trim()) ? parseFloat(raw) : raw;
     };
 
-    // Parse a JSON-valued attribute defensively — warn and skip on bad JSON.
-    const setJson = (optKey, dataKey = optKey) => {
+    // Parse a JSON-array attribute defensively — warn and skip anything that
+    // isn't an array. Checking the SHAPE (not just that JSON.parse succeeded)
+    // is what stops well-formed non-array JSON like `2` or `{"a":1}` reaching a
+    // consumer that will call .map()/.forEach() on it.
+    const setJsonArray = (optKey, dataKey = optKey) => {
         const raw = element.dataset[dataKey];
         if (!raw) return;
-        try { options[optKey] = JSON.parse(raw); }
-        catch (e) { console.warn(`[WaveformPlayer] Invalid ${dataKey} JSON:`, e); }
+        const parsed = toArray(raw);
+        if (parsed) options[optKey] = parsed;
+        else console.warn(`[WaveformPlayer] Invalid ${dataKey} attribute, expected a JSON array:`, raw);
     };
 
     // Core attributes. `data-src` is a shorthand alias for `data-url`;
@@ -228,12 +361,19 @@ export function parseDataAttributes(element) {
     if (element.dataset.waveform) options.waveform = element.dataset.waveform;
 
     // Markers
-    setJson('markers');
+    setJsonArray('markers');
 
     // Playback controls
     setNum('playbackRate', 'playbackRate', true);
     setBool('showPlaybackSpeed');
-    setJson('playbackRates');
+    // Rates accept a JSON array (`[0.5,1,2]`) or the bare list an author is
+    // more likely to type (`0.5, 1, 2`). Range is enforced later, against the
+    // same bounds setPlaybackRate() clamps to.
+    if (element.dataset.playbackRates) {
+        const rates = toNumberArray(element.dataset.playbackRates);
+        if (rates) options.playbackRates = rates;
+        else console.warn('[WaveformPlayer] Invalid playbackRates attribute:', element.dataset.playbackRates);
+    }
 
     // Media Session API
     setBool('enableMediaSession');

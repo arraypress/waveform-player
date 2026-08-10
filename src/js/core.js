@@ -16,10 +16,23 @@ import {
     clamp,
     escapeHtml,
     formatCssLength,
+    toFiniteNumber,
+    toNumberArray,
     DEFAULT_SAMPLES
 } from './utils.js';
 
-import {DEFAULT_OPTIONS, STYLE_DEFAULTS, getColorPreset, COLOR_PRESETS, detectColorScheme} from './themes.js';
+import {
+    DEFAULT_OPTIONS,
+    STYLE_DEFAULTS,
+    getColorPreset,
+    COLOR_PRESETS,
+    detectColorScheme,
+    normalizeOptions,
+    normalizeMarkers,
+    BUTTON_ALIGNMENTS,
+    PLAYBACK_RATE_MIN,
+    PLAYBACK_RATE_MAX
+} from './themes.js';
 
 /**
  * Placeholder shown when an artwork URL fails to load (404 / broken) — a muted
@@ -39,12 +52,6 @@ const SEEK_PAGE_SECONDS = 10;
 // container — otherwise activating the play button/slider steals focus onto the
 // wrapper, moving it off the control the user just operated.
 const INTERACTIVE_ELEMENTS = 'button, a[href], input, [role="slider"]';
-
-// Recognised `buttonAlign` values. `createDOM` interpolates the resolved value
-// into a class name, so an unrecognised value is coerced back to 'auto' rather
-// than reaching the template — that guards both configuration paths (constructor
-// options and `data-button-align`) at the single point of use.
-const BUTTON_ALIGNMENTS = ['auto', 'top', 'center', 'bottom'];
 
 /**
  * WaveformPlayer - Modern audio player with waveform visualization
@@ -93,8 +100,12 @@ export class WaveformPlayer {
         if (userOptions.style && !userOptions.waveformStyle) userOptions.waveformStyle = userOptions.style;
         if (userOptions.src && !userOptions.url) userOptions.url = userOptions.src;
 
-        // Merge options: defaults < data attributes < constructor options
-        this.options = mergeOptions(DEFAULT_OPTIONS, dataOptions, userOptions);
+        // Merge options: defaults < data attributes < constructor options, then
+        // normalize the result. Both configuration paths are untyped, so this is
+        // the single point where an unusable value (non-array `playbackRates`,
+        // NaN geometry, an unrecognised enum) resolves to its default instead of
+        // reaching a consumer that assumes a shape it never checked.
+        this.options = normalizeOptions(mergeOptions(DEFAULT_OPTIONS, dataOptions, userOptions));
 
         // Apply color preset (auto-detect if not specified). Detection reads
         // the backdrop behind THIS container, so a player dropped into a themed
@@ -253,7 +264,10 @@ export class WaveformPlayer {
         this.container.innerHTML = '';
         this.container.className = 'waveform-player';
 
-        // Determine button alignment
+        // Determine button alignment. normalizeOptions() has already rejected
+        // unrecognised values, but the resolved name is interpolated into a
+        // class name, so the allowlist is re-checked at the point of use —
+        // options stay publicly mutable after construction.
         let buttonAlign = BUTTON_ALIGNMENTS.includes(this.options.buttonAlign)
             ? this.options.buttonAlign
             : 'auto';
@@ -1298,13 +1312,15 @@ export class WaveformPlayer {
         this.progress = 0;
         this.waveformData = [];
 
-        // Update options (including preload if specified)
-        this.options = mergeOptions(this.options, {
+        // Update options (including preload if specified). Normalized on the
+        // same terms as the constructor — loadTrack takes a fresh, caller-
+        // supplied option set, so it's the second untyped entry point.
+        this.options = normalizeOptions(mergeOptions(this.options, {
             url,
             title: title === null ? this.options.title : title,
             artist: artist === null ? this.options.artist : artist,
             ...options
-        });
+        }));
         if (hasArtworkOption) {
             this.options.artwork = options.artwork || null;
         }
@@ -1314,14 +1330,16 @@ export class WaveformPlayer {
             this.options.artworkAlt = this.options.artwork ? DEFAULT_OPTIONS.artworkAlt : '';
         }
 
-        // Apply preload setting if it was changed
+        // Apply preload setting if it was changed. The caller's value decides
+        // WHETHER to apply; the normalized one decides WHAT to apply, so an
+        // unsupported value can't reach the media element.
         if (options.preload && this.audio) {
-            this.audio.preload = options.preload;
+            this.audio.preload = this.options.preload;
         }
 
         // Apply crossOrigin if it was changed for this track
         if (options.crossOrigin && this.audio) {
-            this.audio.crossOrigin = options.crossOrigin;
+            this.audio.crossOrigin = this.options.crossOrigin;
         }
 
         // Update artist only when explicitly provided. A null artist keeps the
@@ -1340,7 +1358,7 @@ export class WaveformPlayer {
         }
 
         // Clear or update markers
-        this.options.markers = options.markers || [];
+        this.options.markers = options.markers ? normalizeMarkers(options.markers) : [];
 
         // Reset the waveform to the NEW track's peaks, or null to regenerate
         // from the URL. mergeOptions() above keeps the previous track's
@@ -1383,8 +1401,10 @@ export class WaveformPlayer {
                 .then(r => r.json())
                 .then(json => {
                     this.waveformData = Array.isArray(json) ? json : (json.peaks || []);
+                    // A peaks sidecar is a third source of markers, and a remote
+                    // one — normalize it on the same terms as the option paths.
                     if (json.markers && !this.options.markers?.length) {
-                        this.options.markers = json.markers;
+                        this.options.markers = normalizeMarkers(json.markers);
                         this.renderMarkers();
                     }
                     this.drawWaveform();
@@ -1393,16 +1413,11 @@ export class WaveformPlayer {
             return;
         }
 
-        if (typeof data === 'string') {
-            try {
-                const parsed = JSON.parse(data);
-                this.waveformData = Array.isArray(parsed) ? parsed : [];
-            } catch {
-                this.waveformData = data.split(',').map(Number);
-            }
-        } else {
-            this.waveformData = Array.isArray(data) ? data : [];
-        }
+        // Peaks may arrive as an array, a JSON array string, or a bare
+        // comma-separated list — all three collapse into one coercion, which
+        // also drops non-numeric members (the old comma path mapped them to
+        // NaN, and a NaN peak draws as a gap rather than an error).
+        this.waveformData = toNumberArray(data, {fallback: []});
         this.drawWaveform();
     }
 
@@ -2320,15 +2335,21 @@ export class WaveformPlayer {
     }
 
     /**
-     * Set the owned `<audio>` element's playback rate (clamped to 0.5–2),
+     * Set the owned `<audio>` element's playback rate (clamped to 0.25–4),
      * persist it onto `this.options.playbackRate`, and refresh the speed UI.
      * Self mode only — a no-op in external mode.
-     * @param {number} rate - Desired playback rate; clamped to the 0.5–2 range.
+     *
+     * The clamp bounds the range browsers keep audible; the default speed menu
+     * offers a narrower 0.5–2, which `playbackRates` can widen up to these
+     * bounds. A non-numeric rate is ignored rather than assigned, since
+     * `audio.playbackRate = NaN` throws.
+     * @param {number} rate - Desired playback rate; clamped to the 0.25–4 range.
      */
     setPlaybackRate(rate) {
         if (!this.audio) return;
 
-        const clampedRate = clamp(rate, 0.5, 2);
+        const clampedRate = toFiniteNumber(rate, null, {min: PLAYBACK_RATE_MIN, max: PLAYBACK_RATE_MAX});
+        if (clampedRate === null) return;
         this.audio.playbackRate = clampedRate;
         this.options.playbackRate = clampedRate;
 

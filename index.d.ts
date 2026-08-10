@@ -136,7 +136,11 @@ export interface WaveformPlayerOptions {
 	playbackRate?: number;
 	/** Show the playback-speed control. @default false */
 	showPlaybackSpeed?: boolean;
-	/** Selectable playback rates. @default [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] */
+	/**
+	 * Selectable playback rates. Entries outside 0.25–4 (the range browsers keep
+	 * audible, and the range `setPlaybackRate` clamps to) are dropped.
+	 * @default [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
+	 */
 	playbackRates?: number[];
 
 	// ── Layout / UI toggles ───────────────────────────────────────
@@ -364,7 +368,7 @@ export declare class WaveformPlayer {
 	seekToPercent(percent: number): void;
 	/** Set output volume, 0..1 (self mode). */
 	setVolume(volume: number): void;
-	/** Set the playback rate (self mode). */
+	/** Set the playback rate, clamped to 0.25–4 (self mode). */
 	setPlaybackRate(rate: number): void;
 	/** Provide pre-computed peaks directly. */
 	setWaveformData(data: WaveformPeaks): void;
