@@ -2830,6 +2830,7 @@
   // src/js/index.js
   WaveformPlayer.utils = { formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes, detectColorScheme };
   var isBrowser = () => typeof window !== "undefined" && typeof document !== "undefined";
+  var shouldAutoInit = () => typeof globalThis !== "undefined" && true;
   function autoInit() {
     if (!isBrowser()) return;
     const elements = document.querySelectorAll("[data-waveform-player]");
@@ -2844,6 +2845,13 @@
         console.error("[WaveformPlayer] Failed to initialize:", error, element);
       }
     });
+  }
+  if (shouldAutoInit() && isBrowser()) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", autoInit);
+    } else {
+      autoInit();
+    }
   }
   WaveformPlayer.init = autoInit;
   if (isBrowser()) {

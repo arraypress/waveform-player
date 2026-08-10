@@ -131,6 +131,8 @@ function parseColorValue(value) {
  * are retained as legacy aliases for `waveformColor` and `colorPreset`.
  * Colour attributes that accept gradients (`waveformColor`, `progressColor`)
  * are passed through {@link parseColorValue} so a JSON stop array is expanded.
+ * Raw HTML custom icons are intentionally constructor/API-only; `data-play-icon`
+ * and `data-pause-icon` are not parsed from markup.
  *
  * @param {HTMLElement} element - Host element whose `dataset` is inspected.
  * @returns {Object} Sparse options object containing only the attributes found.

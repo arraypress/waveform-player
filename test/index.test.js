@@ -18,6 +18,7 @@ afterEach(() => {
 	loadedPlayers = [];
 	document.body.innerHTML = '';
 	delete window.WaveformPlayer;
+	delete globalThis.__WAVEFORM_PLAYER_AUTO_INIT__;
 });
 
 describe('public entry point', () => {
@@ -33,6 +34,18 @@ describe('public entry point', () => {
 		expect(window.WaveformPlayer).toBe(WaveformPlayer);
 
 		WaveformPlayer.init();
+
+		expect(host.dataset.waveformInitialized).toBe('true');
+		expect(host.querySelector('.waveform-player-inner')).not.toBeNull();
+	});
+
+	it('preserves auto-initialization when the script build flag is enabled', async () => {
+		globalThis.__WAVEFORM_PLAYER_AUTO_INIT__ = true;
+		const host = document.createElement('div');
+		host.setAttribute('data-waveform-player', '');
+		document.body.appendChild(host);
+
+		await loadEntry();
 
 		expect(host.dataset.waveformInitialized).toBe('true');
 		expect(host.querySelector('.waveform-player-inner')).not.toBeNull();

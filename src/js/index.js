@@ -5,7 +5,9 @@
  * Wires together the runtime surfaces for the player: it re-exports the
  * {@link WaveformPlayer} class (default and named), exposes a static
  * `WaveformPlayer.init` hook for declarative `[data-waveform-player]` markup,
- * and attaches the class to `window` for plain `<script>`/CDN usage.
+ * and attaches the class to `window` for plain `<script>`/CDN usage. Module
+ * imports leave declarative initialization explicit; the IIFE builds define
+ * `globalThis.__WAVEFORM_PLAYER_AUTO_INIT__` to preserve script-tag behavior.
  */
 
 // Import the main class
@@ -31,6 +33,20 @@ WaveformPlayer.utils = {formatTime, extractTitleFromUrl, escapeHtml, isSafeHref,
  * @returns {boolean}
  */
 const isBrowser = () => typeof window !== 'undefined' && typeof document !== 'undefined';
+
+/**
+ * Whether this entry should scan declarative markup as soon as it loads.
+ *
+ * ESM/CJS imports intentionally keep initialization explicit so consumers that
+ * import the package for programmatic players do not also instantiate unrelated
+ * user-authored `[data-waveform-player]` markup. The browser IIFE builds set
+ * this flag at build time to preserve the historical CDN/script-tag contract.
+ *
+ * @returns {boolean}
+ */
+const shouldAutoInit = () =>
+    typeof globalThis !== 'undefined' &&
+    globalThis.__WAVEFORM_PLAYER_AUTO_INIT__ === true;
 
 /**
  * Scan the document for declarative player markup and instantiate one
@@ -66,6 +82,14 @@ function autoInit() {
             console.error('[WaveformPlayer] Failed to initialize:', error, element);
         }
     });
+}
+
+if (shouldAutoInit() && isBrowser()) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', autoInit);
+    } else {
+        autoInit();
+    }
 }
 
 /**
