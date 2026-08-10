@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.24.5] — 2026-08-10
+
+### Fixed
+
+- **Caller-supplied peaks are drawn before the metadata wait, not after it.**
+  `load()` assigned the `<audio>` src and awaited `loadedmetadata` before
+  applying the `waveform` option, so a slow or non-Range-capable audio origin
+  left the canvas blank for as long as it took the first bytes to arrive —
+  reported as ~1.7s. Inline peaks describe the file rather than the element's
+  playback state, so they now paint up front. Everything that genuinely needs
+  duration (total time, markers) still waits.
+- **`preload: 'none'` no longer strands `load()` permanently.** That value
+  tells the browser to fetch nothing until `play()`, so `loadedmetadata` never
+  fires and the awaited promise never settled: no title, no markers, no
+  `onLoad`, and the loading state stuck on forever — even with peaks supplied
+  inline. The wait is now skipped when `preload` is `'none'`; the existing
+  `loadedmetadata` listener still fills in duration and re-renders markers
+  whenever metadata does eventually land.
+
+### Changed
+
+- **The loading indicator only appears while the canvas is empty.** Flashing it
+  over an already-drawn waveform — the inline-peaks case, where the only wait
+  is the audio element fetching metadata — read as a flicker rather than as
+  progress. The decode path (no peaks supplied) still shows it. `aria-busy`
+  continues to track the real loading state either way.
+
+Thanks to [@sporteka2](https://github.com/sporteka2) for reporting in
+[#23](https://github.com/arraypress/waveform-player/issues/23).
+
 ## [1.24.4] — 2026-08-10
 
 ### Fixed

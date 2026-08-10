@@ -1736,9 +1736,10 @@
      * element, so the src/metadata step is skipped and only the visualization
      * is built (duration/time come from the controller via
      * {@link WaveformPlayer#setProgress}). Peaks come from the `waveform`
-     * option when provided, otherwise they are decoded from the audio; a
-     * decode failure falls back to a placeholder waveform. The `onLoad`
-     * callback fires on success.
+     * option when provided — painted *before* the metadata wait, since they
+     * need nothing from the audio element — otherwise they are decoded from
+     * the audio; a decode failure falls back to a placeholder waveform. The
+     * `onLoad` callback fires on success.
      * @param {string} url - Audio URL.
      * @returns {Promise<void>} Resolves once loading settles (errors are caught
      *   internally and surfaced through {@link WaveformPlayer#onError}).
@@ -1749,31 +1750,35 @@
         this.progress = 0;
         this.hasError = false;
         this.container.classList.remove("waveform-is-placeholder");
+        const hasInlinePeaks = !!this.options.waveform;
+        if (hasInlinePeaks) {
+          this.setWaveformData(this.options.waveform);
+        }
         if (this.audio) {
           this.audio.src = url;
-          await new Promise((resolve, reject) => {
-            const metadataHandler = () => {
-              this.audio.removeEventListener("loadedmetadata", metadataHandler);
-              this.audio.removeEventListener("error", errorHandler);
-              resolve();
-            };
-            const errorHandler = (e) => {
-              this.audio.removeEventListener("loadedmetadata", metadataHandler);
-              this.audio.removeEventListener("error", errorHandler);
-              reject(e);
-            };
-            this.audio.addEventListener("loadedmetadata", metadataHandler);
-            this.audio.addEventListener("error", errorHandler);
-          });
+          if (this.audio.preload !== "none") {
+            await new Promise((resolve, reject) => {
+              const metadataHandler = () => {
+                this.audio.removeEventListener("loadedmetadata", metadataHandler);
+                this.audio.removeEventListener("error", errorHandler);
+                resolve();
+              };
+              const errorHandler = (e) => {
+                this.audio.removeEventListener("loadedmetadata", metadataHandler);
+                this.audio.removeEventListener("error", errorHandler);
+                reject(e);
+              };
+              this.audio.addEventListener("loadedmetadata", metadataHandler);
+              this.audio.addEventListener("error", errorHandler);
+            });
+          }
         }
         const title = this.options.title || extractTitleFromUrl(url);
         if (this.titleEl) {
           this.titleEl.textContent = title;
         }
         this.applySeekLabel(title);
-        if (this.options.waveform) {
-          this.setWaveformData(this.options.waveform);
-        } else {
+        if (!hasInlinePeaks) {
           try {
             const result = await generateWaveform(url, this.options.samples, this.options.showBPM);
             this.waveformData = result.peaks;
@@ -2190,7 +2195,8 @@
     setLoading(loading) {
       this.isLoading = loading;
       if (this.loadingEl) {
-        this.loadingEl.style.display = loading ? "block" : "none";
+        const showIndicator = loading && this.waveformData.length === 0;
+        this.loadingEl.style.display = showIndicator ? "block" : "none";
       }
       if (this.seekEl) {
         this.seekEl.setAttribute("aria-busy", loading ? "true" : "false");
