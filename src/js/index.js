@@ -43,8 +43,10 @@ const isBrowser = () => typeof window !== 'undefined' && typeof document !== 'un
  * reads the element's `data-*` attributes for configuration). Each successfully
  * initialized element is flagged with `data-waveform-initialized="true"` so
  * repeat calls are idempotent and never double-initialize the same element.
- * Construction errors are caught and logged so one broken element cannot abort
- * the rest of the scan. A no-op in non-DOM environments (e.g. SSR).
+ * Elements already claimed by a programmatically constructed player carry no
+ * such flag, so they are skipped by instance lookup instead. Construction errors
+ * are caught and logged so one broken element cannot abort the rest of the scan.
+ * A no-op in non-DOM environments (e.g. SSR).
  *
  * @returns {void}
  */
@@ -54,7 +56,16 @@ function autoInit() {
     const elements = document.querySelectorAll('[data-waveform-player]');
 
     elements.forEach(element => {
-        if (element.dataset.waveformInitialized === 'true') return;
+        // Skip elements already claimed by a player. The `data-waveform-initialized`
+        // flag only covers elements this scan built; an element constructed
+        // programmatically (`new WaveformPlayer(el)`) carries no flag, so without
+        // the instance lookup a later scan would build a second player over it.
+        if (
+            element.dataset.waveformInitialized === 'true' ||
+            WaveformPlayer.getInstance(element)
+        ) {
+            return;
+        }
 
         try {
             new WaveformPlayer(element);

@@ -856,6 +856,7 @@
   var SEEK_STEP_SECONDS = 5;
   var SEEK_PAGE_SECONDS = 10;
   var INTERACTIVE_ELEMENTS = 'button, a[href], input, [role="slider"]';
+  var BUTTON_ALIGNMENTS = ["auto", "top", "center", "bottom"];
   var WaveformPlayer = class _WaveformPlayer {
     /** @type {Map<string, WaveformPlayer>} */
     static instances = /* @__PURE__ */ new Map();
@@ -1006,7 +1007,7 @@
     createDOM() {
       this.container.innerHTML = "";
       this.container.className = "waveform-player";
-      let buttonAlign = this.options.buttonAlign;
+      let buttonAlign = BUTTON_ALIGNMENTS.includes(this.options.buttonAlign) ? this.options.buttonAlign : "auto";
       if (buttonAlign === "auto") {
         const style = this.options.waveformStyle;
         if (style === "bars") {
@@ -2823,7 +2824,9 @@
     if (!isBrowser()) return;
     const elements = document.querySelectorAll("[data-waveform-player]");
     elements.forEach((element) => {
-      if (element.dataset.waveformInitialized === "true") return;
+      if (element.dataset.waveformInitialized === "true" || WaveformPlayer.getInstance(element)) {
+        return;
+      }
       try {
         new WaveformPlayer(element);
         element.dataset.waveformInitialized = "true";

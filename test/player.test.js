@@ -33,6 +33,32 @@ describe('construction', () => {
 		player.destroy();
 		expect(WaveformPlayer.getInstance(player.id)).toBeUndefined();
 	});
+
+	it('coerces an unrecognised buttonAlign to auto on both configuration paths', () => {
+		// buttonAlign lands in a class name, so an unrecognised value must never
+		// reach the markup — including one carrying an attribute break.
+		const { el, player } = mount({ buttonAlign: 'sideways"><img src=x>' });
+		track(player);
+		expect(
+			el.querySelector('.waveform-track').classList.contains('waveform-align-center')
+		).toBe(true);
+		expect(el.querySelector('img')).toBeNull();
+
+		const host = document.createElement('div');
+		host.dataset.buttonAlign = 'sideways';
+		document.body.appendChild(host);
+		const fromMarkup = track(new WaveformPlayer(host, { audioMode: 'external' }));
+		expect(
+			host.querySelector('.waveform-track').classList.contains('waveform-align-center')
+		).toBe(true);
+
+		// Documented values still pass through untouched.
+		const { el: aligned, player: alignedPlayer } = mount({ buttonAlign: 'top' });
+		track(alignedPlayer);
+		expect(
+			aligned.querySelector('.waveform-track').classList.contains('waveform-align-top')
+		).toBe(true);
+	});
 });
 
 describe('localizable UI strings', () => {

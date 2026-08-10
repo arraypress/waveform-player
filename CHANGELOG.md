@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.24.4] — 2026-08-10
+
+### Fixed
+
+- **`buttonAlign` is validated at the point of use.** The resolved alignment is
+  interpolated into a class name, so an unrecognised value reached the markup
+  from either configuration path. It is now coerced back to `auto` in
+  `createDOM()`, which covers constructor options and `data-button-align`
+  alike — the documented values (`auto`, `top`, `center`, `bottom`) are
+  unchanged.
+- **`WaveformPlayer.init()` no longer builds a second player over an element
+  that already has one.** The scan only recognised its own
+  `data-waveform-initialized` flag, so an element constructed programmatically
+  (`new WaveformPlayer(el)`) but also carrying `data-waveform-player` was
+  re-initialized on the next scan. It is now skipped by instance lookup.
+
+Thanks to [@scruffian](https://github.com/scruffian) for reporting these in
+[#22](https://github.com/arraypress/waveform-player/pull/22).
+
 ## [1.24.3] — 2026-08-09
 
 ### Changed

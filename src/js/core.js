@@ -40,6 +40,12 @@ const SEEK_PAGE_SECONDS = 10;
 // wrapper, moving it off the control the user just operated.
 const INTERACTIVE_ELEMENTS = 'button, a[href], input, [role="slider"]';
 
+// Recognised `buttonAlign` values. `createDOM` interpolates the resolved value
+// into a class name, so an unrecognised value is coerced back to 'auto' rather
+// than reaching the template — that guards both configuration paths (constructor
+// options and `data-button-align`) at the single point of use.
+const BUTTON_ALIGNMENTS = ['auto', 'top', 'center', 'bottom'];
+
 /**
  * WaveformPlayer - Modern audio player with waveform visualization
  * @class
@@ -248,7 +254,9 @@ export class WaveformPlayer {
         this.container.className = 'waveform-player';
 
         // Determine button alignment
-        let buttonAlign = this.options.buttonAlign;
+        let buttonAlign = BUTTON_ALIGNMENTS.includes(this.options.buttonAlign)
+            ? this.options.buttonAlign
+            : 'auto';
         if (buttonAlign === 'auto') {
             // Auto-align based on waveform style
             const style = this.options.waveformStyle;
