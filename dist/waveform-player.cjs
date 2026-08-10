@@ -104,7 +104,9 @@ function parseDataAttributes(element) {
   setNum("barWidth");
   setNum("barSpacing");
   setNum("barRadius");
-  if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
+  if (["auto", "top", "center", "bottom"].includes(element.dataset.buttonAlign)) {
+    options.buttonAlign = element.dataset.buttonAlign;
+  }
   if (element.dataset.layout) options.layout = element.dataset.layout;
   if (element.dataset.buttonStyle) options.buttonStyle = element.dataset.buttonStyle;
   setLength("buttonSize");
@@ -133,7 +135,18 @@ function parseDataAttributes(element) {
   setJson("markers");
   setNum("playbackRate", "playbackRate", true);
   setBool("showPlaybackSpeed");
-  setJson("playbackRates");
+  if (element.dataset.playbackRates) {
+    try {
+      const playbackRates = JSON.parse(element.dataset.playbackRates);
+      if (Array.isArray(playbackRates) && playbackRates.length > 0 && playbackRates.every(
+        (rate) => typeof rate === "number" && Number.isFinite(rate) && rate > 0
+      )) {
+        options.playbackRates = playbackRates;
+      }
+    } catch (e) {
+      console.warn("[WaveformPlayer] Invalid playbackRates JSON:", e);
+    }
+  }
   setBool("enableMediaSession");
   setBool("showMarkers");
   setBool("accessibleSeek");
@@ -144,8 +157,6 @@ function parseDataAttributes(element) {
   if (element.dataset.speedLabel) options.speedLabel = element.dataset.speedLabel;
   if (element.dataset.artworkAlt) options.artworkAlt = element.dataset.artworkAlt;
   if (element.dataset.unknownTrackText) options.unknownTrackText = element.dataset.unknownTrackText;
-  if (element.dataset.playIcon) options.playIcon = element.dataset.playIcon;
-  if (element.dataset.pauseIcon) options.pauseIcon = element.dataset.pauseIcon;
   return options;
 }
 function formatSeekValueText(template, ...args) {
@@ -2848,7 +2859,9 @@ function autoInit() {
   if (!isBrowser()) return;
   const elements = document.querySelectorAll("[data-waveform-player]");
   elements.forEach((element) => {
-    if (element.dataset.waveformInitialized === "true") return;
+    if (element.dataset.waveformInitialized === "true" || WaveformPlayer.getInstance(element)) {
+      return;
+    }
     try {
       new WaveformPlayer(element);
       element.dataset.waveformInitialized = "true";
@@ -2856,13 +2869,6 @@ function autoInit() {
       console.error("[WaveformPlayer] Failed to initialize:", error, element);
     }
   });
-}
-if (isBrowser()) {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", autoInit);
-  } else {
-    autoInit();
-  }
 }
 WaveformPlayer.init = autoInit;
 if (isBrowser()) {

@@ -4,10 +4,8 @@
  *
  * Wires together the runtime surfaces for the player: it re-exports the
  * {@link WaveformPlayer} class (default and named), exposes a static
- * `WaveformPlayer.init` hook, scans the DOM for declarative `[data-waveform-player]`
- * markup and auto-instantiates a player for each match, and attaches the class
- * to `window` for plain `<script>`/CDN usage. Loading this module is enough to
- * make any markup-driven players on the page come alive once the DOM is ready.
+ * `WaveformPlayer.init` hook for declarative `[data-waveform-player]` markup,
+ * and attaches the class to `window` for plain `<script>`/CDN usage.
  */
 
 // Import the main class
@@ -54,7 +52,12 @@ function autoInit() {
     const elements = document.querySelectorAll('[data-waveform-player]');
 
     elements.forEach(element => {
-        if (element.dataset.waveformInitialized === 'true') return;
+        if (
+            element.dataset.waveformInitialized === 'true' ||
+            WaveformPlayer.getInstance(element)
+        ) {
+            return;
+        }
 
         try {
             new WaveformPlayer(element);
@@ -63,16 +66,6 @@ function autoInit() {
             console.error('[WaveformPlayer] Failed to initialize:', error, element);
         }
     });
-}
-
-// Initialize when DOM is ready: defer until DOMContentLoaded if the document is
-// still parsing, otherwise run the scan immediately on import.
-if (isBrowser()) {
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', autoInit);
-    } else {
-        autoInit();
-    }
 }
 
 /**

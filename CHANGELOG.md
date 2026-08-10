@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Normalized declarative configuration handling.** Importing the package no
+  longer auto-initializes `[data-waveform-player]` markup; callers can still use
+  `WaveformPlayer.init()` explicitly. Declarative markup now ignores custom icon
+  HTML, unsupported button alignments, and invalid playback-rate lists, while
+  constructor options continue to support custom icons.
+
 ## [1.24.3] — 2026-08-09
 
 ### Changed

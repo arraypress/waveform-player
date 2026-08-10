@@ -271,6 +271,46 @@ describe('parseDataAttributes', () => {
 		el.dataset.waveformGradient = 'horizontal';
 		expect(parseDataAttributes(el).waveformGradient).toBe('horizontal');
 	});
+
+	it('accepts only documented declarative button alignments', () => {
+		for (const buttonAlign of ['auto', 'top', 'center', 'bottom']) {
+			const el = document.createElement('div');
+			el.dataset.buttonAlign = buttonAlign;
+			expect(parseDataAttributes(el).buttonAlign).toBe(buttonAlign);
+		}
+
+		const unsupported = document.createElement('div');
+		unsupported.dataset.buttonAlign = 'sideways';
+		expect('buttonAlign' in parseDataAttributes(unsupported)).toBe(false);
+	});
+
+	it('accepts declarative playback rates only as finite positive numbers', () => {
+		const valid = document.createElement('div');
+		valid.dataset.playbackRates = JSON.stringify([0.75, 1, 1.25]);
+		expect(parseDataAttributes(valid).playbackRates).toEqual([0.75, 1, 1.25]);
+
+		for (const playbackRates of [
+			[],
+			[1, '1.5'],
+			[1, 0],
+			[1, -1],
+			[1, Infinity],
+			{ fast: 2 },
+		]) {
+			const el = document.createElement('div');
+			el.dataset.playbackRates = JSON.stringify(playbackRates);
+			expect('playbackRates' in parseDataAttributes(el)).toBe(false);
+		}
+	});
+
+	it('does not accept custom icons from declarative markup', () => {
+		const el = document.createElement('div');
+		el.dataset.playIcon = '<span data-player-fixture></span>';
+		el.dataset.pauseIcon = '<span data-player-fixture></span>';
+		const options = parseDataAttributes(el);
+		expect('playIcon' in options).toBe(false);
+		expect('pauseIcon' in options).toBe(false);
+	});
 });
 
 describe('perceivedBrightness', () => {

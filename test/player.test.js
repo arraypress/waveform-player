@@ -33,6 +33,48 @@ describe('construction', () => {
 		player.destroy();
 		expect(WaveformPlayer.getInstance(player.id)).toBeUndefined();
 	});
+
+	it('uses default icons for declarative markup while preserving constructor icons', () => {
+		const fixtureAttribute = 'data-player-fixture';
+		const iconValue = `<svg ${fixtureAttribute}="constructor"></svg>`;
+		const declarative = document.createElement('div');
+		declarative.dataset.playIcon = `<span ${fixtureAttribute}></span>`;
+		declarative.dataset.pauseIcon = `<span ${fixtureAttribute}></span>`;
+		document.body.appendChild(declarative);
+
+		const fromMarkup = track(new WaveformPlayer(declarative, { audioMode: 'external' }));
+		expect(fromMarkup.container.querySelector(`[${fixtureAttribute}]`)).toBeNull();
+		expect(fromMarkup.container.querySelector('.waveform-icon-play svg')).not.toBeNull();
+		expect(fromMarkup.container.querySelector('.waveform-icon-pause svg')).not.toBeNull();
+
+		const { el: constructorEl, player: fromConstructor } = mount({
+			playIcon: iconValue,
+			pauseIcon: iconValue,
+		});
+		track(fromConstructor);
+		expect(constructorEl.querySelectorAll(`[${fixtureAttribute}="constructor"]`)).toHaveLength(2);
+	});
+
+	it('falls back to the default alignment for unsupported declarative values', () => {
+		const host = document.createElement('div');
+		host.dataset.buttonAlign = 'sideways';
+		document.body.appendChild(host);
+		const player = track(new WaveformPlayer(host, { audioMode: 'external' }));
+		expect(
+			player.container.querySelector('.waveform-track').classList.contains('waveform-align-center')
+		).toBe(true);
+	});
+
+	it('falls back to default playback rates for unsupported declarative values', () => {
+		const host = document.createElement('div');
+		host.dataset.showPlaybackSpeed = 'true';
+		host.dataset.playbackRates = JSON.stringify([1, '1.5']);
+		document.body.appendChild(host);
+		track(new WaveformPlayer(host, { audioMode: 'external' }));
+		expect(
+			[...host.querySelectorAll('.speed-option')].map(option => option.textContent)
+		).toEqual(['0.5x', '0.75x', '1x', '1.25x', '1.5x', '1.75x', '2x']);
+	});
 });
 
 describe('localizable UI strings', () => {
@@ -1030,4 +1072,3 @@ describe('waveform analysis fallback', () => {
 		await loadPromise;
 	});
 });
-

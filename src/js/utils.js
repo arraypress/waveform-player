@@ -121,7 +121,9 @@ function parseColorValue(value) {
  * are coerced with `parseInt`/`parseFloat`, boolean flags are compared against
  * the literal string `'true'`, and JSON-valued attributes (`markers`,
  * `playbackRates`) are parsed defensively — a parse failure is warned about and
- * the attribute is skipped rather than thrown.
+ * the attribute is skipped rather than thrown. Playback rates are accepted only
+ * as a non-empty list of finite positive numbers, and button alignment is
+ * limited to the documented values.
  *
  * Several attributes are shorthand aliases of a canonical long form: `data-src`
  * → `url`, `data-style` → `waveformStyle`. When both are present the canonical
@@ -188,7 +190,9 @@ export function parseDataAttributes(element) {
     setNum('barWidth');
     setNum('barSpacing');
     setNum('barRadius');
-    if (element.dataset.buttonAlign) options.buttonAlign = element.dataset.buttonAlign;
+    if (['auto', 'top', 'center', 'bottom'].includes(element.dataset.buttonAlign)) {
+        options.buttonAlign = element.dataset.buttonAlign;
+    }
     if (element.dataset.layout) options.layout = element.dataset.layout;
     if (element.dataset.buttonStyle) options.buttonStyle = element.dataset.buttonStyle;
     setLength('buttonSize');
@@ -233,7 +237,25 @@ export function parseDataAttributes(element) {
     // Playback controls
     setNum('playbackRate', 'playbackRate', true);
     setBool('showPlaybackSpeed');
-    setJson('playbackRates');
+    if (element.dataset.playbackRates) {
+        try {
+            const playbackRates = JSON.parse(element.dataset.playbackRates);
+
+            if (
+                Array.isArray(playbackRates) &&
+                playbackRates.length > 0 &&
+                playbackRates.every(rate =>
+                    typeof rate === 'number' &&
+                    Number.isFinite(rate) &&
+                    rate > 0
+                )
+            ) {
+                options.playbackRates = playbackRates;
+            }
+        } catch (e) {
+            console.warn('[WaveformPlayer] Invalid playbackRates JSON:', e);
+        }
+    }
 
     // Media Session API
     setBool('enableMediaSession');
@@ -252,10 +274,6 @@ export function parseDataAttributes(element) {
     if (element.dataset.speedLabel) options.speedLabel = element.dataset.speedLabel;
     if (element.dataset.artworkAlt) options.artworkAlt = element.dataset.artworkAlt;
     if (element.dataset.unknownTrackText) options.unknownTrackText = element.dataset.unknownTrackText;
-
-    // Custom icons (raw SVG markup)
-    if (element.dataset.playIcon) options.playIcon = element.dataset.playIcon;
-    if (element.dataset.pauseIcon) options.pauseIcon = element.dataset.pauseIcon;
 
     return options;
 }
