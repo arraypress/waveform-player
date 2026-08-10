@@ -1148,9 +1148,10 @@ export class WaveformPlayer {
      * element, so the src/metadata step is skipped and only the visualization
      * is built (duration/time come from the controller via
      * {@link WaveformPlayer#setProgress}). Peaks come from the `waveform`
-     * option when provided, otherwise they are decoded from the audio; a
-     * decode failure falls back to a placeholder waveform. The `onLoad`
-     * callback fires on success.
+     * option when provided — painted *before* the metadata wait, since they
+     * need nothing from the audio element — otherwise they are decoded from
+     * the audio; a decode failure falls back to a placeholder waveform. The
+     * `onLoad` callback fires on success.
      * @param {string} url - Audio URL.
      * @returns {Promise<void>} Resolves once loading settles (errors are caught
      *   internally and surfaced through {@link WaveformPlayer#onError}).
@@ -1162,6 +1163,16 @@ export class WaveformPlayer {
             this.hasError = false;
             this.container.classList.remove('waveform-is-placeholder');
 
+            // Caller-supplied peaks describe the file, not the element's
+            // playback state, so draw them up front rather than behind the
+            // metadata wait below. On a slow (or non-Range-capable) audio
+            // origin that wait is seconds long, and the canvas used to sit
+            // blank for all of it. See issue #23.
+            const hasInlinePeaks = !!this.options.waveform;
+            if (hasInlinePeaks) {
+                this.setWaveformData(this.options.waveform);
+            }
+
             // In external mode we don't own an <audio> element — skip
             // src assignment + metadata-wait, but still generate the
             // waveform peaks so the canvas can render the visualization.
@@ -1171,21 +1182,30 @@ export class WaveformPlayer {
                 // Set audio source
                 this.audio.src = url;
 
-                // Wait for metadata to load
-                await new Promise((resolve, reject) => {
-                    const metadataHandler = () => {
-                        this.audio.removeEventListener('loadedmetadata', metadataHandler);
-                        this.audio.removeEventListener('error', errorHandler);
-                        resolve();
-                    };
-                    const errorHandler = (e) => {
-                        this.audio.removeEventListener('loadedmetadata', metadataHandler);
-                        this.audio.removeEventListener('error', errorHandler);
-                        reject(e);
-                    };
-                    this.audio.addEventListener('loadedmetadata', metadataHandler);
-                    this.audio.addEventListener('error', errorHandler);
-                });
+                // preload="none" tells the browser to fetch nothing until
+                // play(), so `loadedmetadata` will never arrive and awaiting
+                // it would strand the rest of this method forever (no title,
+                // no markers, no onLoad, loading state stuck on). Skip the
+                // wait; the bindEvents() `loadedmetadata` listener still
+                // fires whenever metadata does land, and onMetadataLoaded()
+                // fills in duration + markers then.
+                if (this.audio.preload !== 'none') {
+                    // Wait for metadata to load
+                    await new Promise((resolve, reject) => {
+                        const metadataHandler = () => {
+                            this.audio.removeEventListener('loadedmetadata', metadataHandler);
+                            this.audio.removeEventListener('error', errorHandler);
+                            resolve();
+                        };
+                        const errorHandler = (e) => {
+                            this.audio.removeEventListener('loadedmetadata', metadataHandler);
+                            this.audio.removeEventListener('error', errorHandler);
+                            reject(e);
+                        };
+                        this.audio.addEventListener('loadedmetadata', metadataHandler);
+                        this.audio.addEventListener('error', errorHandler);
+                    });
+                }
             }
 
             // Set title
@@ -1196,10 +1216,8 @@ export class WaveformPlayer {
             // Keep the seek slider's accessible name in sync with the track.
             this.applySeekLabel(title);
 
-            // Load or generate waveform
-            if (this.options.waveform) {
-                this.setWaveformData(this.options.waveform);
-            } else {
+            // Peaks were drawn above; only the decode path is left.
+            if (!hasInlinePeaks) {
                 // Generate waveform
                 try {
                     const result = await generateWaveform(url, this.options.samples, this.options.showBPM);
@@ -1716,9 +1734,17 @@ export class WaveformPlayer {
     setLoading(loading) {
         this.isLoading = loading;
         if (this.loadingEl) {
-            this.loadingEl.style.display = loading ? 'block' : 'none';
+            // The indicator stands in for a waveform that isn't there yet, so
+            // it only earns its place while the canvas is empty. Flashing it
+            // over already-drawn peaks — the inline-`waveform` case, where the
+            // wait is just the audio element fetching metadata — reads as a
+            // flicker rather than as progress (issue #23). The decode path
+            // still shows it: waveformData stays empty until peaks resolve.
+            const showIndicator = loading && this.waveformData.length === 0;
+            this.loadingEl.style.display = showIndicator ? 'block' : 'none';
         }
-        // Let assistive tech know the player is busy fetching/decoding.
+        // Let assistive tech know the player is busy fetching/decoding —
+        // true whether or not the visual indicator is warranted.
         if (this.seekEl) {
             this.seekEl.setAttribute('aria-busy', loading ? 'true' : 'false');
         }

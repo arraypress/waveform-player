@@ -1057,3 +1057,84 @@ describe('waveform analysis fallback', () => {
 	});
 });
 
+
+describe('first paint of inline peaks (#23)', () => {
+	// Self mode gives the player a real <audio>. jsdom never fires
+	// `loadedmetadata` on it, which is exactly the shape of the reported bug:
+	// a slow (or non-Range-capable) origin leaves that event pending for
+	// seconds. Anything gated behind it is, for these tests, gated forever.
+	function mountSelf(options = {}) {
+		const el = document.createElement('div');
+		document.body.appendChild(el);
+		return { el, player: track(new WaveformPlayer(el, options)) };
+	}
+
+	it('draws caller-supplied peaks without waiting for loadedmetadata', () => {
+		const { player } = mountSelf({ waveform: [0.2, 0.6, 0.9] });
+
+		// Deliberately not awaited — load() parks on the metadata wait that
+		// jsdom never satisfies. The peaks must already be on the canvas by
+		// the time it does, i.e. synchronously before the first await.
+		player.load('slow-origin.mp3');
+		expect(player.waveformData).toEqual([0.2, 0.6, 0.9]);
+	});
+
+	it('resolves with preload="none", which never fires loadedmetadata at all', async () => {
+		const { player } = mountSelf({ preload: 'none', waveform: [0.4, 0.8] });
+
+		// preload="none" means the browser fetches nothing until play(), so
+		// awaiting metadata would strand load() permanently — no title, no
+		// markers, no onLoad. This resolving IS the regression test.
+		await player.load('deferred.mp3');
+		expect(player.waveformData).toEqual([0.4, 0.8]);
+		expect(player.titleEl.textContent).toBe('Deferred');
+	});
+
+	it('still fires onLoad under preload="none"', async () => {
+		let loaded = false;
+		const { player } = mountSelf({
+			preload: 'none',
+			waveform: [0.5],
+			onLoad: () => { loaded = true; }
+		});
+		await player.load('deferred.mp3');
+		expect(loaded).toBe(true);
+	});
+
+	it('keeps awaiting metadata when preload is left at the default', () => {
+		const { player } = mountSelf({ waveform: [0.3] });
+		let settled = false;
+		player.load('slow-origin.mp3').then(() => { settled = true; });
+
+		// The wait is still there for everything that genuinely needs
+		// duration — only the peaks jumped ahead of it.
+		return Promise.resolve().then(() => {
+			expect(settled).toBe(false);
+			expect(player.titleEl.textContent).toBe('');
+		});
+	});
+});
+
+describe('loading indicator (#23)', () => {
+	it('stays hidden while a waveform is already drawn', () => {
+		const { el, player } = track(mount());
+		const indicator = el.querySelector('.waveform-loading');
+
+		player.setWaveformData([0.1, 0.9]);
+		player.setLoading(true);
+		expect(indicator.style.display).toBe('none');
+		// The audio genuinely is loading, so assistive tech still hears it.
+		expect(el.querySelector('.waveform-container').getAttribute('aria-busy')).toBe('true');
+	});
+
+	it('still shows while the canvas is empty (the decode path)', () => {
+		const { el, player } = track(mount());
+		const indicator = el.querySelector('.waveform-loading');
+
+		expect(player.waveformData).toEqual([]);
+		player.setLoading(true);
+		expect(indicator.style.display).toBe('block');
+		player.setLoading(false);
+		expect(indicator.style.display).toBe('none');
+	});
+});
