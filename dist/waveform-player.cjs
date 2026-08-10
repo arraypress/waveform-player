@@ -63,6 +63,113 @@ function parseColorValue(value) {
   }
   return value;
 }
+var ALLOWED_ICON_ELEMENTS = /* @__PURE__ */ new Set([
+  "svg",
+  "g",
+  "path",
+  "rect",
+  "circle",
+  "ellipse",
+  "line",
+  "polyline",
+  "polygon",
+  "defs",
+  "lineargradient",
+  "radialgradient",
+  "stop",
+  "title",
+  "desc",
+  "use"
+]);
+var ALLOWED_ICON_ATTRIBUTES = /* @__PURE__ */ new Set([
+  "aria-hidden",
+  "class",
+  "clip-rule",
+  "cx",
+  "cy",
+  "d",
+  "fill",
+  "fill-opacity",
+  "fill-rule",
+  "focusable",
+  "height",
+  "href",
+  "id",
+  "offset",
+  "opacity",
+  "points",
+  "r",
+  "role",
+  "rx",
+  "ry",
+  "stroke",
+  "stroke-dasharray",
+  "stroke-dashoffset",
+  "stroke-linecap",
+  "stroke-linejoin",
+  "stroke-miterlimit",
+  "stroke-opacity",
+  "stroke-width",
+  "stop-color",
+  "stop-opacity",
+  "transform",
+  "viewbox",
+  "width",
+  "x",
+  "x1",
+  "x2",
+  "xlink:href",
+  "xmlns",
+  "xmlns:xlink",
+  "y",
+  "y1",
+  "y2"
+]);
+var hasWarnedDeclarativeIconDeprecation = false;
+function warnDeclarativeIconDeprecation() {
+  if (hasWarnedDeclarativeIconDeprecation) return;
+  hasWarnedDeclarativeIconDeprecation = true;
+  console.warn(
+    "[WaveformPlayer] data-play-icon and data-pause-icon are deprecated; pass playIcon and pauseIcon through constructor options instead."
+  );
+}
+function isSafeIconUrl(value) {
+  const trimmed = String(value || "").trim();
+  return trimmed === "" || trimmed.startsWith("#");
+}
+function sanitizeIconNode(node) {
+  if (node.nodeType === Node.TEXT_NODE) return;
+  if (node.nodeType !== Node.ELEMENT_NODE) {
+    node.remove();
+    return;
+  }
+  const name = node.localName.toLowerCase();
+  if (!ALLOWED_ICON_ELEMENTS.has(name)) {
+    node.remove();
+    return;
+  }
+  for (const attr of Array.from(node.attributes)) {
+    const attrName = attr.name.toLowerCase();
+    const isDataAttr = attrName.startsWith("data-");
+    const isUnsafeUrl = (attrName === "href" || attrName === "xlink:href") && !isSafeIconUrl(attr.value);
+    if (attrName.startsWith("on") || isUnsafeUrl || !isDataAttr && !ALLOWED_ICON_ATTRIBUTES.has(attrName)) {
+      node.removeAttribute(attr.name);
+    }
+  }
+  for (const child of Array.from(node.childNodes)) {
+    sanitizeIconNode(child);
+  }
+}
+function sanitizeIconMarkup(value) {
+  if (typeof value !== "string" || !value.trim()) return "";
+  if (typeof document === "undefined" || typeof Node === "undefined") return "";
+  const template = document.createElement("template");
+  template.innerHTML = value.trim();
+  for (const child of Array.from(template.content.childNodes)) {
+    sanitizeIconNode(child);
+  }
+  return template.innerHTML.trim();
+}
 function parseDataAttributes(element) {
   const options = {};
   const setBool = (optKey, dataKey = optKey) => {
@@ -157,6 +264,13 @@ function parseDataAttributes(element) {
   if (element.dataset.speedLabel) options.speedLabel = element.dataset.speedLabel;
   if (element.dataset.artworkAlt) options.artworkAlt = element.dataset.artworkAlt;
   if (element.dataset.unknownTrackText) options.unknownTrackText = element.dataset.unknownTrackText;
+  if (element.dataset.playIcon || element.dataset.pauseIcon) {
+    warnDeclarativeIconDeprecation();
+    const playIcon = sanitizeIconMarkup(element.dataset.playIcon);
+    const pauseIcon = sanitizeIconMarkup(element.dataset.pauseIcon);
+    if (playIcon) options.playIcon = playIcon;
+    if (pauseIcon) options.pauseIcon = pauseIcon;
+  }
   return options;
 }
 function formatSeekValueText(template, ...args) {

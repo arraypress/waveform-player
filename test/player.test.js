@@ -34,18 +34,22 @@ describe('construction', () => {
 		expect(WaveformPlayer.getInstance(player.id)).toBeUndefined();
 	});
 
-	it('uses default icons for declarative markup while preserving constructor icons', () => {
+	it('uses sanitized declarative icons while preserving constructor icons', () => {
 		const fixtureAttribute = 'data-player-fixture';
 		const iconValue = `<svg ${fixtureAttribute}="constructor"></svg>`;
 		const declarative = document.createElement('div');
-		declarative.dataset.playIcon = `<span ${fixtureAttribute}></span>`;
-		declarative.dataset.pauseIcon = `<span ${fixtureAttribute}></span>`;
+		declarative.dataset.playIcon = `<svg viewBox="0 0 24 24" onclick="alert(1)" ${fixtureAttribute}="markup-play"></svg>`;
+		declarative.dataset.pauseIcon = `<svg viewBox="0 0 24 24" ${fixtureAttribute}="markup-pause"></svg>`;
 		document.body.appendChild(declarative);
 
 		const fromMarkup = track(new WaveformPlayer(declarative, { audioMode: 'external' }));
-		expect(fromMarkup.container.querySelector(`[${fixtureAttribute}]`)).toBeNull();
-		expect(fromMarkup.container.querySelector('.waveform-icon-play svg')).not.toBeNull();
-		expect(fromMarkup.container.querySelector('.waveform-icon-pause svg')).not.toBeNull();
+		expect(
+			fromMarkup.container.querySelector(`[${fixtureAttribute}="markup-play"]`)
+		).not.toBeNull();
+		expect(
+			fromMarkup.container.querySelector(`[${fixtureAttribute}="markup-pause"]`)
+		).not.toBeNull();
+		expect(fromMarkup.container.querySelector('[onclick]')).toBeNull();
 
 		const { el: constructorEl, player: fromConstructor } = mount({
 			playIcon: iconValue,

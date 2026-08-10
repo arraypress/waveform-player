@@ -9,10 +9,10 @@ All notable changes to this project will be documented in this file.
 - **Normalized declarative configuration handling.** Module imports no longer
   auto-initialize `[data-waveform-player]` markup; callers can still use
   `WaveformPlayer.init()` explicitly, while the browser script builds preserve
-  auto-initialization for CDN usage. Declarative markup now ignores raw custom
-  icon HTML, unsupported button alignments, and invalid playback-rate lists.
-  Custom icons remain supported through constructor/API options such as
-  `playIcon` and `pauseIcon`.
+  auto-initialization for CDN usage. Declarative markup now sanitizes legacy
+  custom icon SVG HTML, ignores unsupported button alignments, and rejects
+  invalid playback-rate lists. Constructor/API options such as `playIcon` and
+  `pauseIcon` remain the preferred custom icon path.
 
 ## [1.24.3] — 2026-08-09
 

@@ -112,6 +112,101 @@ function parseColorValue(value) {
     return value;
 }
 
+// A root `<svg>` check is not enough: SVG can still carry scripts, event
+// handlers, `foreignObject` HTML, or external/script-bearing hrefs.
+const ALLOWED_ICON_ELEMENTS = new Set([
+    'svg', 'g', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline',
+    'polygon', 'defs', 'lineargradient', 'radialgradient', 'stop', 'title',
+    'desc', 'use',
+]);
+
+const ALLOWED_ICON_ATTRIBUTES = new Set([
+    'aria-hidden', 'class', 'clip-rule', 'cx', 'cy', 'd', 'fill',
+    'fill-opacity', 'fill-rule', 'focusable', 'height', 'href', 'id', 'offset',
+    'opacity', 'points', 'r', 'role', 'rx', 'ry', 'stroke', 'stroke-dasharray',
+    'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit',
+    'stroke-opacity', 'stroke-width', 'stop-color', 'stop-opacity', 'transform',
+    'viewbox', 'width', 'x', 'x1', 'x2', 'xlink:href', 'xmlns', 'xmlns:xlink',
+    'y', 'y1', 'y2',
+]);
+
+let hasWarnedDeclarativeIconDeprecation = false;
+
+function warnDeclarativeIconDeprecation() {
+    if (hasWarnedDeclarativeIconDeprecation) return;
+    hasWarnedDeclarativeIconDeprecation = true;
+    console.warn(
+        '[WaveformPlayer] data-play-icon and data-pause-icon are deprecated; ' +
+        'pass playIcon and pauseIcon through constructor options instead.'
+    );
+}
+
+function isSafeIconUrl(value) {
+    const trimmed = String(value || '').trim();
+    return trimmed === '' || trimmed.startsWith('#');
+}
+
+function sanitizeIconNode(node) {
+    if (node.nodeType === Node.TEXT_NODE) return;
+
+    if (node.nodeType !== Node.ELEMENT_NODE) {
+        node.remove();
+        return;
+    }
+
+    const name = node.localName.toLowerCase();
+    if (!ALLOWED_ICON_ELEMENTS.has(name)) {
+        node.remove();
+        return;
+    }
+
+    for (const attr of Array.from(node.attributes)) {
+        const attrName = attr.name.toLowerCase();
+        const isDataAttr = attrName.startsWith('data-');
+        const isUnsafeUrl =
+            (attrName === 'href' || attrName === 'xlink:href') &&
+            !isSafeIconUrl(attr.value);
+
+        if (
+            attrName.startsWith('on') ||
+            isUnsafeUrl ||
+            (!isDataAttr && !ALLOWED_ICON_ATTRIBUTES.has(attrName))
+        ) {
+            node.removeAttribute(attr.name);
+        }
+    }
+
+    for (const child of Array.from(node.childNodes)) {
+        sanitizeIconNode(child);
+    }
+}
+
+/**
+ * Sanitize legacy declarative custom icon HTML.
+ *
+ * DOMPurify is the right general-purpose sanitizer, but this package is
+ * dependency-free and only needs a narrow legacy SVG icon allowlist here.
+ * Constructor-supplied icons remain raw markup for backwards compatibility with
+ * the JavaScript API. The declarative path accepts only inert SVG content since
+ * those values commonly come from page markup that may be user-authored.
+ *
+ * @param {string} value - Raw icon HTML from a data attribute.
+ * @returns {string} Sanitized SVG markup, or an empty string when unsupported.
+ */
+export function sanitizeIconMarkup(value) {
+    if (typeof value !== 'string' || !value.trim()) return '';
+    if (typeof document === 'undefined' || typeof Node === 'undefined') return '';
+
+    const template = document.createElement('template');
+    template.innerHTML = value.trim();
+
+    for (const child of Array.from(template.content.childNodes)) {
+        sanitizeIconNode(child);
+    }
+
+    return template.innerHTML.trim();
+}
+
 /**
  * Read every recognised `data-*` attribute off a host element and translate it
  * into a plain options object suitable for `mergeOptions`.
@@ -131,8 +226,9 @@ function parseColorValue(value) {
  * are retained as legacy aliases for `waveformColor` and `colorPreset`.
  * Colour attributes that accept gradients (`waveformColor`, `progressColor`)
  * are passed through {@link parseColorValue} so a JSON stop array is expanded.
- * Raw HTML custom icons are intentionally constructor/API-only; `data-play-icon`
- * and `data-pause-icon` are not parsed from markup.
+ * Legacy raw HTML custom icons (`data-play-icon`, `data-pause-icon`) are
+ * sanitized to inert SVG markup. Constructor/API options remain the preferred
+ * path for custom icons.
  *
  * @param {HTMLElement} element - Host element whose `dataset` is inspected.
  * @returns {Object} Sparse options object containing only the attributes found.
@@ -276,6 +372,16 @@ export function parseDataAttributes(element) {
     if (element.dataset.speedLabel) options.speedLabel = element.dataset.speedLabel;
     if (element.dataset.artworkAlt) options.artworkAlt = element.dataset.artworkAlt;
     if (element.dataset.unknownTrackText) options.unknownTrackText = element.dataset.unknownTrackText;
+
+    // Legacy custom icons (raw SVG markup). Keep declarative compatibility, but
+    // sanitize to inert SVG and nudge authors toward constructor options.
+    if (element.dataset.playIcon || element.dataset.pauseIcon) {
+        warnDeclarativeIconDeprecation();
+        const playIcon = sanitizeIconMarkup(element.dataset.playIcon);
+        const pauseIcon = sanitizeIconMarkup(element.dataset.pauseIcon);
+        if (playIcon) options.playIcon = playIcon;
+        if (pauseIcon) options.pauseIcon = pauseIcon;
+    }
 
     return options;
 }

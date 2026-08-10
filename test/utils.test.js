@@ -8,6 +8,7 @@ import {
 	parseDataAttributes,
 	perceivedBrightness,
 	parseColor,
+	sanitizeIconMarkup,
 	clamp,
 	parseBoolAttr,
 	escapeHtml,
@@ -74,6 +75,42 @@ describe('parseBoolAttr', () => {
 		expect(parseBoolAttr('false')).toBe(false);
 		expect(parseBoolAttr('')).toBe(false);
 		expect(parseBoolAttr(undefined)).toBe(undefined);
+	});
+});
+
+describe('sanitizeIconMarkup', () => {
+	it('keeps inert SVG icon markup and strips unsafe content', () => {
+		const sanitized = sanitizeIconMarkup(`
+			<svg viewBox="0 0 24 24" width="16" onclick="alert(1)" data-player-fixture="icon">
+				<script>alert(1)</script>
+				<path d="M8 5v14l11-7z" fill="currentColor" onload="alert(1)" />
+				<use href="#play-symbol" />
+				<use href="https://example.com/icons.svg#pause" />
+				<a href="javascript:alert(1)"><path d="M0 0h1v1z" /></a>
+				<foreignObject><span>bad</span></foreignObject>
+			</svg>
+		`);
+
+		const wrapper = document.createElement('div');
+		wrapper.innerHTML = sanitized;
+		const svg = wrapper.querySelector('svg');
+
+		expect(svg).not.toBeNull();
+		expect(svg.getAttribute('viewBox')).toBe('0 0 24 24');
+		expect(svg.getAttribute('onclick')).toBeNull();
+		expect(svg.getAttribute('data-player-fixture')).toBe('icon');
+		expect(wrapper.querySelector('script')).toBeNull();
+		expect(wrapper.querySelector('a')).toBeNull();
+		expect(wrapper.querySelector('foreignObject')).toBeNull();
+		expect(wrapper.querySelector('path').getAttribute('onload')).toBeNull();
+		expect(wrapper.querySelector('use[href="#play-symbol"]')).not.toBeNull();
+		expect(
+			wrapper.querySelector('use[href="https://example.com/icons.svg#pause"]')
+		).toBeNull();
+	});
+
+	it('rejects non-SVG HTML from declarative icon markup', () => {
+		expect(sanitizeIconMarkup('<span data-player-fixture></span>')).toBe('');
 	});
 });
 
@@ -303,12 +340,19 @@ describe('parseDataAttributes', () => {
 		}
 	});
 
-	it('does not accept custom icons from declarative markup', () => {
+	it('accepts sanitized legacy custom icons from declarative markup', () => {
 		const el = document.createElement('div');
-		el.dataset.playIcon = '<span data-player-fixture></span>';
-		el.dataset.pauseIcon = '<span data-player-fixture></span>';
+		el.dataset.playIcon = `
+			<svg viewBox="0 0 24 24" onclick="alert(1)" data-player-fixture="play">
+				<path d="M8 5v14l11-7z" />
+			</svg>
+		`;
+		el.dataset.pauseIcon = '<span data-player-fixture="pause"></span>';
 		const options = parseDataAttributes(el);
-		expect('playIcon' in options).toBe(false);
+
+		expect(options.playIcon).toContain('<svg');
+		expect(options.playIcon).toContain('data-player-fixture="play"');
+		expect(options.playIcon).not.toContain('onclick');
 		expect('pauseIcon' in options).toBe(false);
 	});
 });
