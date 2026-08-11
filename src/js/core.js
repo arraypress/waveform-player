@@ -168,8 +168,22 @@ export class WaveformPlayer {
         // Re-detect the theme on runtime light/dark switches (shared watcher).
         WaveformPlayer._watchTheme();
 
-        // Initialize
-        this.init();
+        // Initialize. Registration above claims the id before any of this runs,
+        // so a throw partway through would otherwise strand a half-built player
+        // in the registry — and everything that walks it would then trip over
+        // it: `getInstance()` matches by container, so autoInit would skip that
+        // element forever (a transient failure becoming a permanent blank), and
+        // the shared theme watcher and `destroyAll()` both `forEach` the map,
+        // where one throw aborts the loop and strands every instance after it.
+        // Unregister and drop any listeners bound so far, then rethrow so the
+        // caller still sees the failure.
+        try {
+            this.init();
+        } catch (error) {
+            WaveformPlayer.instances.delete(this.id);
+            this._ac.abort();
+            throw error;
+        }
 
         // Dispatch ready event after initialization
         setTimeout(() => {

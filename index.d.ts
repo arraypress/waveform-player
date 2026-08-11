@@ -395,8 +395,15 @@ export declare class WaveformPlayer {
 	static generateWaveformData(url: string, samples?: number): Promise<{ peaks: number[]; bpm: number | null }>;
 	/** Convention helper: derive the sibling `.json` peaks URL for an audio URL. */
 	static getPeaksUrl(audioUrl: string): string;
-	/** Scan the document for `[data-waveform-player]` elements and initialise them. */
-	static init(): void;
+	/**
+	 * Scan for `[data-waveform-player]` elements and initialise them.
+	 *
+	 * Runs automatically on import over the whole document, unless the document
+	 * element carries `data-waveform-autoinit="false"`; calling it by hand works
+	 * either way. Pass `root` to scope the scan to a subtree you control — the
+	 * root is matched as well as its descendants.
+	 */
+	static init(root?: Document | Element): void;
 	/**
 	 * Pure helper functions exposed as a single source of truth so consumers
 	 * (e.g. `@arraypress/waveform-bar`) can reuse them instead of shipping

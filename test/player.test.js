@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WaveformPlayer } from '../src/js/core.js';
 
 /**
@@ -32,6 +32,28 @@ describe('construction', () => {
 		expect(WaveformPlayer.getInstance(player.id)).toBe(player);
 		player.destroy();
 		expect(WaveformPlayer.getInstance(player.id)).toBeUndefined();
+	});
+
+	it('unregisters a player whose init() throws, so the element can recover', () => {
+		// Registration claims the id before init() runs. Left in the map, a
+		// half-built player poisons everything that walks the registry: it
+		// matches getInstance() by container (so a declarative scan skips that
+		// element forever), and destroyAll() / the theme watcher both forEach
+		// the map, where one throw strands every instance after it.
+		const el = document.createElement('div');
+		document.body.appendChild(el);
+		const boom = vi.spyOn(WaveformPlayer.prototype, 'createDOM').mockImplementationOnce(() => {
+			throw new Error('boom');
+		});
+
+		expect(() => new WaveformPlayer(el, { audioMode: 'external' })).toThrow('boom');
+		expect(WaveformPlayer.getInstance(el)).toBeUndefined();
+		expect(WaveformPlayer.getAllInstances()).toHaveLength(0);
+
+		// The element is still a candidate — a transient failure must not
+		// permanently block it.
+		boom.mockRestore();
+		expect(WaveformPlayer.getInstance(track(new WaveformPlayer(el, { audioMode: 'external' })).container)).toBeTruthy();
 	});
 
 	it('coerces an unrecognised buttonAlign to auto on both configuration paths', () => {

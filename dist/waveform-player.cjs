@@ -1105,7 +1105,13 @@ var WaveformPlayer = class _WaveformPlayer {
     this.id = this.container.id || generateId(this.options.url);
     _WaveformPlayer.instances.set(this.id, this);
     _WaveformPlayer._watchTheme();
-    this.init();
+    try {
+      this.init();
+    } catch (error) {
+      _WaveformPlayer.instances.delete(this.id);
+      this._ac.abort();
+      throw error;
+    }
     setTimeout(() => {
       this._emit("waveformplayer:ready", { player: this, url: this.options.url });
     }, 100);
@@ -3007,24 +3013,29 @@ var WaveformPlayer = class _WaveformPlayer {
 // src/js/index.js
 WaveformPlayer.utils = { formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes, detectColorScheme };
 var isBrowser = () => typeof window !== "undefined" && typeof document !== "undefined";
-function autoInit() {
-  if (!isBrowser()) return;
-  const elements = document.querySelectorAll("[data-waveform-player]");
-  elements.forEach((element) => {
-    if (element.dataset.waveformInitialized === "true" || WaveformPlayer.getInstance(element)) {
-      return;
-    }
-    try {
-      new WaveformPlayer(element);
-      element.dataset.waveformInitialized = "true";
-    } catch (error) {
-      console.error("[WaveformPlayer] Failed to initialize:", error, element);
-    }
-  });
+var autoInitDisabled = () => document.documentElement?.dataset.waveformAutoinit === "false";
+function initElement(element) {
+  if (element.dataset.waveformInitialized === "true" || WaveformPlayer.getInstance(element)) {
+    return;
+  }
+  try {
+    new WaveformPlayer(element);
+    element.dataset.waveformInitialized = "true";
+  } catch (error) {
+    console.error("[WaveformPlayer] Failed to initialize:", error, element);
+  }
 }
-if (isBrowser()) {
+function autoInit(root = document) {
+  if (!isBrowser()) return;
+  const scope = root || document;
+  if (scope.matches?.("[data-waveform-player]")) {
+    initElement(scope);
+  }
+  scope.querySelectorAll("[data-waveform-player]").forEach(initElement);
+}
+if (isBrowser() && !autoInitDisabled()) {
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", autoInit);
+    document.addEventListener("DOMContentLoaded", () => autoInit());
   } else {
     autoInit();
   }

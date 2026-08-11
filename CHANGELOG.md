@@ -4,6 +4,43 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Pages can turn the automatic scan off.** ([#24]) Setting
+  `data-waveform-autoinit="false"` on the document element suppresses the
+  document-wide `[data-waveform-player]` scan that runs on import — for pages
+  that render markup they don't author (user content, a CMS, an editor canvas)
+  and want initialization to stay in their own hands. Read off `<html>` rather
+  than a global because ES module imports are evaluated before the importing
+  module's body runs, so a consumer with a static `import` never gets the
+  chance to set a flag first. The gate sits on the automatic call, not inside
+  the scan, so an explicit `WaveformPlayer.init()` still works. This scopes
+  initialization and is *not* a sanitizer: `playIcon` / `pauseIcon` still
+  inject raw markup for any player that does get built.
+- **`WaveformPlayer.init()` takes an optional root.** Pass a `Document` or
+  `Element` to scan only that subtree; the root is matched as well as its
+  descendants, so handing it a single player element works rather than silently
+  doing nothing. Pairs with the opt-out above — a page that suppresses the
+  automatic scan can still initialize what it owns and keep the claim-checking
+  and per-element error isolation the scan provides, instead of hand-rolling a
+  `querySelectorAll` loop that has neither. Defaults to `document`; existing
+  calls are unchanged.
+
+### Fixed
+
+- **A player whose construction throws no longer poisons the registry.** The
+  instance was added to `WaveformPlayer.instances` *before* `init()` ran, so a
+  throw partway through left a half-built player in the map permanently.
+  `getInstance()` matches by container, so every later declarative scan skipped
+  that element — a transient construction failure became a permanently blank
+  player. Worse, the shared theme watcher and `destroyAll()` both `forEach`
+  that map, where a single throw aborts the loop and strands every instance
+  registered after it: one OS light/dark switch could silently stop re-theming
+  the rest of the page. A failed construction now unregisters itself and drops
+  any listeners it had bound, then rethrows so the caller still sees it.
+
+[#24]: https://github.com/arraypress/waveform-player/pull/24
+
 ## [1.25.1] — 2026-08-11
 
 ### Fixed

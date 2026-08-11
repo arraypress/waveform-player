@@ -38,6 +38,24 @@ import WaveformPlayer from '@arraypress/waveform-player';
 new WaveformPlayer('#player', { url: 'track.mp3', title: 'My Song', artist: 'The Artist' });
 ```
 
+### Initializing only what you control
+
+Pages that render markup they don't author — user content, a CMS, an editor canvas — can turn the automatic scan off from the document element:
+
+```html
+<html data-waveform-autoinit="false">
+```
+
+Nothing is initialized until you ask for it. Pass `init()` a root to scan only the subtree you own:
+
+```js
+WaveformPlayer.init( document.querySelector( '#my-app' ) );
+```
+
+Constructing players directly still works too; only the scan on import is suppressed.
+
+This scopes initialization — it isn't a sanitizer. `playIcon` / `pauseIcon` (and their `data-play-icon` / `data-pause-icon` equivalents) inject raw markup by design, for any player you do build. Untrusted content still needs sanitizing before it reaches the page.
+
 ## Documentation
 
 Every option, style, event and method is documented on the docs site.

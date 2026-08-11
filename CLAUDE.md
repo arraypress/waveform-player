@@ -12,7 +12,7 @@ It is the foundation the rest of the `@arraypress` waveform family builds on.
   `prepublishOnly`. **Run it whenever you touch theme detection** — see
   `test/visual/README.md` for what it proves and the engine findings behind it.
 - `npm run build` — builds all dist targets (css, iife, esm, cjs, min). `prepublishOnly` runs `test && build`.
-- `npm run size` — gzipped JS/CSS sizes. **As of 1.25.0: ~13.8KB JS / ~1.8KB CSS.** Ceiling is ~14KB JS; flag anything that moves it materially. (The option-normalization pass cost +880B — that was a deliberate, measured trade for turning two hard crashes and a class of silent blank-player failures into warnings; don't spend the new headroom casually.) (The old "~10KB budget" sat *below* actual for several releases, so it could never flag anything — keep this figure current when it moves, or it rots the same way. The marketing site quotes it too: `waveform-site/src/data/packages.ts`.)
+- `npm run size` — gzipped JS/CSS sizes. **Currently ~13.9KB JS / ~1.8KB CSS** (1.25.1 shipped ~13.8KB; the auto-init opt-out + `init(root)` + registry fix added 78B). Ceiling is ~14KB JS; flag anything that moves it materially. (The option-normalization pass cost +880B — that was a deliberate, measured trade for turning two hard crashes and a class of silent blank-player failures into warnings; don't spend the new headroom casually.) (The old "~10KB budget" sat *below* actual for several releases, so it could never flag anything — keep this figure current when it moves, or it rots the same way. The marketing site quotes it too: `waveform-site/src/data/packages.ts`.)
 - `npm run dev` — watch build (rebuilds dist while you test against a local HTML page).
 
 ## Architecture (`src/js/`)
@@ -41,6 +41,7 @@ It is the foundation the rest of the `@arraypress` waveform family builds on.
   system colour contradicts its own paint, so no script can tell them apart.
   Changing this needs `npm run test:visual`, not an argument; there's a guard
   test in `test/themes.test.js` and the full story in `test/visual/README.md`.
+- **The auto-init opt-out is deliberately not an option.** `data-waveform-autoinit="false"` on `<html>` suppresses the import-time scan (`src/js/index.js`). It's read off the document, not a global, because static ESM imports evaluate before the importing module's body runs; and it gates the *automatic call*, not `autoInit()` itself, so `WaveformPlayer.init(root)` still works by hand. Both choices have mutation-checked tests in `test/index.test.js`. Don't fold it into `DEFAULT_OPTIONS`/`parseDataAttributes` — it's read before any player exists, and making it an option would drag it through the 15-package wrapper sweep for nothing.
 - **`loadTrack` must reset per-track options.** It resets `markers` + `waveformData`, and (since 1.8.1) `this.options.waveform`. `mergeOptions` keeps prior values otherwise, so a track loaded without peaks would redraw the *previous* track's waveform. If you add per-track options (artwork/markers/peaks/bpm), reset them in `loadTrack` too.
 - jsdom has no `AudioContext` → `generateWaveform` falls back to a placeholder; that warning in test output is expected.
 - Canvas redraw is driven by a `ResizeObserver` on the canvas's parent + `resizeCanvas()`; a DOM move doesn't reliably trip it — call `resizeCanvas()` explicitly if you relocate the player.
