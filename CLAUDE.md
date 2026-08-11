@@ -47,6 +47,26 @@ It is the foundation the rest of the `@arraypress` waveform family builds on.
 - Canvas redraw is driven by a `ResizeObserver` on the canvas's parent + `resizeCanvas()`; a DOM move doesn't reliably trip it — call `resizeCanvas()` explicitly if you relocate the player.
 - **Seeking needs a Range-capable audio host.** The `<audio>` element seeks via HTTP byte-range requests; an origin that answers `200` with no `Accept-Ranges` (notably Cloudflare Pages **and** Workers Static Assets — both silently ignore ranges) lets the player seek only within already-buffered bytes → short tracks look fine, long tracks snap back to 0. It's the host, not the player. Serve audio from a range-capable origin (R2 / S3 / nginx / any real file server).
 
+## Open threads (unconfirmed — don't "fix" these blind)
+
+- **Does `loadedmetadata` ever fire twice?** Reported indirectly in #28 (closed, declined):
+  a MutationObserver caught `.time-total` written twice with the *same* value. In self mode
+  `onMetadataLoaded` is the only writer, so that implies a duplicate event.
+  **Not reproduced, and no path in `core.js` produces it** — the listener is bound once
+  (`:1065`), `load()`'s one-shot only resolves a promise and removes itself, and
+  `loadTrack()`'s reset (`:1314-1316`) sets `src = ''` then `load()`, which can't emit
+  `loadedmetadata` with no resource to read. Most likely his page (a second
+  `load()`/`loadTrack()`, a `waveform-bar` instance alongside an inline player, or the
+  browser re-firing).
+  **To replicate:** counter on `loadedmetadata` in a real browser across (a) a normal
+  declarative load, (b) a `loadTrack()` swap, (c) a page with the bar driving an inline
+  `external` player. jsdom won't show this — it needs a real media element.
+  **If it's confirmed**, guard the *whole* `onMetadataLoaded` body on a last-processed
+  duration — the text write is the cheap part; `renderMarkers()` clears and rebuilds every
+  marker button, which is the actual waste. #28 proposed guarding only the `.time-total`
+  assignment, i.e. the least significant line in the method. Don't take that shape.
+  **If it isn't reproducible, delete this entry** rather than leaving a guard "just in case".
+
 ## Ecosystem (siblings in `~/Developer/waveform-player/`)
 This package's option surface is the root of a **15-package** family. All 20 repos are flat siblings; each is its own git repo on `main`.
 - **`waveform-bar`** — persistent bottom-bar singleton (`window.WaveformBar.init(config)`); embeds one self-mode player, drives inline `external`-mode players via `data-wb-*` triggers. **Ships no `.d.ts`** — its wrappers hand-declare the config type, so adding a bar config option means updating those wrapper types manually.
