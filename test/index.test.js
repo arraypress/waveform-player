@@ -25,6 +25,26 @@ describe('declarative init', () => {
 		expect(WaveformPlayer.getAllInstances()).toHaveLength(1);
 	});
 
+	it('re-initializes an element after its player is destroyed', () => {
+		// destroy() empties the container and drops the instance, so the
+		// element is a candidate for the scan again — but only if the
+		// data-waveform-initialized flag goes with it. A stale flag short-
+		// circuits autoInit() ahead of the instance lookup and the element
+		// stays blank forever.
+		const host = document.createElement('div');
+		host.setAttribute('data-waveform-player', '');
+		host.dataset.audioMode = 'external';
+		document.body.appendChild(host);
+
+		WaveformPlayer.init();
+		WaveformPlayer.getInstance(host).destroy();
+		expect(host.dataset.waveformInitialized).toBeUndefined();
+
+		WaveformPlayer.init();
+		expect(WaveformPlayer.getInstance(host)).toBeTruthy();
+		expect(host.querySelector('.waveform-player-inner')).not.toBeNull();
+	});
+
 	it('skips elements already claimed by a programmatic player', () => {
 		// A player built with `new WaveformPlayer(el)` carries no
 		// data-waveform-initialized flag, so the scan has to recognise it by

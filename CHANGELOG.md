@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.25.1] — 2026-08-11
+
+### Fixed
+
+- **The track title no longer blinks in after the audio loads.** ([#25]) The
+  title comes from the `title` option or the URL, so it needs nothing from the
+  audio element — but it was written *after* the `loadedmetadata` wait, leaving
+  the info row empty for the whole fetch and then popping in. On a slow or
+  non-Range-capable origin that's a visible flash of an empty player. The title
+  and the seek slider's accessible name are now painted up front, alongside the
+  inline peaks moved ahead of the same wait in 1.24.5. The total time still
+  waits on metadata (it genuinely needs the duration) and shows `0:00` until
+  then, as it always has.
+- **A destroyed player can be re-initialized again.** `destroy()` emptied the
+  container and dropped the instance but left `data-waveform-initialized="true"`
+  on the element. `WaveformPlayer.init()` checks that flag before the instance
+  lookup, so the element was skipped by every later scan and stayed blank
+  permanently. Affected `destroyAll()` + `init()` resets and any
+  teardown/remount cycle that reuses the same element instead of re-rendering
+  it. The flag is now cleared with the markup it described.
+- **`sideEffects` no longer under-declares the entry bundles.** The field listed
+  only `*.css`, which told bundlers every JS file in the package was
+  side-effect-free — but the entry point scans the DOM for
+  `[data-waveform-player]` and assigns `window.WaveformPlayer` at module scope.
+  A declarative-only consumer doing a bare `import '@arraypress/waveform-player'`
+  had an unused-binding import a bundler was licensed to drop, silently
+  removing auto-init. The ESM/CJS/IIFE entries are now declared. No behavior or
+  output change; the pure modules under `src/js/` are still tree-shakeable.
+
+[#25]: https://github.com/arraypress/waveform-player/issues/25
+
 ## [1.25.0] — 2026-08-11
 
 ### Fixed

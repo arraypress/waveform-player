@@ -1161,11 +1161,13 @@ export class WaveformPlayer {
      * `loadedmetadata` before proceeding. In external mode there is no audio
      * element, so the src/metadata step is skipped and only the visualization
      * is built (duration/time come from the controller via
-     * {@link WaveformPlayer#setProgress}). Peaks come from the `waveform`
-     * option when provided — painted *before* the metadata wait, since they
-     * need nothing from the audio element — otherwise they are decoded from
-     * the audio; a decode failure falls back to a placeholder waveform. The
-     * `onLoad` callback fires on success.
+     * {@link WaveformPlayer#setProgress}). The title and the seek slider's
+     * accessible name are written *before* the metadata wait, as are peaks
+     * supplied via the `waveform` option — none of them need anything from the
+     * audio element, and behind the wait they blink in on a slow origin.
+     * Without inline peaks the waveform is decoded from the audio instead; a
+     * decode failure falls back to a placeholder. The `onLoad` callback fires
+     * on success.
      * @param {string} url - Audio URL.
      * @returns {Promise<void>} Resolves once loading settles (errors are caught
      *   internally and surfaced through {@link WaveformPlayer#onError}).
@@ -1187,6 +1189,18 @@ export class WaveformPlayer {
                 this.setWaveformData(this.options.waveform);
             }
 
+            // Same reasoning as the peaks above: the title comes from the
+            // `title` option or the URL, so it needs nothing from the audio
+            // element and has no business waiting on the network. Behind the
+            // metadata wait it left the info row blank for the whole fetch and
+            // then popped in — a visible blink on any slow origin. See #25.
+            const title = this.options.title || extractTitleFromUrl(url);
+            if (this.titleEl) {
+                this.titleEl.textContent = title;
+            }
+            // Keep the seek slider's accessible name in sync with the track.
+            this.applySeekLabel(title);
+
             // In external mode we don't own an <audio> element — skip
             // src assignment + metadata-wait, but still generate the
             // waveform peaks so the canvas can render the visualization.
@@ -1198,7 +1212,7 @@ export class WaveformPlayer {
 
                 // preload="none" tells the browser to fetch nothing until
                 // play(), so `loadedmetadata` will never arrive and awaiting
-                // it would strand the rest of this method forever (no title,
+                // it would strand the rest of this method forever (no peaks,
                 // no markers, no onLoad, loading state stuck on). Skip the
                 // wait; the bindEvents() `loadedmetadata` listener still
                 // fires whenever metadata does land, and onMetadataLoaded()
@@ -1221,14 +1235,6 @@ export class WaveformPlayer {
                     });
                 }
             }
-
-            // Set title
-            const title = this.options.title || extractTitleFromUrl(url);
-            if (this.titleEl) {
-                this.titleEl.textContent = title;
-            }
-            // Keep the seek slider's accessible name in sync with the track.
-            this.applySeekLabel(title);
 
             // Peaks were drawn above; only the decode path is left.
             if (!hasInlinePeaks) {
@@ -2413,6 +2419,16 @@ export class WaveformPlayer {
 
         // Clear the container
         this.container.innerHTML = '';
+
+        // Drop the declarative-scan flag along with the markup it described.
+        // autoInit() checks `data-waveform-initialized` *before* the instance
+        // lookup, so leaving it behind on an emptied container makes the
+        // element permanently un-initializable: destroy() wipes the DOM and
+        // the instance, then every later WaveformPlayer.init() skips the
+        // element on the stale flag and it stays blank. Matters most for
+        // destroyAll() + init() resets and for teardown/remount cycles that
+        // reuse the same element rather than re-rendering it.
+        delete this.container.dataset.waveformInitialized;
 
         // Clear all references
         this.canvas = null;

@@ -1,6 +1,6 @@
 {
   "name": "@arraypress/waveform-player",
-  "version": "1.25.0",
+  "version": "1.25.1",
   "description": "Lightweight, customizable audio player with waveform visualization",
   "type": "module",
   "types": "./index.d.ts",
@@ -81,7 +81,12 @@
     "registry": "https://registry.npmjs.org/"
   },
   "sideEffects": [
-    "*.css"
+    "*.css",
+    "./dist/waveform-player.esm.js",
+    "./dist/waveform-player.cjs",
+    "./dist/waveform-player.js",
+    "./dist/waveform-player.min.js",
+    "./src/js/index.js"
   ],
   "devDependencies": {
     "concurrently": "^10.0.3",

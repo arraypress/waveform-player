@@ -1916,11 +1916,13 @@ var WaveformPlayer = class _WaveformPlayer {
    * `loadedmetadata` before proceeding. In external mode there is no audio
    * element, so the src/metadata step is skipped and only the visualization
    * is built (duration/time come from the controller via
-   * {@link WaveformPlayer#setProgress}). Peaks come from the `waveform`
-   * option when provided — painted *before* the metadata wait, since they
-   * need nothing from the audio element — otherwise they are decoded from
-   * the audio; a decode failure falls back to a placeholder waveform. The
-   * `onLoad` callback fires on success.
+   * {@link WaveformPlayer#setProgress}). The title and the seek slider's
+   * accessible name are written *before* the metadata wait, as are peaks
+   * supplied via the `waveform` option — none of them need anything from the
+   * audio element, and behind the wait they blink in on a slow origin.
+   * Without inline peaks the waveform is decoded from the audio instead; a
+   * decode failure falls back to a placeholder. The `onLoad` callback fires
+   * on success.
    * @param {string} url - Audio URL.
    * @returns {Promise<void>} Resolves once loading settles (errors are caught
    *   internally and surfaced through {@link WaveformPlayer#onError}).
@@ -1935,6 +1937,11 @@ var WaveformPlayer = class _WaveformPlayer {
       if (hasInlinePeaks) {
         this.setWaveformData(this.options.waveform);
       }
+      const title = this.options.title || extractTitleFromUrl(url);
+      if (this.titleEl) {
+        this.titleEl.textContent = title;
+      }
+      this.applySeekLabel(title);
       if (this.audio) {
         this.audio.src = url;
         if (this.audio.preload !== "none") {
@@ -1954,11 +1961,6 @@ var WaveformPlayer = class _WaveformPlayer {
           });
         }
       }
-      const title = this.options.title || extractTitleFromUrl(url);
-      if (this.titleEl) {
-        this.titleEl.textContent = title;
-      }
-      this.applySeekLabel(title);
       if (!hasInlinePeaks) {
         try {
           const result = await generateWaveform(url, this.options.samples, this.options.showBPM);
@@ -2896,6 +2898,7 @@ var WaveformPlayer = class _WaveformPlayer {
       this.audio = null;
     }
     this.container.innerHTML = "";
+    delete this.container.dataset.waveformInitialized;
     this.canvas = null;
     this.ctx = null;
     this.playBtn = null;

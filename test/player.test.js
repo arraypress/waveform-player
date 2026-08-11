@@ -1107,10 +1107,11 @@ describe('first paint of inline peaks (#23)', () => {
 		player.load('slow-origin.mp3').then(() => { settled = true; });
 
 		// The wait is still there for everything that genuinely needs
-		// duration — only the peaks jumped ahead of it.
+		// duration. Peaks (#23) and the title (#25) jumped ahead of it; the
+		// total time is what stays behind, still on its placeholder.
 		return Promise.resolve().then(() => {
 			expect(settled).toBe(false);
-			expect(player.titleEl.textContent).toBe('');
+			expect(player.totalTimeEl.textContent).toBe('0:00');
 		});
 	});
 });
@@ -1136,5 +1137,49 @@ describe('loading indicator (#23)', () => {
 		expect(indicator.style.display).toBe('block');
 		player.setLoading(false);
 		expect(indicator.style.display).toBe('none');
+	});
+});
+
+describe('title paints before the metadata wait (#25)', () => {
+	// Self mode in jsdom is the point of these: jsdom never fires
+	// `loadedmetadata`, so load() parks on the await forever — exactly the
+	// state a slow or non-Range-capable origin puts a real browser in for
+	// seconds. Anything asserted here is therefore something the user sees
+	// *before* the network settles.
+	function mountSelf(options = {}) {
+		const el = document.createElement('div');
+		document.body.appendChild(el);
+		return { el, player: track(new WaveformPlayer(el, options)) };
+	}
+
+	it('writes the title from the url while the metadata wait is still pending', async () => {
+		const { player } = mountSelf();
+		let settled = false;
+		player.load('https://waveformplayer.com/audio/little-paris.mp3').then(() => { settled = true; });
+		await Promise.resolve();
+
+		expect(settled, 'load() should still be parked on loadedmetadata').toBe(false);
+		expect(player.titleEl.textContent).toBe('Little Paris');
+	});
+
+	it('prefers the title option over the url', async () => {
+		const { player } = mountSelf({ title: 'Дуа 203' });
+		player.load('https://waveformplayer.com/audio/little-paris.mp3');
+		await Promise.resolve();
+
+		expect(player.titleEl.textContent).toBe('Дуа 203');
+	});
+
+	it('names the seek slider before metadata arrives', async () => {
+		const { player } = mountSelf();
+		player.load('https://waveformplayer.com/audio/little-paris.mp3');
+		await Promise.resolve();
+
+		expect(player.seekEl.getAttribute('aria-label')).toBe('Little Paris');
+	});
+
+	it('still shows the placeholder total time up front', () => {
+		const { player } = mountSelf();
+		expect(player.totalTimeEl.textContent).toBe('0:00');
 	});
 });
