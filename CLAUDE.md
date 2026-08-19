@@ -72,7 +72,7 @@ This package's option surface is the root of a **15-package** family. All 20 rep
 - **`waveform-bar`** — persistent bottom-bar singleton (`window.WaveformBar.init(config)`); embeds one self-mode player, drives inline `external`-mode players via `data-wb-*` triggers. **Ships no `.d.ts`** — its wrappers hand-declare the config type, so adding a bar config option means updating those wrapper types manually.
 - **`waveform-playlist`** — multi-track playlist around embedded players; forwards this package's options through to each.
 - **Wrappers, 4 per core × 3 cores** (`-astro` / `-react` / `-svelte` / `-vue` for player, bar, playlist). Player and playlist wrappers **derive prop types from this package's `WaveformPlayerOptions`** via `Omit<>`, except `style` (which stays the framework's CSS prop — use `waveformStyle`). Bar wrappers pass `config` verbatim to `init()`.
-- **`waveform-gen` / `waveform-tracker` / `waveform-editor`** — no shared option surface; unaffected by option changes here.
+- **`waveform-gen` / `waveform-tracker`** — no shared option surface; unaffected by option changes here.
 
 **Types flow, runtime does not.** Every wrapper forwards options through an explicit, hand-maintained allowlist. Adding a key to `DEFAULT_OPTIONS` + `index.d.ts` makes it *typecheck* everywhere and *work* nowhere until each wrapper is edited.
 
