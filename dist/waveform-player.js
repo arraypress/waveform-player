@@ -128,6 +128,7 @@
     setBool("autoplay");
     setBool("showControls");
     setBool("showInfo");
+    setBool("showAlbum");
     setBool("showTime");
     setBool("showHoverTime");
     setBool("seekHandle");
@@ -809,6 +810,7 @@
     autoplay: false,
     showControls: true,
     showInfo: true,
+    showAlbum: false,
     showTime: true,
     showHoverTime: false,
     // Show a draggable circle handle + hover brightness-lift on the SEEKBAR
@@ -921,6 +923,7 @@
     "autoplay",
     "showControls",
     "showInfo",
+    "showAlbum",
     "showTime",
     "showHoverTime",
     "seekHandle",
@@ -1161,7 +1164,7 @@
      *
      * Clears the container, resolves button alignment (`auto` → `bottom` for
      * the `bars` style, `center` otherwise), and conditionally renders the play
-     * button, info row (artwork/title/artist), BPM badge, playback-speed
+     * button, info row (artwork/title/artist/album), BPM badge, playback-speed
      * menu, and time display based on the relevant `show*` options. Caches the
      * canvas, controls, and text elements onto `this`, then sizes the canvas.
      * @private
@@ -1214,6 +1217,7 @@
         <div class="waveform-text">
           <span class="waveform-title"></span>
           ${this.options.artist ? `<span class="waveform-artist">${escapeHtml(this.options.artist)}</span>` : ""}
+          ${this.options.showAlbum && this.options.album ? `<span class="waveform-album">${escapeHtml(this.options.album)}</span>` : ""}
         </div>
         <div class="waveform-meta" style="display: flex; align-items: center; gap: 1rem;">
           ${this.options.showBPM ? `
@@ -1266,6 +1270,7 @@
       this.ctx = this.canvas.getContext("2d");
       this.titleEl = this.container.querySelector(".waveform-title");
       this.artistEl = this.container.querySelector(".waveform-artist");
+      this.albumEl = this.container.querySelector(".waveform-album");
       this.artworkEl = this.container.querySelector(".waveform-artwork, .waveform-btn-artwork");
       this.bindArtworkFallback(this.artworkEl);
       this.currentTimeEl = this.container.querySelector(".time-current");
@@ -1339,6 +1344,17 @@
       return span;
     }
     /**
+     * Create an album text element matching the initial player markup.
+     *
+     * @returns {HTMLSpanElement} Album text element.
+     * @private
+     */
+    createAlbumElement() {
+      const span = document.createElement("span");
+      span.className = "waveform-album";
+      return span;
+    }
+    /**
      * Reconcile artist metadata and markup for the current track.
      *
      * @param {string|null} artist - Artist text, or a falsy value to remove it.
@@ -1360,6 +1376,33 @@
       }
       this.artistEl.textContent = artist;
       this.artistEl.style.display = "";
+    }
+    /**
+     * Reconcile album metadata and markup for the current track.
+     *
+     * @param {string|null} album - Album text, or a falsy value to remove it.
+     * @private
+     */
+    syncAlbum(album) {
+      this.options.album = album || "";
+      if (!this.options.showInfo || !this.options.showAlbum) {
+        this.albumEl?.remove();
+        this.albumEl = null;
+        return;
+      }
+      if (!album) {
+        this.albumEl?.remove();
+        this.albumEl = null;
+        return;
+      }
+      if (!this.albumEl) {
+        const anchorEl = this.artistEl || this.container.querySelector(".waveform-title");
+        if (!anchorEl) return;
+        this.albumEl = this.createAlbumElement();
+        anchorEl.after(this.albumEl);
+      }
+      this.albumEl.textContent = album;
+      this.albumEl.style.display = "";
     }
     /**
      * Reconcile the play button's artwork image (`artworkPosition: 'button'`).
@@ -1972,7 +2015,7 @@
      *
      * Pauses any current playback, fully resets the audio element (self mode),
      * clears error/marker/progress state, merges the new metadata into
-     * `this.options`, updates the artist/artwork DOM, then calls
+     * `this.options`, updates the artist/album/artwork DOM, then calls
      * {@link WaveformPlayer#load}. Auto-plays the new track unless
      * `options.autoplay === false`.
      * @param {string} url - Audio URL.
@@ -1987,6 +2030,8 @@
     async loadTrack(url, title = null, artist = null, options = {}) {
       const hasArtworkOption = Object.prototype.hasOwnProperty.call(options, "artwork");
       const hasArtworkAltOption = Object.prototype.hasOwnProperty.call(options, "artworkAlt");
+      const hasAlbumOption = Object.prototype.hasOwnProperty.call(options, "album");
+      const hasShowAlbumOption = Object.prototype.hasOwnProperty.call(options, "showAlbum");
       if (this.isPlaying) {
         this.pause();
       }
@@ -2028,6 +2073,9 @@
       }
       if (artist !== null) {
         this.syncArtist(artist);
+      }
+      if (hasAlbumOption || hasShowAlbumOption) {
+        this.syncAlbum(this.options.album);
       }
       if (hasArtworkOption || hasArtworkAltOption) {
         this.syncArtwork(
@@ -2692,13 +2740,14 @@
      * directly: `WaveformBar.play(event.detail)`.
      *
      * @private
-     * @return {{url:string,title:?string,artist:?string,artwork:?string,player:WaveformPlayer}}
+     * @return {{url:string,title:?string,artist:?string,album:string,artwork:?string,player:WaveformPlayer}}
      */
     _buildTrackDetail() {
       return {
         url: this.options.url,
         title: this.options.title,
         artist: this.options.artist,
+        album: this.options.album,
         artwork: this.options.artwork,
         markers: this.options.markers,
         waveform: this.options.waveform,

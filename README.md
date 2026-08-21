@@ -27,7 +27,7 @@ Load from a CDN and it auto-initializes every `[data-waveform-player]` on the pa
 <link rel="stylesheet" href="https://unpkg.com/@arraypress/waveform-player/dist/waveform-player.css">
 <script src="https://unpkg.com/@arraypress/waveform-player/dist/waveform-player.min.js"></script>
 
-<div data-waveform-player data-url="track.mp3" data-title="My Song" data-artist="The Artist"></div>
+<div data-waveform-player data-url="track.mp3" data-title="My Song" data-artist="The Artist" data-album="The Album" data-show-album="true"></div>
 ```
 
 Or drive it from JavaScript:
@@ -35,7 +35,7 @@ Or drive it from JavaScript:
 ```js
 import WaveformPlayer from '@arraypress/waveform-player';
 
-new WaveformPlayer('#player', { url: 'track.mp3', title: 'My Song', artist: 'The Artist' });
+new WaveformPlayer('#player', { url: 'track.mp3', title: 'My Song', artist: 'The Artist', album: 'The Album', showAlbum: true });
 ```
 
 ### Initializing only what you control

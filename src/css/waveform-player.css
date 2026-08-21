@@ -236,7 +236,8 @@
     font-weight: 500;
 }
 
-.waveform-artist {
+.waveform-artist,
+.waveform-album {
     color: var(--wfp-text-secondary-color);
     font-size: 11px;
     white-space: nowrap;
@@ -560,6 +561,7 @@
     }
 
     .waveform-artist,
+    .waveform-album,
     .waveform-time,
     .waveform-bpm {
         font-size: 10px;

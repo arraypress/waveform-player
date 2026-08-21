@@ -189,6 +189,8 @@ export interface WaveformPlayerOptions {
 	artworkPosition?: 'info' | 'button';
 	/** Show the info (title/artist) block. @default true */
 	showInfo?: boolean;
+	/** Show album name under the artist in the info block (requires `showInfo` and `album`). @default false */
+	showAlbum?: boolean;
 	/** Show current/total time. @default true */
 	showTime?: boolean;
 	/** Show a time tooltip on hover. @default false */
@@ -291,6 +293,7 @@ export interface WaveformTrackDetail {
 	url: string;
 	title: string | null;
 	artist: string | null;
+	album: string;
 	artwork: string | null;
 	/** Chapter markers for the track (forwarded so controllers don't re-fetch). */
 	markers?: WaveformMarker[];

@@ -371,6 +371,41 @@ describe('lifecycle + external events', () => {
 		expect(player.options.artist).toBe('Artist');
 	});
 
+	it('shows album only when showAlbum is enabled', () => {
+		const hidden = track(mount({ album: 'Hidden LP' }));
+		expect(hidden.el.querySelector('.waveform-album')).toBe(null);
+
+		const shown = track(mount({ album: 'Visible LP', showAlbum: true }));
+		expect(shown.el.querySelector('.waveform-album').textContent).toBe('Visible LP');
+	});
+
+	it('loadTrack updates existing album text', async () => {
+		const { el, player } = track(mount({ album: 'First LP', showAlbum: true }));
+		const albumEl = el.querySelector('.waveform-album');
+
+		await player.loadTrack('next.mp3', 'Next', null, {
+			album: 'Second LP',
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-album')).toBe(albumEl);
+		expect(albumEl.textContent).toBe('Second LP');
+		expect(player.options.album).toBe('Second LP');
+	});
+
+	it('loadTrack removes existing album when album is empty', async () => {
+		const { el, player } = track(mount({ album: 'Album', showAlbum: true }));
+		expect(el.querySelector('.waveform-album')).toBeTruthy();
+
+		await player.loadTrack('next.mp3', 'Next', null, {
+			album: '',
+			autoplay: false,
+		});
+
+		expect(el.querySelector('.waveform-album')).toBe(null);
+		expect(player.options.album).toBe('');
+	});
+
 	it('loadTrack removes existing artwork when artwork is empty', async () => {
 		const { el, player } = track(mount({
 			artwork: 'cover.jpg',
@@ -442,12 +477,13 @@ describe('core additions for controllers (v1.8.0)', () => {
 		expect(span.textContent).toContain('<img');
 	});
 
-	it('request-play detail carries the artist', () => {
-		const { el, player } = track(mount({ artist: 'DJ Foo' }));
+	it('request-play detail carries the artist and album', () => {
+		const { el, player } = track(mount({ artist: 'DJ Foo', album: 'Club Vol. 1' }));
 		let detail = null;
 		el.addEventListener('waveformplayer:request-play', (e) => { detail = e.detail; });
 		player.play();
 		expect(detail.artist).toBe('DJ Foo');
+		expect(detail.album).toBe('Club Vol. 1');
 	});
 });
 
@@ -677,6 +713,16 @@ describe('_build escapes author-supplied values', () => {
 		const { el } = track(mount({ artist: '<img class="x" src=y onerror=alert(1)>' }));
 		expect(el.querySelector('.x')).toBe(null);
 		expect(el.querySelector('.waveform-artist').textContent)
+			.toBe('<img class="x" src=y onerror=alert(1)>');
+	});
+
+	it('renders album as text, not markup', () => {
+		const { el } = track(mount({
+			album: '<img class="x" src=y onerror=alert(1)>',
+			showAlbum: true,
+		}));
+		expect(el.querySelector('.x')).toBe(null);
+		expect(el.querySelector('.waveform-album').textContent)
 			.toBe('<img class="x" src=y onerror=alert(1)>');
 	});
 

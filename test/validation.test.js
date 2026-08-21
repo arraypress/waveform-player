@@ -448,6 +448,7 @@ describe('valid configuration passes through untouched', () => {
 		autoplay: false,
 		showControls: true,
 		showInfo: true,
+		showAlbum: true,
 		showTime: false,
 		showHoverTime: true,
 		seekHandle: true,

@@ -313,6 +313,7 @@ export const DEFAULT_OPTIONS = {
     autoplay: false,
     showControls: true,
     showInfo: true,
+    showAlbum: false,
     showTime: true,
     showHoverTime: false,
     // Show a draggable circle handle + hover brightness-lift on the SEEKBAR
@@ -480,7 +481,7 @@ const NUMBERS = {
  * @private
  */
 const BOOLEANS = [
-    'autoplay', 'showControls', 'showInfo', 'showTime', 'showHoverTime',
+    'autoplay', 'showControls', 'showInfo', 'showAlbum', 'showTime', 'showHoverTime',
     'seekHandle', 'showBPM', 'singlePlay', 'playOnSeek', 'enableMediaSession',
     'showMarkers', 'accessibleSeek', 'showPlaybackSpeed'
 ];

@@ -179,6 +179,7 @@ describe('parseDataAttributes', () => {
 		Object.assign(el.dataset, {
 			url: 'a.mp3', audioMode: 'external', showMarkers: 'false',
 			accessibleSeek: 'false', seekLabel: 'Scrub', barRadius: '4',
+			showAlbum: 'true', album: 'LP',
 		});
 		const o = parseDataAttributes(el);
 		expect(o.url).toBe('a.mp3');
@@ -187,6 +188,8 @@ describe('parseDataAttributes', () => {
 		expect(o.accessibleSeek).toBe(false);
 		expect(o.seekLabel).toBe('Scrub');
 		expect(o.barRadius).toBe(4);
+		expect(o.showAlbum).toBe(true);
+		expect(o.album).toBe('LP');
 	});
 
 	it('reads data-artwork-position', () => {
