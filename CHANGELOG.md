@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.27.0] — 2026-09-21
+
 ### Added
 
 - **A `/no-autoinit` entry point, for consumers that can't reach `<html>`.**
