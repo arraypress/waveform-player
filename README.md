@@ -54,6 +54,18 @@ WaveformPlayer.init( document.querySelector( '#my-app' ) );
 
 Constructing players directly still works too; only the scan on import is suppressed.
 
+That attribute is for pages. If you're **bundled into a page you don't author** — a CMS block, a plugin, a widget dropped into someone else's template — there's no `<html>` in scope to mark before your `import` is evaluated. Import the library without the scan instead:
+
+```js
+import WaveformPlayer from '@arraypress/waveform-player/no-autoinit';
+
+// Identical in every other way. Nothing is initialized until you say so:
+WaveformPlayer.init( myContainer );
+new WaveformPlayer( el, { url: 'track.mp3' } );
+```
+
+Same class, same options, same `window.WaveformPlayer`; ships as ESM and CJS. Pick one entry point per bundle — each carries its own copy of the class and its own instance registry.
+
 This scopes initialization — it isn't a sanitizer. `playIcon` / `pauseIcon` (and their `data-play-icon` / `data-pause-icon` equivalents) inject raw markup by design, for any player you do build. Untrusted content still needs sanitizing before it reaches the page.
 
 ## Documentation

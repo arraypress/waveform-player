@@ -12,6 +12,23 @@
 export const DEFAULT_SAMPLES = 1800;
 
 /**
+ * Whether we're running in a browser (vs. SSR / Node), where `window` and
+ * `document` are available.
+ *
+ * Lives here rather than in an entry point because both entry points need it —
+ * `index.js` to gate its import-time scan, `entry.js` to guard `autoInit` and
+ * the `window` attach — and a local copy in each is exactly the kind of
+ * duplicate that drifts (see the `detectColorScheme` note in `entry.js`).
+ * Deliberately *not* added to the public `WaveformPlayer.utils` bag: it's an
+ * internal guard, not part of the consumer contract.
+ *
+ * @returns {boolean}
+ */
+export function isBrowser() {
+    return typeof window !== 'undefined' && typeof document !== 'undefined';
+}
+
+/**
  * Largest value in an array, via a loop — NOT `Math.max(...arr)`, whose
  * argument spread throws `RangeError: Maximum call stack size exceeded` for
  * very large arrays (~1e5+ entries). Returns `-Infinity` for an empty array,

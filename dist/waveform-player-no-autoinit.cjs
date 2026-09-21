@@ -16,13 +16,13 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/js/index.js
-var index_exports = {};
-__export(index_exports, {
-  WaveformPlayer: () => entry_default,
-  default: () => index_default
+// src/js/entry.js
+var entry_exports = {};
+__export(entry_exports, {
+  WaveformPlayer: () => WaveformPlayer,
+  default: () => entry_default
 });
-module.exports = __toCommonJS(index_exports);
+module.exports = __toCommonJS(entry_exports);
 
 // src/js/utils.js
 var DEFAULT_SAMPLES = 1800;
@@ -3039,14 +3039,3 @@ if (isBrowser()) {
   window.WaveformPlayer = WaveformPlayer;
 }
 var entry_default = WaveformPlayer;
-
-// src/js/index.js
-var autoInitDisabled = () => document.documentElement?.dataset.waveformAutoinit === "false";
-if (isBrowser() && !autoInitDisabled()) {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => entry_default.init());
-  } else {
-    entry_default.init();
-  }
-}
-var index_default = entry_default;

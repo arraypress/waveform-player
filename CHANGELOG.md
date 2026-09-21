@@ -4,6 +4,58 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **A `/no-autoinit` entry point, for consumers that can't reach `<html>`.**
+  ([#29]) `import WaveformPlayer from '@arraypress/waveform-player/no-autoinit'`
+  gives the whole library — same class, same options, same
+  `WaveformPlayer.init(root)` — minus the document-wide
+  `[data-waveform-player]` scan that the default entry point runs on import.
+  Nothing is initialized until the caller asks for it.
+
+  1.26.0's `data-waveform-autoinit="false"` covers a page that owns its own
+  `<html>`. It cannot cover a consumer bundled *into* a page it doesn't author
+  — a CMS block, a plugin, a widget in someone else's template — because
+  there is no document element in scope to mark before a static `import` is
+  evaluated, and in an editor the canvas is an iframe it doesn't own either.
+  WordPress core's Playlist block was shipping a patch file that rewrote
+  `autoInitDisabled` inside the published bundle to get here; it can now delete
+  it. The attribute is for pages, this entry point is for bundles, and both
+  remain supported.
+
+  The two entry points are the same library and differ in that one side effect.
+  `window.WaveformPlayer` is still attached (`@arraypress/waveform-bar` and
+  `-playlist` reach the class through it), `init()` and `init(root)` still work,
+  and pages already using `data-waveform-autoinit` are unaffected. Shipped as
+  ESM and CJS with its own `types` condition.
+
+  Load one entry point per bundle: each carries its own copy of the class and
+  its own instance registry, as the IIFE and ESM builds always have.
+
+### Changed
+
+- **`src/js/index.js` split into `entry.js` + `index.js`.** Everything except
+  the import-time scan moved to `entry.js`, which is what `/no-autoinit` builds
+  from; `index.js` is now that module plus the scan. Keeping the difference to a
+  single `if` block is what stops the two entry points drifting into two
+  libraries — `test/no-autoinit.test.js` asserts their public surfaces match,
+  and `test/package.test.js` asserts each bundle is built from the file it
+  claims. No behaviour change for either published bundle; relevant only if you
+  deep-import from the shipped `src/`.
+
+### Internal
+
+- **`npm run test:pack` verifies the published artifacts, not the source.**
+  Packs the tarball, installs it into a throwaway consumer, and checks that both
+  subpaths resolve as ESM and CJS under plain Node, that each installed bundle
+  actually scans (or doesn't), and that both typecheck under `moduleResolution`
+  `node16` *and* `bundler`. The vitest suite imports `src/`, so a build script
+  aimed at the wrong entry file, a missing `files` entry or an extensionless
+  re-export in a `.d.ts` are all invisible to it — the last of those was real,
+  and this caught it before publish.
+
+[#29]: https://github.com/arraypress/waveform-player/pull/29
+
 ## [1.26.0] — 2026-08-12
 
 ### Added

@@ -1,6 +1,9 @@
 (() => {
   // src/js/utils.js
   var DEFAULT_SAMPLES = 1800;
+  function isBrowser() {
+    return typeof window !== "undefined" && typeof document !== "undefined";
+  }
   function maxOf(values) {
     let max = -Infinity;
     for (let i = 0; i < values.length; i++) {
@@ -2985,10 +2988,8 @@
     }
   };
 
-  // src/js/index.js
+  // src/js/entry.js
   WaveformPlayer.utils = { formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes, detectColorScheme };
-  var isBrowser = () => typeof window !== "undefined" && typeof document !== "undefined";
-  var autoInitDisabled = () => document.documentElement?.dataset.waveformAutoinit === "false";
   function initElement(element) {
     if (element.dataset.waveformInitialized === "true" || WaveformPlayer.getInstance(element)) {
       return;
@@ -3008,16 +3009,20 @@
     }
     scope.querySelectorAll("[data-waveform-player]").forEach(initElement);
   }
-  if (isBrowser() && !autoInitDisabled()) {
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", () => autoInit());
-    } else {
-      autoInit();
-    }
-  }
   WaveformPlayer.init = autoInit;
   if (isBrowser()) {
     window.WaveformPlayer = WaveformPlayer;
   }
-  var index_default = WaveformPlayer;
+  var entry_default = WaveformPlayer;
+
+  // src/js/index.js
+  var autoInitDisabled = () => document.documentElement?.dataset.waveformAutoinit === "false";
+  if (isBrowser() && !autoInitDisabled()) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => entry_default.init());
+    } else {
+      entry_default.init();
+    }
+  }
+  var index_default = entry_default;
 })();

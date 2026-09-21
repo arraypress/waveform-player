@@ -14,6 +14,12 @@
       "require": "./dist/waveform-player.cjs",
       "default": "./dist/waveform-player.esm.js"
     },
+    "./no-autoinit": {
+      "types": "./no-autoinit.d.ts",
+      "import": "./dist/waveform-player-no-autoinit.esm.js",
+      "require": "./dist/waveform-player-no-autoinit.cjs",
+      "default": "./dist/waveform-player-no-autoinit.esm.js"
+    },
     "./styles.css": "./dist/waveform-player.css",
     "./dist/*": "./dist/*",
     "./package.json": "./package.json"
@@ -22,14 +28,18 @@
     "dist/",
     "src/",
     "index.d.ts",
+    "no-autoinit.d.ts",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "npm run build:css && npm run build:iife && npm run build:esm && npm run build:cjs && npm run build:min",
+    "build": "npm run build:css && npm run build:iife && npm run build:esm && npm run build:cjs && npm run build:min && npm run build:no-autoinit",
     "build:css": "esbuild src/css/waveform-player.css --minify --outfile=dist/waveform-player.css",
     "build:iife": "esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.js",
     "build:min": "esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.min.js --minify",
+    "build:no-autoinit": "npm run build:no-autoinit:esm && npm run build:no-autoinit:cjs",
+    "build:no-autoinit:esm": "esbuild src/js/entry.js --bundle --format=esm --outfile=dist/waveform-player-no-autoinit.esm.js --minify",
+    "build:no-autoinit:cjs": "esbuild src/js/entry.js --bundle --format=cjs --outfile=dist/waveform-player-no-autoinit.cjs",
     "build:esm": "esbuild src/js/index.js --bundle --format=esm --outfile=dist/waveform-player.esm.js --minify",
     "build:cjs": "esbuild src/js/index.js --bundle --format=cjs --outfile=dist/waveform-player.cjs",
     "dev": "npm run build:css && esbuild src/js/index.js --bundle --format=iife --outfile=dist/waveform-player.js --watch",
@@ -40,6 +50,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:visual": "node test/visual/theme-matrix.mjs",
+    "test:pack": "npm run build && node test/pack/verify.mjs",
     "prepublishOnly": "npm run test && npm run build"
   },
   "keywords": [
@@ -84,9 +95,12 @@
     "*.css",
     "./dist/waveform-player.esm.js",
     "./dist/waveform-player.cjs",
+    "./dist/waveform-player-no-autoinit.esm.js",
+    "./dist/waveform-player-no-autoinit.cjs",
     "./dist/waveform-player.js",
     "./dist/waveform-player.min.js",
-    "./src/js/index.js"
+    "./src/js/index.js",
+    "./src/js/entry.js"
   ],
   "devDependencies": {
     "concurrently": "^10.0.3",
