@@ -1607,8 +1607,9 @@ export class WaveformPlayer {
     /**
      * Re-fit the canvas backing store to its parent's width and the configured
      * height, scaled by the device pixel ratio for crisp rendering, then
-     * redraw. Guards against running after destruction.
-     * @private
+     * redraw. Guards against running after destruction. Public: the resize
+     * observer doesn't reliably fire on a DOM move, so call this after
+     * relocating the player.
      */
     resizeCanvas() {
         // Guard against calls after destruction

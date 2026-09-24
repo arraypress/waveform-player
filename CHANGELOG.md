@@ -93,6 +93,13 @@ All notable changes to this project will be documented in this file.
   `0.1` (a zero-width bar was invisible anyway), and the bar drawers treat an
   unusable pitch as zero bars, since options stay mutable after construction.
 
+- **Type declarations match the runtime.** `generateWaveformData()` is typed
+  `Promise<number[]>` (it resolves the peaks array, not `{peaks, bpm}`);
+  `getPeaksUrl()` accepts `null`/`undefined` and returns `string | undefined`,
+  as documented; `setWaveformData()` returns `Promise<boolean> | void`; the
+  public `refreshTheme()` and `resizeCanvas()` are declared; `bpm` accepts
+  `null`. `npm run test:pack` now pins these signatures.
+
 ### Changed
 
 - **`loadTrack()` resets `bpm` and `album` unless the call supplies them.** Both

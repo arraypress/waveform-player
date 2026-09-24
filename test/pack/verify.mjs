@@ -209,6 +209,13 @@ const b: typeof WaveformPlayer = NoInitNamed;
 const opts: WaveformPlayerOptions = { url: 'x.mp3', waveformStyle: 'mirror' };
 export const built = new NoInit(document.createElement('div'), opts);
 export { a, b };
+
+// The declared signatures must match what the runtime returns/accepts.
+export const peaks: Promise<number[]> = WaveformPlayer.generateWaveformData('x.mp3');
+export const peaksUrl: string | undefined = WaveformPlayer.getPeaksUrl(null);
+export const sidecar: Promise<boolean> | void = built.setWaveformData('/t.json?v=2');
+built.refreshTheme();
+built.resizeCanvas();
 `
 	);
 

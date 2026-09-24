@@ -197,8 +197,12 @@ export interface WaveformPlayerOptions {
 	seekHandle?: boolean;
 	/** Show detected BPM. @default false */
 	showBPM?: boolean;
-	/** Known BPM shown in the badge (with `showBPM`); wins over auto-detection. */
-	bpm?: number;
+	/**
+	 * Known BPM shown in the badge (with `showBPM`); wins over auto-detection
+	 * and over a peaks sidecar's `bpm`. Per-track: `loadTrack()` resets it
+	 * unless the call supplies one.
+	 */
+	bpm?: number | null;
 
 	// ── Behaviour ─────────────────────────────────────────────────
 	/** Begin playback on load. @default false */
@@ -239,6 +243,7 @@ export interface WaveformPlayerOptions {
 	title?: string | null;
 	artist?: string | null;
 	artwork?: string | null;
+	/** Media Session (lock-screen) album. Per-track: `loadTrack()` resets it unless the call supplies one. */
 	album?: string;
 	/** Alt text for the artwork image. Localize for non-English UIs. @default 'Album artwork' */
 	artworkAlt?: string;
@@ -354,30 +359,51 @@ export declare class WaveformPlayer {
 	 * promise; in `external` mode dispatches `waveformplayer:request-play` and returns `undefined`.
 	 */
 	play(): Promise<void> | undefined;
-	/** Pause playback (or dispatch `request-pause` in external mode). */
+	/**
+	 * Pause playback. In `external` mode dispatches the cancelable
+	 * `waveformplayer:request-pause`; `preventDefault()` keeps this player as
+	 * {@link WaveformPlayer.currentlyPlaying}, as a vetoed `request-play` never claims it.
+	 */
 	pause(): void;
 	/** Toggle play / pause. */
 	togglePlay(): void;
 	/** Load (or replace) the audio URL and regenerate the waveform. */
 	load(url: string): Promise<void>;
-	/** Load a new track without re-instantiating; updates metadata then plays. */
+	/**
+	 * Load a new track without re-instantiating; updates metadata then plays
+	 * (unless `options.autoplay === false`, or a later load superseded it).
+	 * A `null` title or artist keeps the current one; `markers`, `waveform`,
+	 * `bpm` and `album` reset unless supplied.
+	 */
 	loadTrack(url: string, title?: string | null, artist?: string | null, options?: WaveformPlayerOptions): Promise<void>;
-	/** Seek to an absolute time in seconds (self mode). */
+	/** Seek to an absolute time in seconds (self mode). A non-finite value is ignored. */
 	seekTo(seconds: number): void;
-	/** Seek to a fraction of total duration, 0..1 (self mode). */
+	/** Seek to a fraction of total duration, 0..1 (self mode). A non-finite value is ignored. */
 	seekToPercent(percent: number): void;
 	/** Set output volume, 0..1 (self mode). */
 	setVolume(volume: number): void;
 	/** Set the playback rate, clamped to 0.25–4 (self mode). */
 	setPlaybackRate(rate: number): void;
-	/** Provide pre-computed peaks directly. */
-	setWaveformData(data: WaveformPeaks): void;
+	/**
+	 * Provide pre-computed peaks directly. For a `.json` URL, returns a promise
+	 * of whether the sidecar was fetched and applied; otherwise applies
+	 * synchronously and returns nothing.
+	 */
+	setWaveformData(data: WaveformPeaks): Promise<boolean> | void;
 	/** Highlight the marker at `index` (clears the rest); pass `null` to clear all. */
 	setActiveMarker(index: number | null): void;
 	/** External mode: push play/pause state so the visualisation reflects your audio source. */
 	setPlayingState(playing: boolean): void;
 	/** External mode: push the current position so the progress overlay advances. */
 	setProgress(currentTime: number, duration: number): void;
+	/**
+	 * Re-detect the page's light/dark theme and re-apply the auto colours. Runs
+	 * automatically on theme switches; call it after a change the shared
+	 * watcher can't see. No-op with an explicit `colorPreset` or hand-set colours.
+	 */
+	refreshTheme(): void;
+	/** Re-fit the canvas to its container and redraw — call after moving the player in the DOM. */
+	resizeCanvas(): void;
 	/** Tear down the player: stops audio, removes all listeners, clears the container. */
 	destroy(): void;
 
@@ -391,10 +417,15 @@ export declare class WaveformPlayer {
 	static getAllInstances(): WaveformPlayer[];
 	/** Destroy every live instance. */
 	static destroyAll(): void;
-	/** Decode an audio URL to peak data without constructing a player. */
-	static generateWaveformData(url: string, samples?: number): Promise<{ peaks: number[]; bpm: number | null }>;
-	/** Convention helper: derive the sibling `.json` peaks URL for an audio URL. */
-	static getPeaksUrl(audioUrl: string): string;
+	/** Decode an audio URL to peak data (0..1 amplitudes) without constructing a player. */
+	static generateWaveformData(url: string, samples?: number): Promise<number[]>;
+	/**
+	 * Convention helper: derive the sibling `.json` peaks URL for an audio URL
+	 * (query string and fragment preserved). Returns `undefined` for an empty
+	 * input or an unrecognised extension, so it can be passed straight through
+	 * as the `waveform` option.
+	 */
+	static getPeaksUrl(audioUrl: string | null | undefined): string | undefined;
 	/**
 	 * Scan for `[data-waveform-player]` elements and initialise them.
 	 *
