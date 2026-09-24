@@ -189,6 +189,28 @@ describe('parseDataAttributes', () => {
 		expect(o.barRadius).toBe(4);
 	});
 
+	it('lets the canonical attribute win over its legacy alias (data-color / data-theme)', () => {
+		const el = document.createElement('div');
+		Object.assign(el.dataset, { color: '#f00', waveformColor: '#00f', theme: 'light', colorPreset: 'dark' });
+		const o = parseDataAttributes(el);
+		expect(o.waveformColor).toBe('#00f');
+		expect(o.colorPreset).toBe('dark');
+	});
+
+	it('still honours the legacy aliases on their own', () => {
+		const el = document.createElement('div');
+		Object.assign(el.dataset, { color: '#f00', theme: 'light' });
+		const o = parseDataAttributes(el);
+		expect(o.waveformColor).toBe('#f00');
+		expect(o.colorPreset).toBe('light');
+	});
+
+	it('parses a gradient stop array in legacy data-color like data-waveform-color', () => {
+		const el = document.createElement('div');
+		el.dataset.color = '["#fafafa", "#71717a"]';
+		expect(parseDataAttributes(el).waveformColor).toEqual(['#fafafa', '#71717a']);
+	});
+
 	it('reads data-artwork-position', () => {
 		const el = document.createElement('div');
 		el.dataset.artworkPosition = 'button';

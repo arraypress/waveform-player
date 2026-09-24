@@ -115,6 +115,12 @@ All notable changes to this project will be documented in this file.
   120, and when no interval fell in the 60–200 range it returned 119 — both
   shown by `showBPM` as if measured. It now returns `null`, and the badge stays
   hidden.
+- **Canonical attributes beat their legacy aliases.** `data-color` and
+  `data-theme` were applied *after* `data-waveform-color` / `data-color-preset`,
+  so on an element carrying both the legacy name won — the opposite of the
+  documented rule (and of `data-style` / `data-src`). The canonical attribute
+  now wins, and `data-color` accepts a JSON gradient stop array like
+  `data-waveform-color` does.
 
 ## [1.27.1] — 2026-09-24
 

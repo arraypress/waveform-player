@@ -344,16 +344,18 @@ export function parseDataAttributes(element) {
     setLength('buttonSize');
     setLength('buttonRadius');
 
+    // Legacy names first, so the canonical attribute below wins when both are
+    // set — the same rule as `data-style` / `data-src`. `data-color` takes the
+    // same values as `data-waveform-color`, gradient stop arrays included.
+    if (element.dataset.color) options.waveformColor = parseColorValue(element.dataset.color);
+    if (element.dataset.theme) options.colorPreset = element.dataset.theme;
+
     // Color preset
     if (element.dataset.colorPreset) options.colorPreset = element.dataset.colorPreset;
 
     // Individual color customization
     if (element.dataset.waveformColor) options.waveformColor = parseColorValue(element.dataset.waveformColor);
     if (element.dataset.progressColor) options.progressColor = parseColorValue(element.dataset.progressColor);
-
-    // Legacy support for old attribute names
-    if (element.dataset.color) options.waveformColor = element.dataset.color;
-    if (element.dataset.theme) options.colorPreset = element.dataset.theme;
 
     // Feature flags
     setBool('autoplay');
