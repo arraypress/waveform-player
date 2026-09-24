@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.28.1] — 2026-09-24
+
 ### Fixed
 
 - **`height` below 60px now works.** `.waveform-container` carried a
