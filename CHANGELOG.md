@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.28.0] — 2026-09-24
+
 ### Fixed
 
 - **A superseded load no longer lands on the track that replaced it.** Calling
