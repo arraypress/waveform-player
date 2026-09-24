@@ -153,6 +153,10 @@ export class WaveformPlayer {
         this.hasError = false;
         this.updateTimer = null;
         this.resizeObserver = null;
+        // Load ticket: every load() takes the next one, and anything that
+        // resumes after an await checks it still holds the current one before
+        // touching state. See load().
+        this._loadId = 0;
 
         // All DOM/document listeners are registered with this signal so a
         // single abort() in destroy() tears every one of them down (the old
@@ -185,8 +189,10 @@ export class WaveformPlayer {
             throw error;
         }
 
-        // Dispatch ready event after initialization
-        setTimeout(() => {
+        // Dispatch ready event after initialization. Kept so destroy() can
+        // cancel it — a player torn down inside this window must not announce
+        // itself to listeners that already saw its destroy event.
+        this._readyTimer = setTimeout(() => {
             this._emit('waveformplayer:ready', {player: this, url: this.options.url});
         }, 100);
     }
@@ -247,10 +253,15 @@ export class WaveformPlayer {
 
         // Ensure proper sizing after DOM is ready
         requestAnimationFrame(() => {
+            // Destroyed before the first frame (a wrapper that mounts and
+            // unmounts in one tick): don't start a load for a dead player.
+            if (this.isDestroying) return;
             this.resizeCanvas();
 
-            // Load audio if URL provided
-            if (this.options.url) {
+            // Load audio if URL provided — unless the caller already started
+            // a load()/loadTrack() before this frame, which would otherwise
+            // be decoded twice and superseded by this one.
+            if (this.options.url && !this._loadId) {
                 this.load(this.options.url).then(() => {
                     if (this.options.autoplay) {
                         this.play()?.catch(() => {});
@@ -1179,19 +1190,39 @@ export class WaveformPlayer {
      * accessible name are written *before* the metadata wait, as are peaks
      * supplied via the `waveform` option — none of them need anything from the
      * audio element, and behind the wait they blink in on a slow origin.
-     * Without inline peaks the waveform is decoded from the audio instead; a
-     * decode failure falls back to a placeholder. The `onLoad` callback fires
-     * on success.
+     * Without inline peaks — or when a `.json` peaks sidecar can't be fetched —
+     * the waveform is decoded from the audio instead; a decode failure falls
+     * back to a placeholder. The `onLoad` callback fires on success.
+     *
+     * Every call supersedes the previous one: a load that is overtaken while
+     * it awaits (metadata, a sidecar fetch, the decode) stops there without
+     * touching the player, so a slow first track can't land its peaks, BPM,
+     * error or loading state on the track that replaced it.
+     *
+     * Loading a *different* URL also resets what the previous track left
+     * behind (see {@link WaveformPlayer#_resetTrack}); reloading the same URL
+     * — e.g. a retry after an error — keeps the drawn waveform. Either way the
+     * error state is cleared, so a retry re-enables the player.
      * @param {string} url - Audio URL.
      * @returns {Promise<void>} Resolves once loading settles (errors are caught
      *   internally and surfaced through {@link WaveformPlayer#onError}).
      */
     async load(url) {
+        const id = ++this._loadId;
+        // Held locally: destroy() nulls this.audio while the metadata wait
+        // below is still pending, and its handlers must still be able to
+        // unhook themselves and settle the promise.
+        const audio = this.audio;
         try {
+            if (url !== this.options.url) this._resetTrack();
             this.setLoading(true);
             this.progress = 0;
-            this.hasError = false;
+            this._setError(false);
             this.container.classList.remove('waveform-is-placeholder');
+            // A detected tempo describes the audio that was decoded, not the
+            // one being loaded. A caller's `bpm` option still shows at once.
+            this.detectedBPM = null;
+            this.updateBPMDisplay();
 
             // Record the URL first so every event emitted from here on (and
             // the extensions that read options.url, e.g. waveform-tracker)
@@ -1203,11 +1234,10 @@ export class WaveformPlayer {
             // playback state, so draw them up front rather than behind the
             // metadata wait below. On a slow (or non-Range-capable) audio
             // origin that wait is seconds long, and the canvas used to sit
-            // blank for all of it. See issue #23.
-            const hasInlinePeaks = !!this.options.waveform;
-            if (hasInlinePeaks) {
-                this.setWaveformData(this.options.waveform);
-            }
+            // blank for all of it. See issue #23. A `.json` sidecar comes back
+            // as a promise, fetched in parallel with the metadata wait.
+            const inlinePeaks = this.options.waveform;
+            const sidecar = inlinePeaks ? this.setWaveformData(inlinePeaks) : null;
 
             // Same reasoning as the peaks above: the title comes from the
             // `title` option or the URL, so it needs nothing from the audio
@@ -1226,9 +1256,9 @@ export class WaveformPlayer {
             // waveform peaks so the canvas can render the visualization.
             // Duration / current time come from the external controller
             // via setProgress().
-            if (this.audio) {
+            if (audio) {
                 // Set audio source
-                this.audio.src = url;
+                audio.src = url;
 
                 // preload="none" tells the browser to fetch nothing until
                 // play(), so `loadedmetadata` will never arrive and awaiting
@@ -1237,30 +1267,32 @@ export class WaveformPlayer {
                 // wait; the bindEvents() `loadedmetadata` listener still
                 // fires whenever metadata does land, and onMetadataLoaded()
                 // fills in duration + markers then.
-                if (this.audio.preload !== 'none') {
+                if (audio.preload !== 'none') {
                     // Wait for metadata to load
                     await new Promise((resolve, reject) => {
-                        const metadataHandler = () => {
-                            this.audio.removeEventListener('loadedmetadata', metadataHandler);
-                            this.audio.removeEventListener('error', errorHandler);
-                            resolve();
+                        const settle = (fn) => (e) => {
+                            audio.removeEventListener('loadedmetadata', metadataHandler);
+                            audio.removeEventListener('error', errorHandler);
+                            fn(e);
                         };
-                        const errorHandler = (e) => {
-                            this.audio.removeEventListener('loadedmetadata', metadataHandler);
-                            this.audio.removeEventListener('error', errorHandler);
-                            reject(e);
-                        };
-                        this.audio.addEventListener('loadedmetadata', metadataHandler);
-                        this.audio.addEventListener('error', errorHandler);
+                        const metadataHandler = settle(resolve);
+                        const errorHandler = settle(reject);
+                        audio.addEventListener('loadedmetadata', metadataHandler);
+                        audio.addEventListener('error', errorHandler);
                     });
                 }
             }
 
-            // Peaks were drawn above; only the decode path is left.
-            if (!hasInlinePeaks) {
-                // Generate waveform
+            // `false` = the sidecar couldn't be used; `undefined` = inline
+            // peaks (already drawn) or none at all.
+            const sidecarOk = await sidecar;
+            if (id !== this._loadId) return;
+
+            // No usable caller-supplied peaks: decode them from the audio.
+            if (!inlinePeaks || sidecarOk === false) {
                 try {
                     const result = await generateWaveform(url, this.options.samples, this.options.showBPM);
+                    if (id !== this._loadId) return;
                     this.waveformData = result.peaks;
 
                     // Store BPM if detected
@@ -1269,6 +1301,7 @@ export class WaveformPlayer {
                         this.updateBPMDisplay();
                     }
                 } catch (error) {
+                    if (id !== this._loadId) return;
                     console.warn('[WaveformPlayer] Using placeholder waveform:', error);
                     this.waveformData = generatePlaceholderWaveform(this.options.samples);
                     this.container.classList.add('waveform-is-placeholder');
@@ -1284,10 +1317,50 @@ export class WaveformPlayer {
             }
         } catch (error) {
             // onError() is the single funnel for surfacing + logging errors.
-            this.onError(error);
+            // A self-mode media error reaches it twice — the bindEvents()
+            // `error` listener runs first, then this rejection — so one
+            // failure must not report twice. A superseded load's failure
+            // belongs to a track nobody is waiting for.
+            if (id === this._loadId && !this.hasError) this.onError(error);
         } finally {
-            this.setLoading(false);
+            // Only the current load owns the loading state; a superseded one
+            // finishing must not clear it while its successor is still busy.
+            if (id === this._loadId) this.setLoading(false);
         }
+    }
+
+    /**
+     * Forget everything the previous track left on the player: its peaks,
+     * progress, duration (external mode), time readout and marker buttons.
+     * Shared by {@link WaveformPlayer#loadTrack} and a {@link WaveformPlayer#load}
+     * of a different URL, so neither path can show the old track's `1:30` or
+     * place the new track's markers against the old duration. Per-track
+     * *options* are reset by `loadTrack()`, which is the path that receives them.
+     * @private
+     */
+    _resetTrack() {
+        this.progress = 0;
+        this.waveformData = [];
+        this._extDuration = 0;
+        this._extEnded = false;
+        if (this.currentTimeEl) this.currentTimeEl.textContent = '0:00';
+        if (this.totalTimeEl) this.totalTimeEl.textContent = '0:00';
+        if (this.markersContainer) this.markersContainer.innerHTML = '';
+    }
+
+    /**
+     * Show or clear the error state: the overlay, the dimmed canvas and the
+     * disabled play button. The one place both {@link WaveformPlayer#onError}
+     * and a fresh {@link WaveformPlayer#load} flip it, so a retry can't leave
+     * half of it behind.
+     * @param {boolean} on - True to enter the error state, false to clear it.
+     * @private
+     */
+    _setError(on) {
+        this.hasError = on;
+        if (this.errorEl) this.errorEl.style.display = on ? 'flex' : 'none';
+        if (this.canvas) this.canvas.style.opacity = on ? '0.2' : '1';
+        if (this.playBtn) this.playBtn.disabled = on;
     }
 
     /**
@@ -1297,14 +1370,22 @@ export class WaveformPlayer {
      * clears error/marker/progress state, merges the new metadata into
      * `this.options`, updates the artist/artwork DOM, then calls
      * {@link WaveformPlayer#load}. Auto-plays the new track unless
-     * `options.autoplay === false`.
+     * `options.autoplay === false` — and only if no later `loadTrack()` /
+     * `load()` has superseded this one by the time it finishes loading.
+     *
+     * Per-track options the caller doesn't repeat are reset rather than
+     * inherited from the previous track: `markers`, `waveform`, `bpm` and
+     * `album`.
      * @param {string} url - Audio URL.
      * @param {string|null} [title=null] - Track title; keeps the existing
-     *   title when null.
+     *   title when null. (Deliberate: a controller that only swaps the
+     *   audio keeps the label it set. Pass `''` to derive the title from the
+     *   URL instead.)
      * @param {string|null} [artist=null] - Track artist; pass `''` to hide
      *   the artist row, or null to keep the existing one.
      * @param {Object} [options={}] - Additional options to merge (e.g.
-     *   `preload`, `artwork`, `artworkAlt`, `markers`, `autoplay`).
+     *   `preload`, `artwork`, `artworkAlt`, `markers`, `bpm`, `album`,
+     *   `autoplay`).
      * @returns {Promise<void>}
      */
     async loadTrack(url, title = null, artist = null, options = {}) {
@@ -1322,21 +1403,9 @@ export class WaveformPlayer {
             this.audio.load();
         }
 
-        // Clear any errors
-        this.hasError = false;
-        if (this.errorEl) {
-            this.errorEl.style.display = 'none';
-        }
-        if (this.canvas) {
-            this.canvas.style.opacity = '1';
-        }
-        if (this.playBtn) {
-            this.playBtn.disabled = false;
-        }
-
-        // Reset state
-        this.progress = 0;
-        this.waveformData = [];
+        // Peaks, progress, duration, time readout, markers. The error state
+        // is cleared by load() itself, so a plain load() retry gets it too.
+        this._resetTrack();
 
         // Update options (including preload if specified). Normalized on the
         // same terms as the constructor — loadTrack takes a fresh, caller-
@@ -1354,6 +1423,13 @@ export class WaveformPlayer {
             this.options.artworkAlt = options.artworkAlt || '';
         } else if (hasArtworkOption) {
             this.options.artworkAlt = this.options.artwork ? DEFAULT_OPTIONS.artworkAlt : '';
+        }
+
+        // `bpm` and `album` describe one track. mergeOptions() skips null
+        // sources, so without this the previous track's tempo badge and
+        // lock-screen album would carry over to every track after it.
+        for (const key of ['bpm', 'album']) {
+            if (options[key] == null) this.options[key] = DEFAULT_OPTIONS[key];
         }
 
         // Apply preload setting if it was changed. The caller's value decides
@@ -1394,12 +1470,17 @@ export class WaveformPlayer {
         // waveform (audio changes, visualization doesn't).
         this.options.waveform = options.waveform || null;
 
-        // Load the new track
-        await this.load(url);
+        // Load the new track. load() takes its ticket synchronously, so this
+        // is the id to compare against once it settles.
+        const loading = this.load(url);
+        const id = this._loadId;
+        await loading;
 
         // Auto-play the new track unless the caller opted out — lets a
-        // controller load/restore/enqueue without forcing playback.
-        if (options.autoplay !== false) {
+        // controller load/restore/enqueue without forcing playback. A track
+        // that was superseded while loading must not start (or, in external
+        // mode, request) playback over the one that replaced it.
+        if (options.autoplay !== false && id === this._loadId) {
             this.play()?.catch(() => {});
         }
     }
@@ -1412,31 +1493,58 @@ export class WaveformPlayer {
      * Normalise externally-supplied waveform data into `this.waveformData` and
      * redraw.
      *
-     * Accepts several shapes: a `.json` URL (fetched async; peaks and any
-     * embedded `markers` are applied on resolve), a JSON-encoded array string,
-     * a comma-separated number string, or a plain number array. Malformed
-     * input degrades to an empty array rather than throwing.
+     * Accepts several shapes: a `.json` URL (fetched async — a query string
+     * or fragment is fine, which is what {@link WaveformPlayer.getPeaksUrl}
+     * produces for a versioned audio URL), a JSON-encoded array string, a
+     * comma-separated number string, or a plain number array. Malformed input
+     * degrades to an empty array rather than throwing.
+     *
+     * A sidecar may be a bare peaks array or a `{peaks, markers, bpm}` object
+     * (the shape `@arraypress/waveform-gen` writes): its markers apply when the
+     * track has none of its own, and its `bpm` feeds the badge when no `bpm`
+     * option is set. A sidecar that fails to fetch (network error, non-2xx) or
+     * carries no peaks resolves `false` and leaves the canvas as it was —
+     * {@link WaveformPlayer#load} then decodes the audio instead. One that
+     * resolves after a newer load has started is discarded.
      * @param {string|number[]} data - Peaks as an array, a JSON/CSV string, or
      *   a URL to a `.json` peaks file.
-     * @private
+     * @returns {Promise<boolean>|undefined} For a `.json` URL, a promise of
+     *   whether the sidecar was applied; otherwise `undefined` (applied
+     *   synchronously).
      */
     setWaveformData(data) {
-        // URL to JSON file — fetch peaks and maybe markers
-        if (typeof data === 'string' && data.trim().endsWith('.json')) {
-            fetch(data.trim())
-                .then(r => r.json())
+        // URL to JSON file — fetch peaks and maybe markers / bpm
+        if (typeof data === 'string' && /\.json(?:[?#]|$)/i.test(data.trim())) {
+            const id = this._loadId;
+            return fetch(data.trim())
+                .then(r => {
+                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                    return r.json();
+                })
                 .then(json => {
-                    this.waveformData = Array.isArray(json) ? json : (json.peaks || []);
+                    if (id !== this._loadId) return false;
+                    const peaks = toNumberArray(Array.isArray(json) ? json : json?.peaks, {fallback: []});
+                    if (!peaks.length) throw new Error('no peaks');
+                    this.waveformData = peaks;
                     // A peaks sidecar is a third source of markers, and a remote
                     // one — normalize it on the same terms as the option paths.
                     if (json.markers && !this.options.markers?.length) {
                         this.options.markers = normalizeMarkers(json.markers);
                         this.renderMarkers();
                     }
+                    // A `bpm` option still wins — updateBPMDisplay() prefers it.
+                    const bpm = toFiniteNumber(json.bpm, null, {min: 1});
+                    if (bpm) {
+                        this.detectedBPM = bpm;
+                        this.updateBPMDisplay();
+                    }
                     this.drawWaveform();
+                    return true;
                 })
-                .catch(() => {});
-            return;
+                .catch(error => {
+                    console.warn('[WaveformPlayer] Could not use peaks file:', data, error);
+                    return false;
+                });
         }
 
         // Peaks may arrive as an array, a JSON array string, or a bare
@@ -1932,20 +2040,8 @@ export class WaveformPlayer {
         if (this.isDestroying) return;
 
         console.error('[WaveformPlayer] Audio error:', error);
-        this.hasError = true;
+        this._setError(true);
         this.setLoading(false);
-
-        if (this.errorEl) {
-            this.errorEl.style.display = 'flex';
-        }
-
-        if (this.canvas) {
-            this.canvas.style.opacity = '0.2';
-        }
-
-        if (this.playBtn) {
-            this.playBtn.disabled = true;
-        }
 
         if (this.options.onError) {
             this.options.onError(error, this);
@@ -2043,7 +2139,9 @@ export class WaveformPlayer {
     // ============================================
 
     /**
-     * Show the detected BPM in the badge, once a value has been detected.
+     * Show the track's BPM in the badge, or hide the badge when the current
+     * track has none — a load resets the detected value, so the previous
+     * track's tempo can't linger on the next one.
      * @private
      */
     updateBPMDisplay() {
@@ -2051,9 +2149,9 @@ export class WaveformPlayer {
         // are pre-generated (so the audio is never decoded) but the BPM is known
         // anyway, e.g. sample-pack previews where the tempo is in the metadata.
         const bpm = this.options.bpm || this.detectedBPM;
-        if (this.bpmEl && this.bpmValueEl && bpm) {
-            this.bpmValueEl.textContent = Math.round(bpm);
-            this.bpmEl.style.display = 'inline-flex';
+        if (this.bpmEl && this.bpmValueEl) {
+            if (bpm) this.bpmValueEl.textContent = Math.round(bpm);
+            this.bpmEl.style.display = bpm ? 'inline-flex' : 'none';
         }
     }
 
@@ -2276,12 +2374,14 @@ export class WaveformPlayer {
         if (this.currentTimeEl)  this.currentTimeEl.textContent  = formatTime(currentTime);
         // Publish the duration unconditionally — the accessible seek slider
         // and keyboard seeking read getSeekDuration()/_extDuration even when
-        // there's no time display to update.
-        this._extDuration = duration;
-        if (this.totalTimeEl && (!this.totalTimeEl.dataset._extSet || this.totalTimeEl.dataset._extDur !== String(duration))) {
-            this.totalTimeEl.textContent = formatTime(duration);
-            this.totalTimeEl.dataset._extSet = '1';
-            this.totalTimeEl.dataset._extDur = String(duration);
+        // there's no time display to update. A new duration (first push, or
+        // a new track — loadTrack() zeroes it) is also what markers were
+        // waiting for: load() ran before any duration existed, so this is
+        // the first point they can be placed.
+        if (duration !== this._extDuration) {
+            this._extDuration = duration;
+            if (this.totalTimeEl) this.totalTimeEl.textContent = formatTime(duration);
+            this.renderMarkers();
         }
         this.drawWaveform?.();
         this.updateActiveMarker();
@@ -2401,10 +2501,16 @@ export class WaveformPlayer {
         // before teardown — the symmetric counterpart to waveformplayer:ready.
         this._emit('waveformplayer:destroy', {player: this, url: this.options.url});
 
-        // Stop playback and animations
-        this.pause();
+        // Stop playback and animations. The <audio> itself is paused and
+        // released below; this.pause() isn't called because in external
+        // mode it emits request-pause, and a wrapper remounting an inline
+        // player would pause the controller's (e.g. the bar's) playback.
         this.stopSmoothUpdate();
         clearTimeout(this._markerLabelTimer);
+        clearTimeout(this._readyTimer);
+        // Supersede any in-flight load() so it stops at its next await
+        // instead of decoding, drawing and firing onLoad for a dead player.
+        this._loadId++;
 
         // Tear down every document/container/seek listener in one shot.
         this._ac?.abort();

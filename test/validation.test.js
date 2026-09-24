@@ -328,6 +328,7 @@ describe('markers', () => {
 
 	it('normalizes markers arriving from a peaks JSON sidecar', async () => {
 		const fetchMock = vi.fn().mockResolvedValue({
+			ok: true,
 			json: async () => ({ peaks: [0.5, 1], markers: [{ time: 'x' }, { time: 2, label: 'Verse' }] })
 		});
 		vi.stubGlobal('fetch', fetchMock);

@@ -4,6 +4,69 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A superseded load no longer lands on the track that replaced it.** Calling
+  `loadTrack(a)` then `loadTrack(b)` while `a` was still decoding let `a`'s
+  slower decode finish last: `options.url` said `b`, but the canvas and BPM
+  badge showed `a`. `a`'s `loadTrack()` also went on to call `play()` — a
+  duplicate `request-play` in external mode — and its `finally` cleared the
+  loading state while `b` was still loading. Each `load()` now takes a ticket
+  and stops at its next `await` once a newer load (or `destroy()`) has
+  started; that covers the metadata wait, the decode, a `.json` peaks sidecar
+  fetch, the error path and `loadTrack()`'s autoplay.
+- **`loadTrack()` straight after construction decodes once.** The
+  constructor's first-frame `load()` ran *after* a same-tick `loadTrack()` had
+  set the url, so the file was fetched and decoded twice. The first-frame load
+  now only runs when nothing has started a load yet.
+- **Peaks sidecar URLs with a query string or fragment are fetched.** Only a
+  string *ending* in `.json` was treated as a URL, so
+  `getPeaksUrl('/t.wav?v=2')` → `'/t.json?v=2'` was parsed as inline peaks,
+  became `[]`, and left a blank canvas. `.json` is now matched before `?`/`#`.
+- **A missing or broken peaks sidecar falls back to decoding the audio.** The
+  fetch ignored `response.ok` and swallowed every failure, so a 404 left the
+  canvas blank for good. A non-2xx response, a network error or a file with no
+  peaks now falls through to the same decode → placeholder path as a track
+  with no peaks at all.
+- **A sidecar's `bpm` reaches the badge.** `@arraypress/waveform-gen --bpm`
+  writes `bpm` into the JSON and the docs said the player used it; it didn't.
+  It now shows with `showBPM` whenever no `bpm` option is set (the option
+  still wins).
+- **External-mode markers render without a manual `renderMarkers()`.**
+  `load()` runs before the controller has pushed a duration, and
+  `setProgress()` never re-rendered, so markers never appeared. `setProgress()`
+  now places them whenever the duration changes.
+- **`loadTrack()` forgets the previous track's duration and time readout.**
+  The total time kept showing the old track's `1:30` until the controller
+  pushed a new duration, and external-mode markers were placed against the old
+  one. A new track (via `loadTrack()`, or `load()` with a different URL) now
+  starts from `0:00` with no duration.
+- **`load(url)` after a failed load re-enables the player.** `hasError` was
+  reset but the play button stayed disabled and the error overlay stayed up —
+  only `loadTrack()` cleared them. `load()` now clears the whole error state.
+- **One self-mode audio failure fires `onError` once.** The media element's
+  `error` event reached `onError` through the `bindEvents()` listener and again
+  through `load()`'s rejection path.
+- **`destroy()` during the metadata wait no longer throws.** `destroy()` nulls
+  `this.audio`, then the pending wait's error handler called
+  `this.audio.removeEventListener` → `TypeError`, and `load()` never settled.
+- **A player destroyed within its first frame stays dead.** The constructor's
+  `waveformplayer:ready` timer and first-frame `load()` still ran for it, so
+  listeners saw `destroy` followed by `ready`, and the audio was fetched and
+  decoded for a player that no longer existed.
+
+### Changed
+
+- **`loadTrack()` resets `bpm` and `album` unless the call supplies them.** Both
+  describe one track, but `mergeOptions` carried them over, so every later
+  track showed the first track's tempo badge and lock-screen album. A detected
+  BPM is also dropped when a new track loads, and the badge now hides when the
+  current track has no BPM (it could previously only ever be shown).
+- **With a `.json` peaks sidecar, `onLoad` fires once the sidecar has been
+  applied** (previously it could fire before the peaks arrived), and
+  `setWaveformData()` returns a `Promise<boolean>` for a sidecar URL (whether
+  it was applied); it still returns nothing for inline peaks.
+
 ## [1.27.1] — 2026-09-24
 
 ### Fixed
