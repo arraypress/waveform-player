@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.27.1] — 2026-09-24
+
+### Fixed
+
+- **`load(url)` now updates `options.url`.** ([#30]) Only `loadTrack()` recorded
+  the new URL; a direct `load(newUrl)` swapped the audio and the waveform but
+  left `options.url` on the previous track. Every `waveformplayer:*` event
+  carries `url: this.options.url`, and extensions read it directly, so
+  `waveform-tracker` kept attributing plays of the new track to the old one.
+  The URL is now recorded at the start of `load()`, so events fired while the
+  track is still loading — and a load that fails — report the track being
+  loaded.
+
+[#30]: https://github.com/arraypress/waveform-player/issues/30
+
 ## [1.27.0] — 2026-09-21
 
 ### Added

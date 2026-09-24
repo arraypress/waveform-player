@@ -1942,6 +1942,7 @@ var WaveformPlayer = class _WaveformPlayer {
       this.progress = 0;
       this.hasError = false;
       this.container.classList.remove("waveform-is-placeholder");
+      this.options.url = url;
       const hasInlinePeaks = !!this.options.waveform;
       if (hasInlinePeaks) {
         this.setWaveformData(this.options.waveform);
