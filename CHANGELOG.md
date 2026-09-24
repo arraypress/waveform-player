@@ -73,6 +73,20 @@ All notable changes to this project will be documented in this file.
   clock moved the playhead back under the cursor mid-scrub; it now waits for
   the release, as self mode already did.
 
+- **The chosen playback speed survives a track change.** Every `src` change
+  runs the media load algorithm, which resets `playbackRate` to
+  `defaultPlaybackRate` — so the `playbackRate` option was undone by the first
+  load, and a speed picked from the menu reverted to 1× on `loadTrack()`.
+  The rate is now written to `defaultPlaybackRate` as well.
+- **`seekTo()` / `seekToPercent()` ignore a non-finite target.**
+  `audio.currentTime = NaN` throws, so a bad value from a controller or a
+  stale store crashed the caller. They're now guarded like `setVolume()`.
+- **The lock-screen scrubber follows seeks and speed changes.** Media Session
+  `setPositionState()` was only updated on play/pause, so it drifted after
+  every seek or rate change until the next one. It now also updates on the
+  element's `seeked` and `ratechange`, and only for the player that owns the
+  session, so a paused player's seek can't move another player's scrubber.
+
 ### Changed
 
 - **`loadTrack()` resets `bpm` and `album` unless the call supplies them.** Both

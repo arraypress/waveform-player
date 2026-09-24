@@ -641,8 +641,11 @@ export class WaveformPlayer {
         // WaveformBar) owns playback rate. Skip the audio init but
         // still bind the speed control UI in case the controller
         // wants to mirror rate changes via events later.
+        // defaultPlaybackRate too: the media load algorithm resets
+        // playbackRate to it on every src change, so setting playbackRate
+        // alone is silently undone by the first load().
         if (this.audio && this.options.playbackRate && this.options.playbackRate !== 1) {
-            this.audio.playbackRate = this.options.playbackRate;
+            this.audio.playbackRate = this.audio.defaultPlaybackRate = this.options.playbackRate;
         }
 
         // Initialize speed control UI if enabled
@@ -980,6 +983,10 @@ export class WaveformPlayer {
         // Session handlers; ours would conflict with its.
         if (!this.audio) return;
 
+        // The session is one global object; remember whose it is, so a
+        // paused player's seek can't move another player's lock-screen
+        // scrubber (see _updatePositionState).
+        WaveformPlayer._sessionOwner = this;
         this._applyMediaMetadata();
 
         // Set up action handlers
@@ -1037,14 +1044,26 @@ export class WaveformPlayer {
             // drive the player you're actually listening to, not the last one loaded.
             if (state === 'playing') this.initMediaSession();
             navigator.mediaSession.playbackState = state;
-            const d = this.audio.duration;
-            if (navigator.mediaSession.setPositionState && d && isFinite(d)) {
-                navigator.mediaSession.setPositionState({
-                    duration: d,
-                    playbackRate: this.audio.playbackRate || 1,
-                    position: clamp(this.audio.currentTime, 0, d),
-                });
-            }
+            this._updatePositionState();
+        } catch (e) { /* Media Session is best-effort */ }
+    }
+
+    /**
+     * Publish duration, rate and position to the lock-screen scrubber. Runs
+     * on play/pause and on the element's `seeked` / `ratechange`, so the
+     * scrubber doesn't drift after a seek or a speed change until the next
+     * play/pause. Only the player that owns the (global) session writes it.
+     * @private
+     */
+    _updatePositionState() {
+        const d = this.audio?.duration;
+        if (WaveformPlayer._sessionOwner !== this || !navigator.mediaSession?.setPositionState || !(d && isFinite(d))) return;
+        try {
+            navigator.mediaSession.setPositionState({
+                duration: d,
+                playbackRate: this.audio.playbackRate || 1,
+                position: clamp(this.audio.currentTime, 0, d),
+            });
         } catch (e) { /* Media Session is best-effort */ }
     }
 
@@ -1086,6 +1105,8 @@ export class WaveformPlayer {
             // count listening time from. The native event (~4Hz, still fired
             // in the background) takes over only once the loop has gone quiet,
             // so a foreground tab doesn't emit twice.
+            this.audio.addEventListener('seeked', () => this._updatePositionState());
+            this.audio.addEventListener('ratechange', () => this._updatePositionState());
             this.audio.addEventListener('timeupdate', () => {
                 if (this.isPlaying && Date.now() - this._frameAt > 500) this.updateProgress();
             });
@@ -2446,13 +2467,16 @@ export class WaveformPlayer {
     /**
      * Seek the owned `<audio>` element to an absolute time, clamped to
      * `[0, duration]`, and refresh progress. Self mode only — a no-op when
-     * there is no audio element or duration. External-mode keyboard/click
-     * seeks go through {@link WaveformPlayer#seekToSeconds} instead.
+     * there is no audio element or duration, or when `seconds` isn't a finite
+     * number. External-mode keyboard/click seeks go through
+     * {@link WaveformPlayer#seekToSeconds} instead.
      * @param {number} seconds - Target time in seconds.
      */
     seekTo(seconds) {
-        if (this.audio && this.audio.duration) {
-            this.audio.currentTime = clamp(seconds, 0, this.audio.duration);
+        // Coerce + guard like setVolume(): `audio.currentTime = NaN` throws.
+        const s = Number(seconds);
+        if (this.audio && this.audio.duration && Number.isFinite(s)) {
+            this.audio.currentTime = clamp(s, 0, this.audio.duration);
             this.updateProgress();
         }
     }
@@ -2460,12 +2484,13 @@ export class WaveformPlayer {
     /**
      * Seek the owned `<audio>` element to a fraction of the track, clamped to
      * `[0, 1]`, and refresh progress. Self mode only — a no-op without an audio
-     * element or duration.
+     * element or duration, or when `percent` isn't a finite number.
      * @param {number} percent - Position as a fraction from 0 to 1.
      */
     seekToPercent(percent) {
-        if (this.audio && this.audio.duration) {
-            this.audio.currentTime = this.audio.duration * clamp(percent);
+        const p = Number(percent);
+        if (this.audio && this.audio.duration && Number.isFinite(p)) {
+            this.audio.currentTime = this.audio.duration * clamp(p);
             this.updateProgress();
         }
     }
@@ -2492,7 +2517,8 @@ export class WaveformPlayer {
      * The clamp bounds the range browsers keep audible; the default speed menu
      * offers a narrower 0.5–2, which `playbackRates` can widen up to these
      * bounds. A non-numeric rate is ignored rather than assigned, since
-     * `audio.playbackRate = NaN` throws.
+     * `audio.playbackRate = NaN` throws. The rate is also written to
+     * `defaultPlaybackRate`, so it survives the next track load.
      * @param {number} rate - Desired playback rate; clamped to the 0.25–4 range.
      */
     setPlaybackRate(rate) {
@@ -2500,7 +2526,9 @@ export class WaveformPlayer {
 
         const clampedRate = toFiniteNumber(rate, null, {min: PLAYBACK_RATE_MIN, max: PLAYBACK_RATE_MAX});
         if (clampedRate === null) return;
-        this.audio.playbackRate = clampedRate;
+        // The default as well, or the next src change (loadTrack) quietly
+        // drops the listener back to 1x — see initPlaybackSpeed().
+        this.audio.playbackRate = this.audio.defaultPlaybackRate = clampedRate;
         this.options.playbackRate = clampedRate;
 
         this.updateSpeedUI();
@@ -2554,9 +2582,12 @@ export class WaveformPlayer {
         // Remove from instances map
         WaveformPlayer.instances.delete(this.id);
 
-        // Clear current playing reference if it's this instance
+        // Clear current playing / Media Session references to this instance
         if (WaveformPlayer.currentlyPlaying === this) {
             WaveformPlayer.currentlyPlaying = null;
+        }
+        if (WaveformPlayer._sessionOwner === this) {
+            WaveformPlayer._sessionOwner = null;
         }
 
         // Properly clean up audio element
