@@ -1193,6 +1193,12 @@ export class WaveformPlayer {
             this.hasError = false;
             this.container.classList.remove('waveform-is-placeholder');
 
+            // Record the URL first so every event emitted from here on (and
+            // the extensions that read options.url, e.g. waveform-tracker)
+            // reports the track actually loaded, even if the load fails.
+            // loadTrack() already sets it; a direct load(url) didn't. See #30.
+            this.options.url = url;
+
             // Caller-supplied peaks describe the file, not the element's
             // playback state, so draw them up front rather than behind the
             // metadata wait below. On a slow (or non-Range-capable) audio

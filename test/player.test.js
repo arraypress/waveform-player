@@ -1205,3 +1205,39 @@ describe('title paints before the metadata wait (#25)', () => {
 		expect(player.totalTimeEl.textContent).toBe('0:00');
 	});
 });
+
+describe('load(url) records the new url (#30)', () => {
+	it('updates options.url, which extensions like waveform-tracker read', async () => {
+		const { player } = mount({ url: 'first.mp3', waveform: [0.5] });
+		track(player);
+		await player.load('second.mp3');
+		expect(player.options.url).toBe('second.mp3');
+	});
+
+	it('sets it before the metadata wait, not after load settles', () => {
+		const el = document.createElement('div');
+		document.body.appendChild(el);
+		const player = track(new WaveformPlayer(el, { url: 'first.mp3', waveform: [0.5] }));
+
+		// Not awaited: jsdom never fires loadedmetadata, so anything gated
+		// behind it would still report the previous track here.
+		player.load('slow-origin.mp3');
+		expect(player.options.url).toBe('slow-origin.mp3');
+	});
+
+	it('reports the new url in play / timeupdate / ended events', async () => {
+		const { el, player } = mount({ url: 'first.mp3', waveform: [0.5] });
+		track(player);
+		await player.load('second.mp3');
+
+		const urls = {};
+		['play', 'timeupdate', 'ended'].forEach((type) => {
+			el.addEventListener(`waveformplayer:${type}`, (e) => { urls[type] = e.detail.url; });
+		});
+		player.setPlayingState(true);
+		player.setProgress(5, 100);
+		player.setProgress(100, 100);
+
+		expect(urls).toEqual({ play: 'second.mp3', timeupdate: 'second.mp3', ended: 'second.mp3' });
+	});
+});
