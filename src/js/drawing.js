@@ -6,6 +6,21 @@
 import {resampleData, clamp} from './utils.js';
 
 /**
+ * How many bars of `pitch` device pixels (width + spacing) fit across the
+ * canvas. A zero, negative or non-numeric pitch fits none: `width / 0` is
+ * `Infinity`, and resampleData() would loop until the tab ran out of memory.
+ * normalizeOptions() keeps `barWidth` above zero, but options stay publicly
+ * mutable, so the drawers guard the division themselves.
+ * @param {HTMLCanvasElement} canvas - Canvas element (device-pixel width).
+ * @param {number} pitch - Bar width plus spacing, in device pixels.
+ * @returns {number} Bar count, 0 when the pitch is unusable.
+ * @private
+ */
+function fitBars(canvas, pitch) {
+    return pitch > 0 ? Math.floor(canvas.width / pitch) : 0;
+}
+
+/**
  * Resolve a fill value that may be a CSS colour string OR an array of colour
  * stops (rendered as a canvas gradient). Bundle-light gradient support: pass
  * e.g. `waveformColor: ['#fafafa', '#71717a']`. A single-element array collapses
@@ -131,7 +146,7 @@ export function drawBars(ctx, canvas, peaks, progress, options) {
     const dpr = window.devicePixelRatio || 1;
     const barWidth = options.barWidth * dpr;
     const barSpacing = options.barSpacing * dpr;
-    const barCount = Math.floor(canvas.width / (barWidth + barSpacing));
+    const barCount = fitBars(canvas, barWidth + barSpacing);
     const resampledPeaks = resampleData(peaks, barCount);
     const height = canvas.height;
     const progressWidth = progress * canvas.width;
@@ -192,7 +207,7 @@ export function drawMirror(ctx, canvas, peaks, progress, options) {
     const dpr = window.devicePixelRatio || 1;
     const barWidth = options.barWidth * dpr;
     const barSpacing = options.barSpacing * dpr;
-    const barCount = Math.floor(canvas.width / (barWidth + barSpacing));
+    const barCount = fitBars(canvas, barWidth + barSpacing);
     const resampledPeaks = resampleData(peaks, barCount);
     const height = canvas.height;
     const centerY = height / 2;
@@ -363,7 +378,7 @@ export function drawBlocks(ctx, canvas, peaks, progress, options) {
     const dpr = window.devicePixelRatio || 1;
     const barWidth = (options.barWidth || 3) * dpr;
     const barSpacing = (options.barSpacing || 1) * dpr;
-    const barCount = Math.floor(canvas.width / (barWidth + barSpacing));
+    const barCount = fitBars(canvas, barWidth + barSpacing);
     const resampledPeaks = resampleData(peaks, barCount);
     const height = canvas.height;
     const blockSize = 4 * dpr;
@@ -416,7 +431,7 @@ export function drawDots(ctx, canvas, peaks, progress, options) {
     const dpr = window.devicePixelRatio || 1;
     const barWidth = (options.barWidth || 2) * dpr;
     const barSpacing = (options.barSpacing || 3) * dpr;
-    const barCount = Math.floor(canvas.width / (barWidth + barSpacing));
+    const barCount = fitBars(canvas, barWidth + barSpacing);
     const resampledPeaks = resampleData(peaks, barCount);
     const height = canvas.height;
     const dotRadius = Math.max(1.5 * dpr, barWidth / 2);

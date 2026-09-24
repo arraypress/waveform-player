@@ -464,7 +464,9 @@ const ENUMS = {
 const NUMBERS = {
     height: {min: 1, integer: true},
     samples: {min: 1, integer: true},
-    barWidth: {min: 0},
+    // A zero-width bar is invisible anyway, and zero width + zero spacing
+    // made the drawers' bar count Infinity (see fitBars in drawing.js).
+    barWidth: {min: 0.1},
     barSpacing: {min: 0},
     barRadius: {min: 0},
     bpm: {min: 1},

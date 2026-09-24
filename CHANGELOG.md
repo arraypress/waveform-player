@@ -87,6 +87,12 @@ All notable changes to this project will be documented in this file.
   element's `seeked` and `ratechange`, and only for the player that owns the
   session, so a paused player's seek can't move another player's scrubber.
 
+- **`barWidth: 0` with `barSpacing: 0` no longer hangs the tab.** The drawers
+  computed `canvas.width / 0` = `Infinity` bars and `resampleData()` looped
+  until the page ran out of memory. `barWidth` now normalizes to a minimum of
+  `0.1` (a zero-width bar was invisible anyway), and the bar drawers treat an
+  unusable pitch as zero bars, since options stay mutable after construction.
+
 ### Changed
 
 - **`loadTrack()` resets `bpm` and `album` unless the call supplies them.** Both
@@ -104,6 +110,11 @@ All notable changes to this project will be documented in this file.
   `preventDefault()`, keeps the player as `currentlyPlaying` — the same thing
   a vetoed `request-play` means for claiming it. Neither event changes the
   play/pause visual; that remains `setPlayingState()`'s job.
+- **BPM detection reports nothing rather than a made-up tempo.** On silence,
+  a pad or speech (fewer than two onsets) `detectBPM` returned a hard-coded
+  120, and when no interval fell in the 60–200 range it returned 119 — both
+  shown by `showBPM` as if measured. It now returns `null`, and the badge stays
+  hidden.
 
 ## [1.27.1] — 2026-09-24
 

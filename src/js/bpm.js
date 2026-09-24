@@ -11,11 +11,14 @@
  * histogramming those tempos into 3-BPM buckets (60-200 BPM) to find the most
  * common one. Octave errors are corrected by doubling very slow results and
  * halving very fast ones when a strong half/double bucket also exists, then a
- * fixed -1 BPM calibration offset is applied. Returns a 120 BPM fallback when
- * too few onsets are found, and null if analysis throws.
+ * fixed -1 BPM calibration offset is applied. Returns null when there is no
+ * tempo to report — too few onsets (silence, a pad, speech), no interval in the
+ * 60-200 BPM range — and when analysis throws. It used to return a 120 (or,
+ * after the offset, 119) fallback there, which `showBPM` displayed as if it
+ * had been measured.
  *
  * @param {AudioBuffer} buffer - Decoded audio buffer to analyse; only channel 0 is read.
- * @returns {number|null} Detected tempo in BPM, 120 as a fallback when onsets are insufficient, or null on error.
+ * @returns {number|null} Detected tempo in BPM, or null when none was detected.
  */
 export function detectBPM(buffer) {
     try {
@@ -23,7 +26,7 @@ export function detectBPM(buffer) {
         const sampleRate = buffer.sampleRate;
         const onsets = detectOnsets(channelData, sampleRate);
 
-        if (onsets.length < 2) return 120;
+        if (onsets.length < 2) return null;
 
         // Calculate intervals
         const intervals = [];
@@ -43,13 +46,16 @@ export function detectBPM(buffer) {
 
         // Find most common
         let maxCount = 0;
-        let detectedBPM = 120;
+        let detectedBPM = null;
         for (const [tempo, count] of Object.entries(tempoGroups)) {
             if (count > maxCount) {
                 maxCount = count;
                 detectedBPM = parseInt(tempo);
             }
         }
+
+        // No interval landed in the tempo range: nothing was detected.
+        if (detectedBPM === null) return null;
 
         // Handle tempo ambiguity
         if (detectedBPM < 70 && tempoGroups[detectedBPM * 2]) {
