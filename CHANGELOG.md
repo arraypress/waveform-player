@@ -55,6 +55,24 @@ All notable changes to this project will be documented in this file.
   listeners saw `destroy` followed by `ready`, and the audio was fetched and
   decoded for a player that no longer existed.
 
+- **Self-mode progress events keep flowing in a background tab.**
+  `waveformplayer:timeupdate` and `onTimeUpdate` were emitted only from the
+  `requestAnimationFrame` loop, which browsers stop in hidden tabs while the
+  audio plays on — so progress events stopped entirely, and
+  `waveform-tracker` under-counted background listening. The native
+  `<audio>` `timeupdate` now drives them whenever the frame loop has been
+  quiet for 500ms; a foreground tab still gets exactly one emit per frame.
+- **`destroy()` no longer emits `request-pause`.** It called `pause()`, which in
+  external mode asks the controller to pause — so a wrapper remounting an
+  inline player paused the `waveform-bar`'s playback. `destroy()` already
+  stops and releases its own `<audio>`.
+- **One `waveformplayer:pause` at the end of a self-mode track.** Browsers fire
+  `pause` then `ended`, and `onEnded()` ran `onPause()` again, so listeners saw
+  two pause events and `onPause` ran twice.
+- **External-mode `setProgress()` no longer fights a drag.** The controller's
+  clock moved the playhead back under the cursor mid-scrub; it now waits for
+  the release, as self mode already did.
+
 ### Changed
 
 - **`loadTrack()` resets `bpm` and `album` unless the call supplies them.** Both
@@ -66,6 +84,12 @@ All notable changes to this project will be documented in this file.
   applied** (previously it could fire before the peaks arrived), and
   `setWaveformData()` returns a `Promise<boolean>` for a sidecar URL (whether
   it was applied); it still returns nothing for inline peaks.
+- **`request-pause` can be vetoed, like `request-play`.** `pause()` cleared
+  `WaveformPlayer.currentlyPlaying` *before* dispatching the cancelable event
+  and ignored the result. It now dispatches first and, if the controller calls
+  `preventDefault()`, keeps the player as `currentlyPlaying` — the same thing
+  a vetoed `request-play` means for claiming it. Neither event changes the
+  play/pause visual; that remains `setPlayingState()`'s job.
 
 ## [1.27.1] — 2026-09-24
 

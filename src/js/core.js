@@ -1079,6 +1079,16 @@ export class WaveformPlayer {
             this.audio.addEventListener('pause', () => this.onPause());
             this.audio.addEventListener('ended', () => this.onEnded());
             this.audio.addEventListener('error', (e) => this.onError(e));
+            // Progress is normally driven by the rAF loop (smooth canvas), but
+            // browsers stop animation frames in background tabs while the
+            // audio keeps playing — and with them every timeupdate event and
+            // onTimeUpdate call, which is what analytics (waveform-tracker)
+            // count listening time from. The native event (~4Hz, still fired
+            // in the background) takes over only once the loop has gone quiet,
+            // so a foreground tab doesn't emit twice.
+            this.audio.addEventListener('timeupdate', () => {
+                if (this.isPlaying && Date.now() - this._frameAt > 500) this.updateProgress();
+            });
         }
 
         // Canvas interactions — click + drag to seek. pointerdown starts a
@@ -1996,8 +2006,8 @@ export class WaveformPlayer {
     /**
      * `ended` handler (self mode): reset progress and `currentTime` to the
      * start, redraw, reset the time display, dispatch `waveformplayer:ended`
-     * (carrying the final time), run {@link WaveformPlayer#onPause}, and fire
-     * the `onEnd` callback. No-op during destruction.
+     * (carrying the final time), run {@link WaveformPlayer#onPause} if the
+     * preceding `pause` event hasn't already, and fire the `onEnd` callback. No-op during destruction.
      * @private
      * @fires WaveformPlayer#waveformplayer:ended
      */
@@ -2020,7 +2030,10 @@ export class WaveformPlayer {
         // analytics) don't have to reach into player.audio.
         this._emit('waveformplayer:ended', {player: this, url: this.options.url, currentTime: duration, duration});
 
-        this.onPause();
+        // Browsers fire `pause` before `ended` at the end of a track, and
+        // onPause() has usually run already — only settle into paused here
+        // if it hasn't, or listeners see two pause events for one stop.
+        if (this.isPlaying) this.onPause();
 
         if (this.options.onEnd) {
             this.options.onEnd(this);
@@ -2067,11 +2080,15 @@ export class WaveformPlayer {
             // setProgress() pushes from the controller — no internal
             // RAF needed. Self-mode keeps the smooth-update loop.
             if (this.isPlaying && this.audio && this.audio.duration) {
+                this._frameAt = Date.now();
                 this.updateProgress();
                 this.updateTimer = requestAnimationFrame(update);
             }
         };
 
+        // Arm the stall clock too: the native `timeupdate` fallback (see
+        // bindEvents) must not fire before the first frame has had a chance.
+        this._frameAt = Date.now();
         this.updateTimer = requestAnimationFrame(update);
     }
 
@@ -2283,20 +2300,22 @@ export class WaveformPlayer {
     /**
      * Pause audio.
      *
-     * In `audioMode: 'external'`, dispatches `waveformplayer:request-pause`
-     * (cancelable) and does NOT touch any audio element. See play().
+     * In `audioMode: 'external'`, dispatches a cancelable
+     * `waveformplayer:request-pause` and does NOT touch any audio element.
+     * Mirrors play(): calling preventDefault() on the event vetoes the pause
+     * as far as the player is concerned — it stays `currentlyPlaying` (the
+     * `singlePlay` bookkeeping). Neither event flips the play/pause visual;
+     * that only changes when the controller calls setPlayingState().
      *
      * @fires WaveformPlayer#waveformplayer:request-pause
      */
     pause() {
-        if (WaveformPlayer.currentlyPlaying === this) {
+        const accepted = this.options.audioMode !== 'external' ||
+            !this._emit('waveformplayer:request-pause', this._buildTrackDetail(), true).defaultPrevented;
+        if (accepted && WaveformPlayer.currentlyPlaying === this) {
             WaveformPlayer.currentlyPlaying = null;
         }
-        if (this.options.audioMode === 'external') {
-            this._emit('waveformplayer:request-pause', this._buildTrackDetail(), true);
-            return;
-        }
-        this.audio.pause();
+        this.audio?.pause();
     }
 
     /**
@@ -2359,7 +2378,8 @@ export class WaveformPlayer {
      * external duration for the accessible slider, dispatches
      * `waveformplayer:timeupdate`, runs `onTimeUpdate`, and synthesizes a
      * one-shot `waveformplayer:ended` (with `onEnd`) when progress reaches the
-     * end. No-op for a non-positive duration.
+     * end. No-op for a non-positive duration, and while the user is dragging
+     * the playhead (as in self mode).
      *
      * @param {number} currentTime - Current playback position in seconds.
      * @param {number} duration - Total track duration in seconds.
@@ -2368,6 +2388,10 @@ export class WaveformPlayer {
      */
     setProgress(currentTime, duration) {
         if (!duration || duration <= 0) return;
+        // While the user drags, the playhead previews the cursor and the seek
+        // commits on release — the controller's clock mustn't drag it back
+        // (self mode's updateProgress() bails the same way).
+        if (this._dragging) return;
         this.progress = clamp(currentTime / duration);
         // Mirror the existing display update code so callers don't have
         // to know which DOM elements live where.
