@@ -128,3 +128,13 @@ describe('play-button artwork contrast', () => {
 		expect(lightBlock).not.toContain('--wfp-btn-artwork-scrim');
 	});
 });
+
+describe('waveform height', () => {
+	it('puts no min-height floor on .waveform-container that could override the height option', () => {
+		// resizeCanvas() writes the `height` option onto the container inline, but a
+		// stylesheet min-height beats a smaller inline height: `height: 32` rendered
+		// at 60px with the canvas stretched to fit (the bar's slim waveform hit this).
+		const block = CSS.match(/\.waveform-container\s*\{([^}]*)\}/)[1].replace(/\/\*[\s\S]*?\*\//g, '');
+		expect(block).not.toMatch(/min-height\s*:/);
+	});
+});

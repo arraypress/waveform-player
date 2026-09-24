@@ -1241,3 +1241,13 @@ describe('load(url) records the new url (#30)', () => {
 		expect(urls).toEqual({ play: 'second.mp3', timeupdate: 'second.mp3', ended: 'second.mp3' });
 	});
 });
+
+describe('height option', () => {
+	it('writes heights below the old 60px CSS floor onto the container', () => {
+		const { el } = mount({ height: 32 });
+		track(WaveformPlayer.getInstance(el));
+		// Set synchronously by init()'s resizeCanvas(); the CSS guard in
+		// css.test.js makes sure no stylesheet min-height overrides it.
+		expect(el.querySelector('.waveform-container').style.height).toBe('32px');
+	});
+});

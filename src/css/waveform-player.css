@@ -190,7 +190,9 @@
 .waveform-container {
     flex: 1;
     position: relative;
-    min-height: 60px;
+    /* No min-height: resizeCanvas() sets the height inline from the `height`
+       option during init, and a stylesheet floor here would beat any smaller
+       value (height: 32 used to render at 60px, canvas stretched). */
     cursor: pointer;
     min-width: 0;
     width: 100%;
