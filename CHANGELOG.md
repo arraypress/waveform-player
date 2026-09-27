@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.29.0] — 2026-09-27
+
 ### Fixed
 
 - **Peaks set with `setWaveformData()` straight after construction stick.**
