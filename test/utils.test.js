@@ -356,3 +356,26 @@ describe('extractTitleFromUrl', () => {
 		expect(extractTitleFromUrl('')).toBe('Audio');
 	});
 });
+
+describe('inTimeRanges / coversDuration', () => {
+	const ranges = (...pairs) => ({ length: pairs.length, start: (i) => pairs[i][0], end: (i) => pairs[i][1] });
+
+	it('inTimeRanges finds a time in any range, with edge slack', async () => {
+		const { inTimeRanges } = await import('../src/js/utils.js');
+		expect(inTimeRanges(ranges([0, 100]), 60)).toBe(true);
+		expect(inTimeRanges(ranges([0, 10], [20, 30]), 25)).toBe(true);
+		expect(inTimeRanges(ranges([0, 0]), 60)).toBe(false); // no-range host
+		expect(inTimeRanges(ranges([0, 0]), 0)).toBe(true);
+		expect(inTimeRanges(ranges(), 1)).toBe(false);
+	});
+
+	it('coversDuration needs one range over the whole track', async () => {
+		const { coversDuration } = await import('../src/js/utils.js');
+		expect(coversDuration(ranges([0, 100]), 100)).toBe(true);
+		expect(coversDuration(ranges([0, 99.95]), 100)).toBe(true);
+		expect(coversDuration(ranges([0, 50]), 100)).toBe(false);
+		expect(coversDuration(ranges([0, 40], [60, 100]), 100)).toBe(false);
+		expect(coversDuration(ranges([0, 100]), NaN)).toBe(false);
+	});
+});
+

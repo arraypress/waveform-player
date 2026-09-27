@@ -121,3 +121,117 @@ describe('Media Session position state', () => {
 		expect(session.setPositionState).not.toHaveBeenCalled();
 	});
 });
+
+/**
+ * Hosts that ignore HTTP byte ranges (Cloudflare Pages / Workers static
+ * assets, many plain servers): Chromium reports `seekable` as 0–0 and won't
+ * seek, even fully downloaded. The player reloads the element from the
+ * browser cache (which is seekable) and seeks there. jsdom has no media
+ * pipeline, so the element's ranges, paused state and load() are stubbed and
+ * the events the browser would fire are dispatched by hand.
+ */
+describe('seeking on a host without byte-range support', () => {
+	const ranges = (...pairs) => ({ length: pairs.length, start: (i) => pairs[i][0], end: (i) => pairs[i][1] });
+
+	/** A player whose <audio> behaves like Chromium's on such a host. */
+	function mountNoRange({ buffered = [[0, 100]], paused = true, url = '/norange.mp3' } = {}) {
+		const { el, player } = mount({ url });
+		const audio = player.audio;
+		const clock = stubClock(audio, { duration: 100 });
+		const state = { seekable: ranges([0, 0]), buffered: ranges(...buffered), paused };
+		Object.defineProperty(audio, 'seekable', { configurable: true, get: () => state.seekable });
+		Object.defineProperty(audio, 'buffered', { configurable: true, get: () => state.buffered });
+		Object.defineProperty(audio, 'paused', { configurable: true, get: () => state.paused });
+		Object.defineProperty(audio, 'ended', { configurable: true, get: () => false });
+		const load = vi.spyOn(audio, 'load').mockImplementation(() => {});
+		const play = vi.spyOn(audio, 'play').mockImplementation(() => { state.paused = false; return Promise.resolve(); });
+		vi.spyOn(console, 'warn').mockImplementation(() => {});
+		return { el, player, audio, clock, state, load, play };
+	}
+	const fire = (audio, type) => audio.dispatchEvent(new Event(type));
+	const flush = () => new Promise((r) => setTimeout(r, 0));
+
+	it('seeks directly when the host supports ranges (no reload)', () => {
+		const { player, clock, state, load } = mountNoRange();
+		state.seekable = ranges([0, 100]);
+		player.seekTo(60);
+		expect(clock.currentTime).toBe(60);
+		expect(load).not.toHaveBeenCalled();
+	});
+
+	it('reloads a fully downloaded file from cache, then seeks there', () => {
+		const { player, audio, clock, load } = mountNoRange();
+		player.seekTo(60);
+		expect(load).toHaveBeenCalledTimes(1);
+		expect(clock.currentTime).toBe(0); // not yet: the element can't seek
+		fire(audio, 'loadedmetadata');
+		expect(clock.currentTime).toBe(60);
+	});
+
+	it('resumes playback, hiding the reload\'s pause/play from consumers', async () => {
+		const { el, player, audio, clock, state, play } = mountNoRange({ paused: false });
+		player.isPlaying = true;
+		const events = [];
+		el.addEventListener('waveformplayer:pause', () => events.push('pause'));
+		el.addEventListener('waveformplayer:play', () => events.push('play'));
+
+		player.seekTo(60);
+		state.paused = true;
+		fire(audio, 'pause'); // what load() on a playing element does
+		fire(audio, 'loadedmetadata');
+		fire(audio, 'play');
+		await flush();
+
+		expect(play).toHaveBeenCalledTimes(1);
+		expect(clock.currentTime).toBe(60);
+		expect(events).toEqual([]);
+		expect(player.isPlaying).toBe(true);
+		expect(player._seekReload).toBeNull();
+	});
+
+	it('waits for the download to finish (preload raised, then restored)', () => {
+		const { player, audio, state, load, clock } = mountNoRange({ buffered: [[0, 30]] });
+		audio.preload = 'metadata';
+		player.seekTo(60);
+		expect(load).not.toHaveBeenCalled();
+		expect(audio.preload).toBe('auto');
+
+		player.seekTo(70); // a second seek while waiting just moves the target
+		state.buffered = ranges([0, 100]);
+		fire(audio, 'progress');
+		expect(load).toHaveBeenCalledTimes(1);
+		expect(audio.preload).toBe('metadata');
+		fire(audio, 'loadedmetadata');
+		expect(clock.currentTime).toBe(70);
+	});
+
+	it('tries the cache once per file, then seeks directly', () => {
+		const { player, audio, clock, load } = mountNoRange();
+		player.seekTo(60);
+		fire(audio, 'loadedmetadata');
+		clock.currentTime = 0; // say the cached copy still wasn't seekable
+		player.seekTo(40);
+		expect(load).toHaveBeenCalledTimes(1);
+		expect(clock.currentTime).toBe(40);
+	});
+
+	it('warns once per URL, naming the cause', () => {
+		const { player } = mountNoRange({ url: '/warn-once.mp3' });
+		player.seekTo(60);
+		player.seekTo(20);
+		const warnings = console.warn.mock.calls.filter(([m]) => String(m).includes('Range requests'));
+		expect(warnings).toHaveLength(1);
+		expect(warnings[0][0]).toContain('/warn-once.mp3');
+	});
+
+	it('a track change while waiting cancels the pending reload', () => {
+		const { player, audio, state, load } = mountNoRange({ buffered: [[0, 30]] });
+		audio.preload = 'metadata';
+		player.seekTo(60);
+		player._resetTrack(); // what loadTrack()/load(otherUrl) do
+		expect(audio.preload).toBe('metadata');
+		state.buffered = ranges([0, 100]);
+		fire(audio, 'progress');
+		expect(load).not.toHaveBeenCalled();
+	});
+});

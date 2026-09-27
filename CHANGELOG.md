@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Seeking works on hosts that ignore HTTP byte ranges** (Cloudflare Pages
+  and Workers static assets, many plain servers). Chromium couldn't seek such
+  files at all, even fully downloaded, so long tracks "snapped back to 0".
+  When the browser reports the target as unseekable, the player now waits for
+  the download to finish, reloads the file from the browser cache (which is
+  seekable) and continues from the new position, at most once per file.
+  Playback resumes if it was playing; the reload's internal pause/play is not
+  emitted, so the bar and waveform-tracker see a plain seek. Engines that can
+  already seek (WebKit, Firefox) never take this path. One console warning per
+  file names the cause. Verified on Cloudflare Pages: Chromium seeks land in
+  ~100ms; WebKit unchanged.
+
 ## [1.29.0] — 2026-09-27
 
 ### Fixed

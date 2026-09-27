@@ -681,3 +681,35 @@ export function resampleData(data, targetLength) {
 
     return result;
 }
+
+/**
+ * Whether a time falls inside a `TimeRanges` (e.g. `audio.seekable`), with a
+ * little slack for float rounding at the edges.
+ *
+ * @param {Pick<TimeRanges, 'length'|'start'|'end'>} ranges - The ranges.
+ * @param {number} time - Seconds.
+ * @returns {boolean}
+ */
+export function inTimeRanges(ranges, time) {
+    for (let i = 0; i < ranges.length; i++) {
+        if (ranges.start(i) - 0.05 <= time && time <= ranges.end(i) + 0.05) return true;
+    }
+    return false;
+}
+
+/**
+ * Whether one range of a `TimeRanges` (e.g. `audio.buffered`) spans the whole
+ * track: the file is fully downloaded, and so in the browser's HTTP cache.
+ *
+ * @param {Pick<TimeRanges, 'length'|'start'|'end'>} ranges - The ranges.
+ * @param {number} duration - Track length in seconds.
+ * @returns {boolean}
+ */
+export function coversDuration(ranges, duration) {
+    if (!Number.isFinite(duration) || duration <= 0) return false;
+    for (let i = 0; i < ranges.length; i++) {
+        if (ranges.start(i) <= 0.05 && ranges.end(i) >= duration - 0.1) return true;
+    }
+    return false;
+}
+
