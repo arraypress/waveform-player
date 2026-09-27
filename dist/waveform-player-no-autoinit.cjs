@@ -305,6 +305,19 @@ function resampleData(data, targetLength) {
   }
   return result;
 }
+function inTimeRanges(ranges, time) {
+  for (let i = 0; i < ranges.length; i++) {
+    if (ranges.start(i) - 0.05 <= time && time <= ranges.end(i) + 0.05) return true;
+  }
+  return false;
+}
+function coversDuration(ranges, duration) {
+  if (!Number.isFinite(duration) || duration <= 0) return false;
+  for (let i = 0; i < ranges.length; i++) {
+    if (ranges.start(i) <= 0.05 && ranges.end(i) >= duration - 0.1) return true;
+  }
+  return false;
+}
 
 // src/js/drawing.js
 function fitBars(canvas, pitch) {
@@ -1053,6 +1066,8 @@ var WaveformPlayer = class _WaveformPlayer {
   static instances = /* @__PURE__ */ new Map();
   /** @type {WaveformPlayer|null} */
   static currentlyPlaying = null;
+  /** Audio URLs already warned about lacking byte-range support. @private */
+  static _noRangeWarned = /* @__PURE__ */ new Set();
   /**
    * Create a new WaveformPlayer instance.
    *
@@ -1881,7 +1896,7 @@ var WaveformPlayer = class _WaveformPlayer {
       this.audio.addEventListener("seeked", () => this._updatePositionState());
       this.audio.addEventListener("ratechange", () => this._updatePositionState());
       this.audio.addEventListener("timeupdate", () => {
-        if (this.isPlaying && Date.now() - this._frameAt > 500) this.updateProgress();
+        if (this.isPlaying && !this._seekReload && Date.now() - this._frameAt > 500) this.updateProgress();
       });
     }
     this.canvas.addEventListener("click", (e) => this.handleCanvasClick(e));
@@ -2062,6 +2077,8 @@ var WaveformPlayer = class _WaveformPlayer {
    * @private
    */
   _resetTrack() {
+    this._cancelCacheSeek?.();
+    this._seekReload = null;
     this.progress = 0;
     this.waveformData = [];
     this._extDuration = 0;
@@ -2551,7 +2568,7 @@ var WaveformPlayer = class _WaveformPlayer {
    * @fires WaveformPlayer#waveformplayer:play
    */
   onPlay() {
-    if (this.isDestroying) return;
+    if (this.isDestroying || this._seekReload) return;
     this.isPlaying = true;
     this.setPlayButtonState(true);
     this.startSmoothUpdate();
@@ -2570,7 +2587,7 @@ var WaveformPlayer = class _WaveformPlayer {
    * @fires WaveformPlayer#waveformplayer:pause
    */
   onPause() {
-    if (this.isDestroying) return;
+    if (this.isDestroying || this._seekReload) return;
     this.isPlaying = false;
     this.setPlayButtonState(false);
     this.stopSmoothUpdate();
@@ -2958,6 +2975,112 @@ var WaveformPlayer = class _WaveformPlayer {
     }
   }
   /**
+   * Move the owned `<audio>` to `time`. The single path every self-mode seek
+   * takes ({@link WaveformPlayer#seekTo}, {@link WaveformPlayer#seekToPercent},
+   * so clicks, drags, keys and the slider too).
+   *
+   * Some hosts ignore HTTP byte ranges: they answer a `Range` request with
+   * `200` and the whole file (Cloudflare Pages and Workers static assets, and
+   * plenty of plain servers). Chromium then can't seek the media at all —
+   * `seekable` stays `0–0` even once every byte has arrived — which is the
+   * "long tracks snap back to 0" symptom. The copy in the browser's HTTP
+   * cache *is* seekable (why a page refresh "fixes" it), so when the target
+   * isn't seekable this reloads the element from cache and seeks there; see
+   * {@link WaveformPlayer#_seekViaCache}. Detection is by the element's own
+   * `seekable`, not the browser, so engines that can already seek (WebKit,
+   * Firefox) never take that path; it runs at most once per file.
+   * @param {number} time - Target position in seconds.
+   * @private
+   */
+  _seekAudio(time) {
+    const audio = this.audio;
+    const seekable = audio.seekable;
+    if (!Number.isFinite(audio.duration) || !seekable || seekable.length === 0 || inTimeRanges(seekable, time) || this._seekReloadedUrl === this.options.url) {
+      audio.currentTime = time;
+      return;
+    }
+    this._seekViaCache(time);
+  }
+  /**
+   * Seek on a host without byte-range support: once the whole file is
+   * downloaded (raising `preload` to `auto` until it is, then restoring it),
+   * reload the element from the browser cache and seek there. Repeated seeks
+   * while waiting just update the target. Warns once per URL, since the
+   * real fix is serving audio from a range-capable host.
+   * @param {number} time - Target position in seconds.
+   * @private
+   */
+  _seekViaCache(time) {
+    const audio = this.audio;
+    const url = this.options.url;
+    this._cacheSeekTime = time;
+    if (!_WaveformPlayer._noRangeWarned.has(url)) {
+      _WaveformPlayer._noRangeWarned.add(url);
+      console.warn(`[WaveformPlayer] ${url}: the host ignores HTTP Range requests, so seeking waits for the download and reloads from cache. Serve audio with Range support for instant seeks.`);
+    }
+    if (this._cancelCacheSeek) return;
+    if (coversDuration(audio.buffered, audio.duration)) {
+      this._reloadForSeek(url);
+      return;
+    }
+    const preload = audio.preload;
+    audio.preload = "auto";
+    this.setLoading(true);
+    const stop = () => {
+      audio.removeEventListener("progress", check);
+      audio.removeEventListener("canplaythrough", check);
+      audio.preload = preload;
+      this._cancelCacheSeek = null;
+    };
+    const check = () => {
+      if (this.audio !== audio || this.options.url !== url) return stop();
+      if (!coversDuration(audio.buffered, audio.duration)) return;
+      stop();
+      this._reloadForSeek(url);
+    };
+    this._cancelCacheSeek = stop;
+    audio.addEventListener("progress", check, { signal: this._ac.signal });
+    audio.addEventListener("canplaythrough", check, { signal: this._ac.signal });
+  }
+  /**
+   * Reload the fully-downloaded file from cache, seek to the pending target
+   * and resume. The element's own pause/play events during the reload are
+   * internal plumbing, so onPause/onPlay ignore them while `_seekReload` is
+   * set: consumers (the bar, waveform-tracker) see a seek, not a pause and a
+   * new play, and the button doesn't flicker.
+   * @param {string} url - The file being reloaded.
+   * @private
+   */
+  _reloadForSeek(url) {
+    const audio = this.audio;
+    const wasPlaying = !audio.paused && !audio.ended;
+    const rate = audio.playbackRate;
+    this._seekReloadedUrl = url;
+    this._seekReload = { wasPlaying };
+    const finish = () => {
+      this._seekReload = null;
+      this.setLoading(false);
+      this.updateProgress();
+    };
+    audio.addEventListener("loadedmetadata", () => {
+      if (this.audio !== audio || this.options.url !== url) return;
+      audio.playbackRate = rate;
+      audio.currentTime = this._cacheSeekTime;
+      if (!wasPlaying) {
+        finish();
+        return;
+      }
+      audio.play().then(() => {
+        finish();
+        this.startSmoothUpdate();
+      }, () => {
+        finish();
+        this.onPause();
+      });
+    }, { once: true, signal: this._ac.signal });
+    audio.load();
+  }
+  /**
    * Seek the owned `<audio>` element to an absolute time, clamped to
    * `[0, duration]`, and refresh progress. Self mode only — a no-op when
    * there is no audio element or duration, or when `seconds` isn't a finite
@@ -2968,7 +3091,7 @@ var WaveformPlayer = class _WaveformPlayer {
   seekTo(seconds) {
     const s = Number(seconds);
     if (this.audio && this.audio.duration && Number.isFinite(s)) {
-      this.audio.currentTime = clamp(s, 0, this.audio.duration);
+      this._seekAudio(clamp(s, 0, this.audio.duration));
       this.updateProgress();
     }
   }
@@ -2981,7 +3104,7 @@ var WaveformPlayer = class _WaveformPlayer {
   seekToPercent(percent) {
     const p = Number(percent);
     if (this.audio && this.audio.duration && Number.isFinite(p)) {
-      this.audio.currentTime = this.audio.duration * clamp(p);
+      this._seekAudio(this.audio.duration * clamp(p));
       this.updateProgress();
     }
   }

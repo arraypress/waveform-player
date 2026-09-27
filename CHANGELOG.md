@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.29.1] — 2026-09-27
+
 ### Fixed
 
 - **Seeking works on hosts that ignore HTTP byte ranges** (Cloudflare Pages
