@@ -456,6 +456,14 @@ export declare class WaveformPlayer {
 		 */
 		parseDataAttributes(element: HTMLElement): Partial<WaveformPlayerOptions>;
 		/**
+		 * Reduce decoded audio to `samples` normalized (0–1) peaks: the loudest
+		 * sample per window, loudest channel wins. The exact routine the player
+		 * uses for a live decode, for code that decodes audio itself (a worker,
+		 * an extension's offscreen document) and wants identical drawings.
+		 * Accepts an `AudioBuffer` or anything shaped like one.
+		 */
+		extractPeaks(buffer: Pick<AudioBuffer, 'length' | 'numberOfChannels' | 'getChannelData'>, samples?: number): number[];
+		/**
 		 * Detect whether the page around `element` reads as light or dark —
 		 * explicit theme classes/attributes first, then the backdrop actually
 		 * visible behind it (every ancestor background composited over the UA

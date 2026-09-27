@@ -47,7 +47,8 @@ function hasThemeHint(scheme) {
 /**
  * Collect what the page paints behind `el`.
  *
- * Walks `el` and its ancestors up to `<html>`, alpha-compositing each element's
+ * Walks `el` and its ancestors up to `<html>` (through shadow-root hosts),
+ * alpha-compositing each element's
  * background *colour* front-to-back. Walking the chain (rather than reading
  * `<body>` alone) is what makes real layouts work: plenty of pages paint their
  * background on a wrapper `<div>` or on `<html>` instead of `<body>`, and a
@@ -72,7 +73,11 @@ function collectBackdrop(el) {
     let sum = 0;
     let alpha = 0;
 
-    for (let node = el; node && node.nodeType === 1 && alpha < 0.995; node = node.parentElement) {
+    // At a shadow root parentElement is null; continue from the shadow host,
+    // or a player inside a web component / extension UI stops reading the
+    // page at its own boundary and misses the card it sits on.
+    const up = (node) => node.parentElement || node.getRootNode?.().host || null;
+    for (let node = el; node && node.nodeType === 1 && alpha < 0.995; node = up(node)) {
         const c = parseColor(getComputedStyle(node).backgroundColor);
         if (!c || c.a <= 0) continue;
 

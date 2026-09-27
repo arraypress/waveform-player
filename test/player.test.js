@@ -1251,3 +1251,59 @@ describe('height option', () => {
 		expect(el.querySelector('.waveform-container').style.height).toBe('32px');
 	});
 });
+
+/**
+ * Inside a shadow root, document.activeElement is the shadow host, so focus
+ * checks against the player's own elements must read the root node's
+ * activeElement instead — otherwise every keyboard shortcut silently dies.
+ */
+describe('keyboard inside a shadow root', () => {
+	function mountInShadow(options = {}) {
+		const host = document.createElement('div');
+		document.body.appendChild(host);
+		const el = document.createElement('div');
+		host.attachShadow({ mode: 'open' }).appendChild(el);
+		const player = track(new WaveformPlayer(el, { audioMode: 'external', ...options }));
+		return { el, player };
+	}
+
+	it('Space on the focused player requests play', () => {
+		const { el } = mountInShadow({ url: '/a.mp3' });
+		const onRequest = vi.fn();
+		el.addEventListener('waveformplayer:request-play', onRequest);
+		el.click(); // Clicking the player focuses it (keyboard controls opt-in).
+		el.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+		expect(onRequest).toHaveBeenCalledTimes(1);
+	});
+
+	it('ArrowDown on the focused speed button opens the menu', () => {
+		const { el } = mountInShadow({ url: '/a.mp3', showPlaybackSpeed: true });
+		const button = el.querySelector('.speed-btn');
+		expect(button).not.toBeNull();
+		button.focus();
+		button.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+		expect(button.getAttribute('aria-expanded')).toBe('true');
+	});
+});
+
+describe('shared theme watcher', () => {
+	it('is released when the last player is destroyed and re-installed by the next', () => {
+		const a = mount().player;
+		const b = mount().player;
+		expect(WaveformPlayer._themeWatch).toBeTruthy();
+		a.destroy();
+		expect(WaveformPlayer._themeWatch).toBeTruthy(); // b still needs it
+		b.destroy();
+		expect(WaveformPlayer._themeWatch).toBeNull();
+		track(mount().player);
+		expect(WaveformPlayer._themeWatch).toBeTruthy();
+	});
+
+	it('is released by destroyAll()', () => {
+		mount();
+		mount();
+		WaveformPlayer.destroyAll();
+		expect(WaveformPlayer._themeWatch).toBeNull();
+	});
+});
+

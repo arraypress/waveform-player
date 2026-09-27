@@ -4,6 +4,45 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Peaks set with `setWaveformData()` straight after construction stick.**
+  The first `load()` runs a frame after the constructor and draws the
+  `waveform` option, so peaks supplied before that frame (a cached or fast
+  fetch) were painted over, typically by a placeholder. Found in a browser
+  extension where every page reload lost its cached waveform.
+- **A decode no longer replaces peaks supplied while it ran.** If
+  `setWaveformData()` was called during a load's audio decode, the decode (or
+  its placeholder fallback) finished later and overwrote them. Supplied peaks
+  now win; a load with peaks supplied before it starts skips the decode.
+- **Keyboard controls work inside a shadow root.** Space on the focused player
+  and the speed menu's arrow keys compared `document.activeElement` (the
+  shadow *host* there) with the player's own elements, so they never fired in
+  web components or extension UIs. Focus is now read from the player's root.
+- **Auto-theme sees through shadow roots.** The backdrop walk stopped at the
+  shadow boundary and fell back to the page's text colour, so a player in a
+  shadow root on a dark card of a light page themed light. It now continues
+  from the shadow host. Verified unchanged for ordinary pages with
+  `npm run test:visual` (Chromium and WebKit, A/B against 1.28.1).
+- **`waveform-is-placeholder` clears when real peaks arrive** via
+  `setWaveformData()` after a failed decode.
+- **The shared theme watcher is released** when the last player is destroyed
+  (and by `destroyAll()`), instead of observing the document for the life of
+  the page. The next player re-installs it.
+
+### Added
+
+- **`WaveformPlayer.utils.extractPeaks(buffer, samples?)`**: the player's own
+  peak extraction, for code that decodes audio itself and wants drawings that
+  match the player's.
+
+### Changed
+
+- `setWaveformData(data)` also sets the current track's `waveform` option, so
+  a reload of the same track reuses the peaks and external-mode
+  `request-play` events carry them. `loadTrack()` still replaces them for a
+  new track.
+
 ## [1.28.1] — 2026-09-24
 
 ### Fixed

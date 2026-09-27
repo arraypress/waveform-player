@@ -31,6 +31,23 @@ describe('detectColorScheme', () => {
 		expect(detectColorScheme()).toBe('light');
 	});
 
+	it('reads the backdrop through a shadow root (web components, extensions)', () => {
+		// The player's container sits inside a shadow root, on a dark card on
+		// an otherwise light page. parentElement is null at the shadow root, so
+		// the walk has to continue from the host or it misses the card.
+		const card = document.createElement('div');
+		card.style.background = '#121212';
+		const host = document.createElement('div');
+		card.appendChild(host);
+		document.body.appendChild(card);
+		const container = document.createElement('div');
+		host.attachShadow({ mode: 'open' }).appendChild(container);
+
+		expect(detectColorScheme(container)).toBe('dark');
+		card.style.background = '#fafafa';
+		expect(detectColorScheme(container)).toBe('light');
+	});
+
 	it('falls back to <html> when the background is painted there', () => {
 		// Legal and common: background propagation means a page can paint
 		// <html> and leave <body> transparent.

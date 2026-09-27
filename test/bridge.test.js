@@ -13,6 +13,17 @@ describe('WaveformPlayer.utils bridge', () => {
 		expect(typeof WaveformPlayer.utils.escapeHtml).toBe('function');
 		expect(typeof WaveformPlayer.utils.isSafeHref).toBe('function');
 		expect(typeof WaveformPlayer.utils.parseDataAttributes).toBe('function');
+		expect(typeof WaveformPlayer.utils.extractPeaks).toBe('function');
+	});
+
+	it('extractPeaks is the player\'s own routine, usable on any AudioBuffer-shaped input', () => {
+		// Two windows; the louder channel wins per window, then normalized to 1.
+		const channels = [Float32Array.from([0.1, -0.2, 0.05, 0.1]), Float32Array.from([0, 0, -0.4, 0.2])];
+		const buffer = { length: 4, numberOfChannels: 2, getChannelData: (i) => channels[i] };
+		const peaks = WaveformPlayer.utils.extractPeaks(buffer, 2);
+		expect(peaks).toHaveLength(2);
+		expect(peaks[1]).toBe(1);
+		expect(peaks[0]).toBeCloseTo(0.5, 5);
 	});
 
 	it('parseDataAttributes reads the player data-* contract off an element', () => {

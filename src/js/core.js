@@ -185,6 +185,7 @@ export class WaveformPlayer {
             this.init();
         } catch (error) {
             WaveformPlayer.instances.delete(this.id);
+            WaveformPlayer._releaseThemeWatch();
             this._ac.abort();
             throw error;
         }
@@ -716,9 +717,10 @@ export class WaveformPlayer {
         // trigger opens and focuses the first/checked option.
         speedBtn.closest('.waveform-speed')?.addEventListener('keydown', (e) => {
             const opts = options();
-            const i = opts.indexOf(document.activeElement);
+            const focused = this._activeElement();
+            const i = opts.indexOf(focused);
             if (!isOpen()) {
-                if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && document.activeElement === speedBtn) {
+                if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && focused === speedBtn) {
                     e.preventDefault();
                     setSpeedMenu(true);
                 }
@@ -749,6 +751,18 @@ export class WaveformPlayer {
      * ±0.1) and `m`/`M` (mute). Listeners use the instance abort signal.
      * @private
      */
+    /**
+     * The focused element as seen from this player's own tree. Inside a shadow
+     * root `document.activeElement` is the shadow *host*, so comparing it with
+     * the container (or a control) never matches and every keyboard shortcut
+     * silently stops; the root node's `activeElement` is the real one.
+     * @returns {Element|null}
+     * @private
+     */
+    _activeElement() {
+        return this.container.getRootNode().activeElement ?? document.activeElement;
+    }
+
     initKeyboardControls() {
         // Make container focusable but not in tab order by default
         this.container.setAttribute('tabindex', '-1');
@@ -775,7 +789,7 @@ export class WaveformPlayer {
         // owns those). Space (togglePlay) still works because togglePlay
         // routes through the request-play/pause events.
         this.container.addEventListener('keydown', (e) => {
-            if (document.activeElement !== this.container) return;
+            if (this._activeElement() !== this.container) return;
 
             const key = e.key;
             const hasAudio = !!this.audio;
@@ -1324,7 +1338,9 @@ export class WaveformPlayer {
                 try {
                     const result = await generateWaveform(url, this.options.samples, this.options.showBPM);
                     if (id !== this._loadId) return;
-                    this.waveformData = result.peaks;
+                    // Peaks the caller supplied while we decoded (setWaveformData)
+                    // describe this track too, and were asked for explicitly.
+                    if (this.options.waveform === inlinePeaks) this.waveformData = result.peaks;
 
                     // Store BPM if detected
                     if (result.bpm) {
@@ -1333,9 +1349,11 @@ export class WaveformPlayer {
                     }
                 } catch (error) {
                     if (id !== this._loadId) return;
-                    console.warn('[WaveformPlayer] Using placeholder waveform:', error);
-                    this.waveformData = generatePlaceholderWaveform(this.options.samples);
-                    this.container.classList.add('waveform-is-placeholder');
+                    if (this.options.waveform === inlinePeaks) {
+                        console.warn('[WaveformPlayer] Using placeholder waveform:', error);
+                        this.waveformData = generatePlaceholderWaveform(this.options.samples);
+                        this.container.classList.add('waveform-is-placeholder');
+                    }
                 }
             }
 
@@ -1537,6 +1555,13 @@ export class WaveformPlayer {
      * carries no peaks resolves `false` and leaves the canvas as it was —
      * {@link WaveformPlayer#load} then decodes the audio instead. One that
      * resolves after a newer load has started is discarded.
+     *
+     * The data also becomes the current track's `waveform` option, so it
+     * outlives the load already in flight: the first load() runs a frame after
+     * construction (see init()) and draws `options.waveform`, which used to
+     * paint over peaks set before that frame — an easy race to lose with a
+     * cached or fast fetch. A later reload of the same track reuses them too.
+     * {@link WaveformPlayer#loadTrack} still replaces them for a new track.
      * @param {string|number[]} data - Peaks as an array, a JSON/CSV string, or
      *   a URL to a `.json` peaks file.
      * @returns {Promise<boolean>|undefined} For a `.json` URL, a promise of
@@ -1544,6 +1569,8 @@ export class WaveformPlayer {
      *   synchronously).
      */
     setWaveformData(data) {
+        this.options.waveform = data;
+
         // URL to JSON file — fetch peaks and maybe markers / bpm
         if (typeof data === 'string' && /\.json(?:[?#]|$)/i.test(data.trim())) {
             const id = this._loadId;
@@ -1557,6 +1584,7 @@ export class WaveformPlayer {
                     const peaks = toNumberArray(Array.isArray(json) ? json : json?.peaks, {fallback: []});
                     if (!peaks.length) throw new Error('no peaks');
                     this.waveformData = peaks;
+                    this.container.classList.remove('waveform-is-placeholder');
                     // A peaks sidecar is a third source of markers, and a remote
                     // one — normalize it on the same terms as the option paths.
                     if (json.markers && !this.options.markers?.length) {
@@ -1583,6 +1611,7 @@ export class WaveformPlayer {
         // also drops non-numeric members (the old comma path mapped them to
         // NaN, and a NaN peak draws as a gap rather than an error).
         this.waveformData = toNumberArray(data, {fallback: []});
+        this.container.classList.remove('waveform-is-placeholder');
         this.drawWaveform();
     }
 
@@ -2249,6 +2278,24 @@ export class WaveformPlayer {
     }
 
     /**
+     * Disconnect the shared theme watcher once no player is registered. The
+     * watcher only ever refreshes registered instances, so with none left it
+     * has nothing to do; the next constructor re-installs it lazily via
+     * {@link WaveformPlayer._watchTheme}. Pages that swap players in and out
+     * (SPAs, block editors) no longer keep a document observer alive forever.
+     * @private
+     */
+    static _releaseThemeWatch() {
+        const watch = WaveformPlayer._themeWatch;
+        if (!watch || WaveformPlayer.instances.size > 0) return;
+        watch.obs.disconnect();
+        try {
+            watch.mq?.removeEventListener('change', watch.refresh);
+        } catch (e) { /* no matchMedia listeners */ }
+        WaveformPlayer._themeWatch = null;
+    }
+
+    /**
      * Sync the speed control's label and the menu's active-option highlight to
      * the audio element's current `playbackRate`. No-op in external mode (no
      * owned `<audio>`), which also avoids reading `playbackRate` before the
@@ -2580,8 +2627,10 @@ export class WaveformPlayer {
             this.resizeHandler = null;
         }
 
-        // Remove from instances map
+        // Remove from instances map (and drop the shared theme watcher if
+        // this was the last player)
         WaveformPlayer.instances.delete(this.id);
+        WaveformPlayer._releaseThemeWatch();
 
         // Clear current playing / Media Session references to this instance
         if (WaveformPlayer.currentlyPlaying === this) {
@@ -2660,6 +2709,7 @@ export class WaveformPlayer {
     static destroyAll() {
         this.instances.forEach(player => player.destroy());
         this.instances.clear();
+        this._releaseThemeWatch();
     }
 
     /**

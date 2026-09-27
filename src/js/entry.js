@@ -29,6 +29,7 @@ import {
     isBrowser,
 } from './utils.js';
 import {detectColorScheme} from './themes.js';
+import {extractPeaks} from './audio.js';
 
 // Expose a small set of pure helpers as a single source of truth so consumers
 // (e.g. @arraypress/waveform-bar, @arraypress/waveform-playlist) can reuse them
@@ -40,7 +41,10 @@ import {detectColorScheme} from './themes.js';
 // independently). Attached to the class so it's reachable from the IIFE global
 // too — which is how the bar reaches it, since it depends on this package as a
 // runtime peer rather than importing the module.
-WaveformPlayer.utils = {formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes, detectColorScheme};
+// `extractPeaks` is here so code that decodes audio itself (a worker, a
+// browser extension's offscreen document) draws exactly what the player would,
+// instead of keeping a copy of the algorithm.
+WaveformPlayer.utils = {formatTime, extractTitleFromUrl, escapeHtml, isSafeHref, parseDataAttributes, detectColorScheme, extractPeaks};
 
 /**
  * Construct a player for one declarative element, unless it already has one.

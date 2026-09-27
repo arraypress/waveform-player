@@ -332,3 +332,71 @@ describe('destroyed before the first frame', () => {
 		expect(ready).not.toHaveBeenCalled();
 	});
 });
+
+/**
+ * Peaks a caller supplies with setWaveformData() are the track's peaks from
+ * then on. The first load() runs a frame after construction and used to paint
+ * over anything set before that frame (the race a cached or fast peaks fetch
+ * loses), and a decode finishing later used to replace peaks set meanwhile.
+ */
+describe('setWaveformData versus the load in flight', () => {
+	const loaded = (player) => vi.waitFor(() => expect(player._loadId).toBeGreaterThan(0))
+		.then(() => new Promise((r) => setTimeout(r, 20)));
+
+	it('peaks set before the first load are not painted over by the construction peaks', async () => {
+		const { player } = mount({ url: '/a.mp3', waveform: [0.1, 0.1] });
+		player.setWaveformData([0.9, 0.2, 0.7]);
+		await loaded(player);
+		expect(player.waveformData).toEqual([0.9, 0.2, 0.7]);
+		expect(generateWaveform).not.toHaveBeenCalled();
+	});
+
+	it('peaks set before the first load make the decode unnecessary', async () => {
+		const { player } = mount({ url: '/a.mp3' });
+		player.setWaveformData([0.3, 0.6]);
+		await loaded(player);
+		expect(generateWaveform).not.toHaveBeenCalled();
+		expect(player.waveformData).toEqual([0.3, 0.6]);
+	});
+
+	it('a decode that finishes after peaks were supplied does not replace them', async () => {
+		const decode = deferred();
+		generateWaveform.mockReturnValueOnce(decode.promise);
+		const { player } = mount({ url: '/a.mp3' });
+		await decodeStarted(1);
+		player.setWaveformData([0.4, 0.8]);
+		decode.resolve({ peaks: [0.1, 0.1], bpm: null });
+		await new Promise((r) => setTimeout(r, 20));
+		expect(player.waveformData).toEqual([0.4, 0.8]);
+	});
+
+	it('a failed decode does not replace supplied peaks with the placeholder', async () => {
+		const decode = deferred();
+		generateWaveform.mockReturnValueOnce(decode.promise);
+		const { el, player } = mount({ url: '/a.mp3' });
+		await decodeStarted(1);
+		player.setWaveformData([0.4, 0.8]);
+		decode.reject(new Error('decode failed'));
+		await new Promise((r) => setTimeout(r, 20));
+		expect(player.waveformData).toEqual([0.4, 0.8]);
+		expect(el.classList.contains('waveform-is-placeholder')).toBe(false);
+	});
+
+	it('real peaks clear the placeholder flag left by a failed decode', async () => {
+		generateWaveform.mockRejectedValueOnce(new Error('decode failed'));
+		const { el, player } = mount({ url: '/a.mp3' });
+		await vi.waitFor(() => expect(el.classList.contains('waveform-is-placeholder')).toBe(true));
+		player.setWaveformData([0.5, 0.9]);
+		expect(el.classList.contains('waveform-is-placeholder')).toBe(false);
+	});
+
+	it('loadTrack() still replaces them for the next track', async () => {
+		const { player } = mount({ url: '/a.mp3' });
+		player.setWaveformData([0.9, 0.9]);
+		await loaded(player);
+		generateWaveform.mockResolvedValueOnce({ peaks: [0.2, 0.3], bpm: null });
+		await player.loadTrack('/b.mp3', null, null, { autoplay: false });
+		expect(player.waveformData).toEqual([0.2, 0.3]);
+	});
+});
+
