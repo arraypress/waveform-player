@@ -4,6 +4,44 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.30.0] — 2026-10-21
+
+### Fixed
+
+- **Chapter markers are no longer nested inside the seek slider.** They are
+  buttons, and they rendered inside `.waveform-container` (`role="slider"`), so
+  assistive tech couldn't reach them as controls and keyboard users tabbed
+  through unnamed ticks (axe `nested-interactive`, WCAG 4.1.2). The marker
+  layer is now the slider's sibling, overlaid on it exactly as before
+  (pixel-identical in Chromium across the bars / mirror / line / seekbar styles
+  and all three button alignments); click-to-seek is unchanged.
+- **Each marker is named by its label and time** — `"Chorus, 1:30"` instead of
+  `"Chorus"`, and a marker with no label is named by its time instead of having
+  no name at all. Markers are also `type="button"` now.
+- **Clicking a marker seeks in `external` mode.** The click called `seekTo()`,
+  which needs the player's own `<audio>`, so in external mode (inline players
+  driven by the bar) it did nothing. It now emits `waveformplayer:request-seek`
+  there, like the canvas and the keyboard slider; self mode is unchanged.
+- **The playback-speed button's accessible name contains its visible rate.**
+  It was always `speedLabel` ("Playback speed"), which hid the "1.5x" it shows
+  (axe `label-content-name-mismatch`, WCAG 2.5.3 Label in Name). It is now the
+  rate followed by `speedLabel` — `"1.5x Playback speed"` — and follows every
+  rate change. `speedLabel` keeps its meaning: it is the suffix there, and
+  still the speed menu's whole `aria-label`.
+
+### Changed
+
+- **DOM: a new `.waveform-surface` wrapper, and `.waveform-markers` moved out
+  of `.waveform-container`.** The track is now
+  `.waveform-track > .waveform-surface > (.waveform-container, .waveform-markers)`.
+  `.waveform-surface` carries the flex sizing and positioning the container
+  had; the container is still the slider, still the canvas's parent and still
+  gets the inline `height`. Selectors that reach markers *through* the
+  container (`.waveform-container .waveform-marker`) or treat the container as
+  the track's direct child (`.waveform-track > .waveform-container`) need
+  updating; `.waveform-marker`, `.waveform-markers` and the `.active` /
+  `.show-label` classes are unchanged.
+
 ## [1.29.1] — 2026-09-27
 
 ### Fixed

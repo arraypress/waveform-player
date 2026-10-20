@@ -878,7 +878,9 @@
     errorText: "Unable to load audio",
     // Localizable UI strings (alongside seekLabel / seekValueText / errorText).
     // These are screen-reader / assistive-tech facing, so translate them for
-    // non-English UIs. playPauseLabel/speedLabel are aria-labels; artworkAlt is
+    // non-English UIs. playPauseLabel/speedLabel are aria-labels (the speed
+    // button prefixes speedLabel with its visible rate, "1.5x Playback speed",
+    // for WCAG 2.5.3 Label in Name); artworkAlt is
     // the cover image alt text; unknownTrackText is the Media Session (lock-
     // screen) title fallback used when no track title is set.
     playPauseLabel: "Play/Pause",
@@ -1036,6 +1038,9 @@
   var SEEK_STEP_SECONDS = 5;
   var SEEK_PAGE_SECONDS = 10;
   var INTERACTIVE_ELEMENTS = 'button, a[href], input, [role="slider"]';
+  function speedButtonLabel(rate, label) {
+    return label ? `${rate}x ${label}` : `${rate}x`;
+  }
   var WaveformPlayer = class _WaveformPlayer {
     /** @type {Map<string, WaveformPlayer>} */
     static instances = /* @__PURE__ */ new Map();
@@ -1251,7 +1256,7 @@
           ` : ""}
           ${this.options.showPlaybackSpeed ? `
             <div class="waveform-speed">
-              <button class="speed-btn" aria-label="${escapeHtml(this.options.speedLabel)}" aria-haspopup="menu" aria-expanded="false">
+              <button class="speed-btn" aria-label="${escapeHtml(speedButtonLabel(1, this.options.speedLabel))}" aria-haspopup="menu" aria-expanded="false">
                 <span class="speed-value">1x</span>
               </button>
               <div class="speed-menu" role="menu" aria-label="${escapeHtml(this.options.speedLabel)}" style="display: none;">
@@ -1275,13 +1280,15 @@
       <div class="waveform-track waveform-align-${buttonAlign}">
         ${buttonHTML}
         
-        <div class="waveform-container">
-          <canvas></canvas>
-          <div class="waveform-markers"></div>
-          <div class="waveform-loading" style="display:none;"></div>
-          <div class="waveform-error" style="display:none;" role="alert">
-            <span class="waveform-error-text">${escapeHtml(this.options.errorText)}</span>
+        <div class="waveform-surface">
+          <div class="waveform-container">
+            <canvas></canvas>
+            <div class="waveform-loading" style="display:none;"></div>
+            <div class="waveform-error" style="display:none;" role="alert">
+              <span class="waveform-error-text">${escapeHtml(this.options.errorText)}</span>
+            </div>
           </div>
+          <div class="waveform-markers"></div>
         </div>
       </div>
       
@@ -1302,6 +1309,7 @@
       this.bpmValueEl = this.container.querySelector(".bpm-value");
       this.loadingEl = this.container.querySelector(".waveform-loading");
       this.errorEl = this.container.querySelector(".waveform-error");
+      this.surfaceEl = this.container.querySelector(".waveform-surface");
       this.markersContainer = this.container.querySelector(".waveform-markers");
       this.speedBtn = this.container.querySelector(".speed-btn");
       this.speedMenu = this.container.querySelector(".speed-menu");
@@ -2283,10 +2291,11 @@
         }
         const position = marker.time / duration * 100;
         const markerEl = document.createElement("button");
+        markerEl.type = "button";
         markerEl.className = "waveform-marker";
         markerEl.style.left = `${position}%`;
         markerEl.style.backgroundColor = marker.color || "rgba(255, 255, 255, 0.5)";
-        markerEl.setAttribute("aria-label", marker.label);
+        markerEl.setAttribute("aria-label", marker.label ? `${marker.label}, ${formatTime(marker.time)}` : formatTime(marker.time));
         markerEl.setAttribute("data-time", marker.time);
         const tooltip = document.createElement("span");
         tooltip.className = "waveform-marker-tooltip";
@@ -2294,7 +2303,7 @@
         markerEl.appendChild(tooltip);
         markerEl.addEventListener("click", (e) => {
           e.stopPropagation();
-          this.seekTo(marker.time);
+          this.seekToSeconds(marker.time);
           if (this.options.playOnSeek && !this.isPlaying) {
             this.play();
           }
@@ -2364,10 +2373,11 @@
       this.seekEl.appendChild(tip);
       this.hoverTimeEl = tip;
       if (!this.options.showHoverTime) return;
-      this.seekEl.addEventListener("pointermove", (e) => {
+      const hoverEl = this.surfaceEl || this.seekEl;
+      hoverEl.addEventListener("pointermove", (e) => {
         if (!this._dragging) this._updateHoverTip(e.clientX);
       });
-      this.seekEl.addEventListener("pointerleave", () => {
+      hoverEl.addEventListener("pointerleave", () => {
         if (!this._dragging) this._hideHoverTip();
       });
     }
@@ -2778,11 +2788,10 @@
      */
     updateSpeedUI() {
       if (!this.audio) return;
+      const rate = this.audio.playbackRate;
       const speedValue = this.container.querySelector(".speed-value");
-      if (speedValue) {
-        const rate = this.audio.playbackRate;
-        speedValue.textContent = rate === 1 ? "1x" : `${rate}x`;
-      }
+      if (speedValue) speedValue.textContent = `${rate}x`;
+      this.speedBtn?.setAttribute("aria-label", speedButtonLabel(rate, this.options.speedLabel));
       this.container.querySelectorAll(".speed-option").forEach((btn) => {
         const on = parseFloat(btn.dataset.rate) === this.audio.playbackRate;
         btn.classList.toggle("active", on);

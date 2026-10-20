@@ -371,7 +371,9 @@ export const DEFAULT_OPTIONS = {
 
     // Localizable UI strings (alongside seekLabel / seekValueText / errorText).
     // These are screen-reader / assistive-tech facing, so translate them for
-    // non-English UIs. playPauseLabel/speedLabel are aria-labels; artworkAlt is
+    // non-English UIs. playPauseLabel/speedLabel are aria-labels (the speed
+    // button prefixes speedLabel with its visible rate, "1.5x Playback speed",
+    // for WCAG 2.5.3 Label in Name); artworkAlt is
     // the cover image alt text; unknownTrackText is the Media Session (lock-
     // screen) title fallback used when no track title is set.
     playPauseLabel: 'Play/Pause',

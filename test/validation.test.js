@@ -307,7 +307,7 @@ describe('markers', () => {
 		const rendered = player.container.querySelectorAll('.waveform-marker');
 		expect(rendered).toHaveLength(1);
 		expect(rendered[0].style.left).toBe('10%');
-		expect(rendered[0].getAttribute('aria-label')).toBe('Good');
+		expect(rendered[0].getAttribute('aria-label')).toBe('Good, 0:10');
 	});
 
 	it('never renders the string "undefined" as a marker label', () => {
@@ -316,7 +316,8 @@ describe('markers', () => {
 		player.renderMarkers();
 
 		const marker = player.container.querySelector('.waveform-marker');
-		expect(marker.getAttribute('aria-label')).toBe('');
+		// No label: the time alone, so the button is never nameless.
+		expect(marker.getAttribute('aria-label')).toBe('0:10');
 		expect(marker.textContent).toBe('');
 	});
 

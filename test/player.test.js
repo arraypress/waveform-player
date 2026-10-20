@@ -87,7 +87,7 @@ describe('localizable UI strings', () => {
 	it('defaults the play button, speed control, and artwork alt to English', () => {
 		const { el } = track(mount({ showPlaybackSpeed: true, artwork: 'cover.jpg' }));
 		expect(el.querySelector('.waveform-btn').getAttribute('aria-label')).toBe('Play/Pause');
-		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('Playback speed');
+		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('1x Playback speed');
 		expect(el.querySelector('.speed-menu').getAttribute('aria-label')).toBe('Playback speed');
 		expect(el.querySelector('.waveform-artwork').getAttribute('alt')).toBe('Album artwork');
 	});
@@ -101,7 +101,7 @@ describe('localizable UI strings', () => {
 			artworkAlt: 'Portada',
 		}));
 		expect(el.querySelector('.waveform-btn').getAttribute('aria-label')).toBe('Reproducir/Pausar');
-		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('Velocidad');
+		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('1x Velocidad');
 		expect(el.querySelector('.speed-menu').getAttribute('aria-label')).toBe('Velocidad');
 		expect(el.querySelector('.waveform-artwork').getAttribute('alt')).toBe('Portada');
 	});
@@ -114,7 +114,7 @@ describe('localizable UI strings', () => {
 		document.body.appendChild(el);
 		track(new WaveformPlayer(el, { audioMode: 'external' }));
 		expect(el.querySelector('.waveform-btn').getAttribute('aria-label')).toBe('Reproducir/Pausar');
-		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('Velocidad');
+		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('1x Velocidad');
 	});
 
 	it('escapes localizable labels to keep the aria-label attribute well-formed', () => {
@@ -1307,3 +1307,102 @@ describe('shared theme watcher', () => {
 	});
 });
 
+
+describe('speed button accessible name (WCAG 2.5.3 Label in Name)', () => {
+	function mountSelf(options = {}) {
+		const el = document.createElement('div');
+		document.body.appendChild(el);
+		return { el, player: track(new WaveformPlayer(el, { url: '/a.mp3', showPlaybackSpeed: true, ...options })) };
+	}
+
+	it('contains the visible rate, then the speedLabel', () => {
+		const { el } = mountSelf();
+		const btn = el.querySelector('.speed-btn');
+		expect(btn.querySelector('.speed-value').textContent).toBe('1x');
+		expect(btn.getAttribute('aria-label')).toBe('1x Playback speed');
+	});
+
+	it('follows rate changes from the API and from the menu', () => {
+		const { el, player } = mountSelf();
+		const btn = el.querySelector('.speed-btn');
+		player.setPlaybackRate(1.5);
+		expect(btn.querySelector('.speed-value').textContent).toBe('1.5x');
+		expect(btn.getAttribute('aria-label')).toBe('1.5x Playback speed');
+
+		btn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		el.querySelector('.speed-option[data-rate="2"]').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		expect(btn.getAttribute('aria-label')).toBe('2x Playback speed');
+	});
+
+	it('reflects a non-default initial playbackRate', () => {
+		const { el } = mountSelf({ playbackRate: 0.75, playbackRates: [0.75, 1] });
+		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('0.75x Playback speed');
+	});
+
+	it('keeps the localized speedLabel as the suffix', () => {
+		const { el, player } = mountSelf({ speedLabel: 'Velocidad' });
+		player.setPlaybackRate(1.25);
+		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('1.25x Velocidad');
+		// The menu has no visible text of its own, so it keeps the plain label.
+		expect(el.querySelector('.speed-menu').getAttribute('aria-label')).toBe('Velocidad');
+	});
+
+	it('names the button by its rate alone when speedLabel is empty', () => {
+		const { el } = mountSelf({ speedLabel: '' });
+		expect(el.querySelector('.speed-btn').getAttribute('aria-label')).toBe('1x');
+	});
+});
+
+describe('markers are not nested in the seek slider (WCAG 4.1.2, axe nested-interactive)', () => {
+	function mountMarkers() {
+		const { el, player } = mount({
+			markers: [{ time: 30, label: 'Verse' }, { time: 90, label: 'Chorus' }],
+		});
+		track(player);
+		player.setProgress(0, 120);
+		player.renderMarkers();
+		return { el, player };
+	}
+
+	it('renders no focusable control inside role="slider"', () => {
+		const { el } = mountMarkers();
+		const slider = el.querySelector('[role="slider"]');
+		expect(slider).toBeTruthy();
+		expect(el.querySelectorAll('.waveform-marker')).toHaveLength(2);
+		expect(slider.querySelectorAll('button, a[href], input, select, textarea, [tabindex]')).toHaveLength(0);
+		expect(slider.querySelector('.waveform-markers')).toBeNull();
+	});
+
+	it('lays the marker layer over the slider as its sibling in .waveform-surface', () => {
+		const { el } = mountMarkers();
+		const surface = el.querySelector('.waveform-surface');
+		const slider = el.querySelector('.waveform-container');
+		const layer = el.querySelector('.waveform-markers');
+		expect(slider.parentElement).toBe(surface);
+		expect(layer.parentElement).toBe(surface);
+		// After the slider, so the tab order is play → slider → markers.
+		expect(slider.nextElementSibling).toBe(layer);
+	});
+
+	it('names each marker by its label and time', () => {
+		const { el } = mountMarkers();
+		const names = [...el.querySelectorAll('.waveform-marker')].map((m) => m.getAttribute('aria-label'));
+		expect(names).toEqual(['Verse, 0:30', 'Chorus, 1:30']);
+		expect(el.querySelector('.waveform-marker').getAttribute('type')).toBe('button');
+	});
+
+	it('still seeks to the marker time on click', () => {
+		const { el, player } = mountMarkers();
+		const seek = vi.spyOn(player, 'seekToSeconds');
+		el.querySelectorAll('.waveform-marker')[1].click();
+		expect(seek).toHaveBeenCalledWith(90);
+	});
+
+	it('requests the seek in external mode (regression: seekTo() needed an own <audio>)', () => {
+		const { el } = mountMarkers();
+		const seeks = [];
+		el.addEventListener('waveformplayer:request-seek', (e) => seeks.push(e.detail.percent));
+		el.querySelectorAll('.waveform-marker')[1].click();
+		expect(seeks).toEqual([0.75]);
+	});
+});

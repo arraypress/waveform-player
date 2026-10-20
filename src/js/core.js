@@ -56,6 +56,18 @@ const SEEK_PAGE_SECONDS = 10;
 const INTERACTIVE_ELEMENTS = 'button, a[href], input, [role="slider"]';
 
 /**
+ * Accessible name for the speed button: the visible rate first, then the
+ * `speedLabel` text — "1.5x Playback speed". A fixed label would hide the rate
+ * the button shows (WCAG 2.5.3 Label in Name, axe `label-content-name-mismatch`).
+ * @param {number} rate - Current playback rate.
+ * @param {string} [label] - The `speedLabel` option.
+ * @returns {string}
+ */
+function speedButtonLabel(rate, label) {
+    return label ? `${rate}x ${label}` : `${rate}x`;
+}
+
+/**
  * WaveformPlayer - Modern audio player with waveform visualization
  * @class
  */
@@ -373,7 +385,7 @@ export class WaveformPlayer {
           ` : ''}
           ${this.options.showPlaybackSpeed ? `
             <div class="waveform-speed">
-              <button class="speed-btn" aria-label="${escapeHtml(this.options.speedLabel)}" aria-haspopup="menu" aria-expanded="false">
+              <button class="speed-btn" aria-label="${escapeHtml(speedButtonLabel(1, this.options.speedLabel))}" aria-haspopup="menu" aria-expanded="false">
                 <span class="speed-value">1x</span>
               </button>
               <div class="speed-menu" role="menu" aria-label="${escapeHtml(this.options.speedLabel)}" style="display: none;">
@@ -399,13 +411,15 @@ export class WaveformPlayer {
       <div class="waveform-track waveform-align-${buttonAlign}">
         ${buttonHTML}
         
-        <div class="waveform-container">
-          <canvas></canvas>
-          <div class="waveform-markers"></div>
-          <div class="waveform-loading" style="display:none;"></div>
-          <div class="waveform-error" style="display:none;" role="alert">
-            <span class="waveform-error-text">${escapeHtml(this.options.errorText)}</span>
+        <div class="waveform-surface">
+          <div class="waveform-container">
+            <canvas></canvas>
+            <div class="waveform-loading" style="display:none;"></div>
+            <div class="waveform-error" style="display:none;" role="alert">
+              <span class="waveform-error-text">${escapeHtml(this.options.errorText)}</span>
+            </div>
           </div>
+          <div class="waveform-markers"></div>
         </div>
       </div>
       
@@ -431,6 +445,11 @@ export class WaveformPlayer {
         this.bpmValueEl = this.container.querySelector('.bpm-value');
         this.loadingEl = this.container.querySelector('.waveform-loading');
         this.errorEl = this.container.querySelector('.waveform-error');
+        // Markers sit BESIDE the seek slider, not inside it: they're buttons,
+        // and a focusable control nested in role="slider" is unreachable to
+        // assistive tech (axe nested-interactive, WCAG 4.1.2). `.waveform-surface`
+        // is the shared positioned box that lays them over the waveform.
+        this.surfaceEl = this.container.querySelector('.waveform-surface');
         this.markersContainer = this.container.querySelector('.waveform-markers');
         this.speedBtn = this.container.querySelector('.speed-btn');
         this.speedMenu = this.container.querySelector('.speed-menu');
@@ -1706,10 +1725,15 @@ export class WaveformPlayer {
             const position = (marker.time / duration) * 100;
 
             const markerEl = document.createElement('button');
+            markerEl.type = 'button';
             markerEl.className = 'waveform-marker';
             markerEl.style.left = `${position}%`;
             markerEl.style.backgroundColor = marker.color || 'rgba(255, 255, 255, 0.5)';
-            markerEl.setAttribute('aria-label', marker.label);
+            // Label + time, so a screen reader hears where the jump lands — and
+            // an unlabelled marker still has a name (the time) instead of none.
+            markerEl.setAttribute('aria-label', marker.label
+                ? `${marker.label}, ${formatTime(marker.time)}`
+                : formatTime(marker.time));
             markerEl.setAttribute('data-time', marker.time);
 
             // Tooltip
@@ -1721,7 +1745,10 @@ export class WaveformPlayer {
             // Click to seek
             markerEl.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.seekTo(marker.time);
+                // Mode-agnostic: seekTo() needs an owned <audio>, so in external
+                // mode a marker click used to do nothing. seekToSeconds() seeks
+                // in self mode and emits request-seek in external mode.
+                this.seekToSeconds(marker.time);
                 if (this.options.playOnSeek && !this.isPlaying) {
                     this.play();
                 }
@@ -1806,10 +1833,13 @@ export class WaveformPlayer {
         // the time follows the playhead while scrubbing (Spotify-style). The
         // guard avoids a double-update when a drag is in progress (the canvas
         // pointermove already drives it then).
-        this.seekEl.addEventListener('pointermove', (e) => {
+        // Listen on the surface, not the slider: the markers are the slider's
+        // siblings, so hovering one would otherwise read as leaving the waveform.
+        const hoverEl = this.surfaceEl || this.seekEl;
+        hoverEl.addEventListener('pointermove', (e) => {
             if (!this._dragging) this._updateHoverTip(e.clientX);
         });
-        this.seekEl.addEventListener('pointerleave', () => {
+        hoverEl.addEventListener('pointerleave', () => {
             if (!this._dragging) this._hideHoverTip();
         });
     }
@@ -2317,11 +2347,12 @@ export class WaveformPlayer {
         // this.audio.playbackRate here would throw during construction).
         if (!this.audio) return;
 
+        const rate = this.audio.playbackRate;
         const speedValue = this.container.querySelector('.speed-value');
-        if (speedValue) {
-            const rate = this.audio.playbackRate;
-            speedValue.textContent = rate === 1 ? '1x' : `${rate}x`;
-        }
+        if (speedValue) speedValue.textContent = `${rate}x`;
+        // The accessible name must contain the visible rate (WCAG 2.5.3 Label
+        // in Name), so it's rebuilt with it: "1.5x Playback speed".
+        this.speedBtn?.setAttribute('aria-label', speedButtonLabel(rate, this.options.speedLabel));
 
         // Update active state in menu
         this.container.querySelectorAll('.speed-option').forEach(btn => {

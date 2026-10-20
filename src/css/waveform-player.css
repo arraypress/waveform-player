@@ -187,6 +187,17 @@
 }
 
 /* Waveform container */
+/* The positioned box shared by the seek slider (.waveform-container) and the
+   marker layer (.waveform-markers). Markers are buttons, so they can't live
+   inside role="slider" (axe nested-interactive); they overlay it from here,
+   the slider's sibling. It takes the slider's size, so the overlay lines up. */
+.waveform-surface {
+    flex: 1;
+    position: relative;
+    min-width: 0;
+    width: 100%;
+}
+
 .waveform-container {
     flex: 1;
     position: relative;
@@ -290,7 +301,7 @@
     padding: 0 20px;
 }
 
-/* Markers container */
+/* Markers layer — a sibling of the slider, laid over it by .waveform-surface */
 .waveform-markers {
     position: absolute;
     top: 0;

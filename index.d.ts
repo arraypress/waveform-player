@@ -236,7 +236,13 @@ export interface WaveformPlayerOptions {
 	seekValueText?: string | null;
 	/** Accessible label (`aria-label`) for the play/pause button. Localize for non-English UIs. @default 'Play/Pause' */
 	playPauseLabel?: string;
-	/** Accessible label (`aria-label`) for the playback-speed button and menu. Localize for non-English UIs. @default 'Playback speed' */
+	/**
+	 * Accessible label for the playback-speed control. Localize for non-English UIs.
+	 * The menu's `aria-label` is this text; the button's is the visible rate
+	 * followed by it (`'1.5x Playback speed'`), kept in step with rate changes,
+	 * so the name always contains what the button shows (WCAG 2.5.3).
+	 * @default 'Playback speed'
+	 */
 	speedLabel?: string;
 
 	// ── Content metadata ──────────────────────────────────────────

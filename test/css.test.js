@@ -138,3 +138,19 @@ describe('waveform height', () => {
 		expect(block).not.toMatch(/min-height\s*:/);
 	});
 });
+
+describe('marker layer', () => {
+	it('positions .waveform-surface so the sibling marker layer overlays the slider', () => {
+		// Markers left .waveform-container (role="slider") in 1.30.0; the overlay is
+		// now `inset: 0` of the surface, which only lines up if the surface is the
+		// positioned box and carries the flex sizing the container used to.
+		const block = CSS.match(/\.waveform-surface\s*\{([^}]*)\}/)[1];
+		expect(block).toMatch(/position\s*:\s*relative/);
+		expect(block).toMatch(/flex\s*:\s*1/);
+		expect(block).toMatch(/min-width\s*:\s*0/);
+		const layer = CSS.match(/\.waveform-markers\s*\{([^}]*)\}/)[1];
+		expect(layer).toMatch(/position\s*:\s*absolute/);
+		// No min-height on the surface either, for the same reason as the container.
+		expect(block.replace(/\/\*[\s\S]*?\*\//g, '')).not.toMatch(/min-height\s*:/);
+	});
+});
