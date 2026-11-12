@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.30.1] — 2026-11-12
+
 ### Fixed
 
 - **A touch scroll that starts on the waveform no longer seeks.** When a touch
