@@ -158,6 +158,26 @@ describe('external-mode setProgress() during a drag', () => {
 	});
 });
 
+describe('pointercancel abandons a scrub (issue #31)', () => {
+	it("doesn't seek, and puts the playhead back", () => {
+		const { el, player } = external({ waveform: [0.5] });
+		player.setProgress(30, 100);
+		const seeks = count(el, 'request-seek');
+
+		player.canvas.dispatchEvent(new MouseEvent('pointerdown', { button: 0 }));
+		player.progress = 0.7; // the scrub preview (jsdom has no layout)
+		player.canvas.dispatchEvent(new MouseEvent('pointercancel'));
+
+		expect(seeks).toHaveLength(0);
+		expect(player.progress).toBeCloseTo(0.3);
+
+		// The drag is over: progress flows again, and the next click isn't swallowed.
+		player.setProgress(40, 100);
+		expect(player.progress).toBeCloseTo(0.4);
+		expect(player._suppressClick).toBeFalsy();
+	});
+});
+
 describe('request-pause is cancelable like request-play', () => {
 	it('keeps currentlyPlaying when the controller vetoes the pause', () => {
 		const { el, player } = external({ url: 'a.mp3' });

@@ -1153,8 +1153,8 @@ export class WaveformPlayer {
 
         // Canvas interactions — click + drag to seek. pointerdown starts a
         // scrub (with pointer capture so moves keep flowing if the cursor
-        // leaves the canvas), pointermove updates it while held, pointerup /
-        // pointercancel end it. The click handler stays for keyboard/synthetic
+        // leaves the canvas), pointermove updates it while held, pointerup
+        // commits it and pointercancel abandons it. The click handler stays for keyboard/synthetic
         // compatibility. In external mode each seek dispatches a cancelable
         // `waveformplayer:request-seek` so the controller positions its audio.
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
@@ -1185,6 +1185,7 @@ export class WaveformPlayer {
         this.canvas.addEventListener('pointerdown', (e) => {
             if (e.pointerType === 'mouse' && e.button !== 0) return; // primary / touch only
             this._dragging = true;
+            this._dragFrom = this.progress; // where to put the playhead back on pointercancel
             try { this.canvas.setPointerCapture(e.pointerId); } catch (err) { /* unsupported */ }
             this._scrubTo(e.clientX);
         });
@@ -1203,12 +1204,24 @@ export class WaveformPlayer {
         const endDrag = (e) => {
             if (!this._dragging) return;
             this._dragging = false;
-            // The browser fires a click after pointerup on a tap/short drag —
-            // flag it so handleCanvasClick ignores it (a second seek from the
-            // synthetic click's coordinate can snap the playhead, e.g. to 0).
-            this._suppressClick = true;
             try { this.canvas.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ }
-            this._seekFromPointer(e.clientX); // commit the seek now — audio jumps once
+            if (e.type === 'pointercancel') {
+                // The browser took the gesture over (a touch that became a page
+                // scroll) — the user didn't pick a position, so don't seek: undo
+                // the scrub preview. Its clientX is meaningless too (Chromium
+                // reports 0). No click follows a cancel, so nothing to suppress.
+                // While playing, the next progress tick refines this (issue #31).
+                this.progress = this._dragFrom;
+                const dur = this.getSeekDuration();
+                if (dur && this.currentTimeEl) this.currentTimeEl.textContent = formatTime(this.progress * dur);
+                this.drawWaveform();
+            } else {
+                // The browser fires a click after pointerup on a tap/short drag —
+                // flag it so handleCanvasClick ignores it (a second seek from the
+                // synthetic click's coordinate can snap the playhead, e.g. to 0).
+                this._suppressClick = true;
+                this._seekFromPointer(e.clientX); // commit the seek now — audio jumps once
+            }
             // Hide the drag tooltip on release, unless hover-time keeps it (or
             // the seekbar handle is being hovered), to avoid a hide/show flicker.
             if (!this._seekHover && !this.options.showHoverTime) this._hideHoverTip();

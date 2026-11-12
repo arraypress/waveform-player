@@ -222,6 +222,9 @@
     transition: opacity 0.3s ease;
     position: relative;
     z-index: 1;
+    /* Vertical swipes scroll the page (the browser cancels the pointer and the
+       scrub is abandoned); horizontal drags stay ours, so touch can scrub. */
+    touch-action: pan-y;
 }
 
 /* Info section */

@@ -1926,6 +1926,7 @@ var WaveformPlayer = class _WaveformPlayer {
     this.canvas.addEventListener("pointerdown", (e) => {
       if (e.pointerType === "mouse" && e.button !== 0) return;
       this._dragging = true;
+      this._dragFrom = this.progress;
       try {
         this.canvas.setPointerCapture(e.pointerId);
       } catch (err) {
@@ -1946,12 +1947,19 @@ var WaveformPlayer = class _WaveformPlayer {
     const endDrag = (e) => {
       if (!this._dragging) return;
       this._dragging = false;
-      this._suppressClick = true;
       try {
         this.canvas.releasePointerCapture(e.pointerId);
       } catch (err) {
       }
-      this._seekFromPointer(e.clientX);
+      if (e.type === "pointercancel") {
+        this.progress = this._dragFrom;
+        const dur = this.getSeekDuration();
+        if (dur && this.currentTimeEl) this.currentTimeEl.textContent = formatTime(this.progress * dur);
+        this.drawWaveform();
+      } else {
+        this._suppressClick = true;
+        this._seekFromPointer(e.clientX);
+      }
       if (!this._seekHover && !this.options.showHoverTime) this._hideHoverTip();
       this._updateSeekHandle();
     };
